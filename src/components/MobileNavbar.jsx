@@ -1,35 +1,44 @@
 // src/components/MobileNavbar.jsx
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Heart, MessageCircle, User } from "lucide-react";
+import { Home, Users, MessageCircle, Video, Bell } from "lucide-react";
 
 function MobileNavbar() {
   const location = useLocation();
 
   const navItems = [
-    { name: "Home", path: "/", icon: Home },
-    { name: "Matches", path: "/matches", icon: Heart },
-    { name: "Messages", path: "/messages", icon: MessageCircle },
-    { name: "Profile", path: "/profile", icon: User },
+    { path: "/", icon: Home, label: "Home" },
+    { path: "/friends", icon: Users, label: "Friends" },
+    { path: "/messages", icon: MessageCircle, label: "Messages" },
+    { path: "/reels", icon: Video, label: "Reels" },
+    { path: "/notifications", icon: Bell, label: "Notifications" },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 p-2 shadow-md z-50">
-      <div className="flex justify-around items-center">
+    <nav className="w-full bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-[0_1px_6px_rgba(0,0,0,0.05)]">
+      <div className="max-w-md mx-auto flex justify-between items-center px-4 py-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
-          const IconComponent = item.icon;
+          const Icon = item.icon;
 
           return (
             <Link
-              key={item.name}
+              key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center text-gray-500 ${
-                isActive ? "text-" : "hover:text-gray-800 transition-colors duration-200"
-              }`}
+              className="flex flex-col items-center justify-center relative group transition"
             >
-              <IconComponent size={24} color={isActive ? "#4f46e5" : "#6b7280"} />
-              <span className="text-xs mt-1 font-medium">{item.name}</span>
+              <div
+                className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 ${
+                  isActive ? "bg-blue-50 shadow-sm scale-105 text-blue-600" : "text-gray-500 hover:text-blue-500"
+                }`}
+              >
+                <Icon size={20} strokeWidth={2} />
+              </div>
+
+              {/* Active indicator */}
+              {isActive && (
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-[3px] bg-blue-600 rounded-full shadow-sm"></span>
+              )}
             </Link>
           );
         })}

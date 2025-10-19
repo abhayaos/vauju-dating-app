@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { LogOut, Edit2, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
+import axios from "axios";
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -9,31 +10,34 @@ function Profile() {
   const [notFound, setNotFound] = useState(false);
   const navigate = useNavigate();
 
+  const token = JSON.parse(localStorage.getItem("token"));
+  const currentUserId = token?._id;
+  const BASE_API = "https://backend-vauju-1.onrender.com/api"; 
+
+  const formatTimestamp = (date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - new Date(date)) / 1000);
+    if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
   useEffect(() => {
-    const token = JSON.parse(localStorage.getItem("token"));
-    if (!token || !token._id) return navigate("/login");
+    if (!token || !currentUserId) {
+      toast.error("Please log in");
+      return navigate("/login");
+    }
 
-    const url =
-      process.env.NODE_ENV === "production"
-        ? `https://backend-vauju-1.onrender.com/api/profile`
-        : `/api/profile`;
-
-    fetch(url, { headers: { "x-user-id": token._id } })
-      .then(async (res) => {
-        if (res.status === 404) {
-          setNotFound(true);
-          return null;
-        }
-        if (!res.ok) {
-          const txt = await res.text().catch(() => "");
-          throw new Error(`Failed to load profile: ${res.status} ${txt}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (!data) return;
-        setUser(data);
-        if (data?.suspended) {
+    const fetchProfile = async () => {
+      try {
+        const res = await axios.get(`${BASE_API}/profile`, {
+          headers: { "x-user-id": currentUserId },
+          timeout: 10000,
+        });
+        setUser(res.data);
+        if (res.data?.suspended) {
           setSuspended(true);
           toast.error("Your account is suspended. Logging out...");
           setTimeout(() => {
@@ -42,17 +46,25 @@ function Profile() {
             navigate("/login");
           }, 1500);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error(err);
-        toast.error("Failed to load profile");
-      });
-  }, [navigate]);
+        if (err.response?.status === 404) {
+          setNotFound(true);
+        } else {
+          toast.error(`Failed to load profile: ${err.message}`);
+        }
+      }
+    };
+
+    fetchProfile();
+  }, [navigate, currentUserId, token]);
 
   if (notFound) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <div className="text-gray-600 text-lg font-medium">Profile not found.</div>
+        <div className="text-gray-600 text-lg font-medium bg-white p-6 rounded-xl shadow-md">
+          Profile not found 😕
+        </div>
       </div>
     );
   }
@@ -60,7 +72,11 @@ function Profile() {
   if (!user) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <div className="text-gray-600 text-lg font-medium animate-pulse">
+        <div className="text-gray-500 text-lg font-medium animate-pulse flex items-center gap-2">
+          <svg className="animate-spin h-6 w-6 text-pink-500" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+          </svg>
           Loading profile...
         </div>
       </div>
@@ -68,116 +84,82 @@ function Profile() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-8 bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center pt-16 pb-8">
       <Toaster position="top-center" />
+
       {suspended && (
-        <div className="max-w-5xl mx-auto mb-4 p-3 text-center bg-yellow-50 text-yellow-700 text-sm font-medium">
-          Your account is suspended. You are being logged out.
+        <div className="w-11/12 max-w-md mb-4 p-4 text-center bg-red-50 text-red-600 text-sm font-medium rounded-xl shadow-sm">
+          Your account is suspended. Logging out... 😔
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto">
-        {/* Profile Header */}
-        <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6 pb-6">
-          {/* Profile Pic */}
-          <div className="w-20 h-20 sm:w-28 sm:h-28">
-            <img
-              src={
-                user.profilePic ||
-                "https://cdn-icons-png.flaticon.com/512/847/847969.png"
-              }
-              alt="Profile"
-              className="w-full h-full rounded-full object-cover"
-            />
+      <div className="w-11/12 sm:w-96 bg-white rounded-xl shadow-md p-6 flex flex-col items-center">
+        {/* Profile Image */}
+        <div className="relative mb-4">
+          <img
+            src={user.profilePic || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
+            alt="Profile"
+            className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-gray-200 object-cover shadow-sm hover:scale-105 transition-transform duration-200"
+          />
+        </div>
+
+        {/* Name & Verified */}
+        <div className="flex items-center gap-2 mb-1">
+          <h2 className="text-2xl font-bold text-gray-900">{user.name}</h2>
+          {user.isBlueTick && (
+            <div className="group relative">
+              <CheckCircle size={18} className="text-blue-500" />
+              <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs px-2 py-1 rounded -top-7 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                Verified
+              </span>
+            </div>
+          )}
+        </div>
+
+        <p className="text-gray-500 text-sm mb-4">@{user.username}</p>
+
+        {/* Stats */}
+        <div className="flex justify-around w-full mb-4 bg-gray-100 p-3 rounded-xl">
+          <div className="text-center">
+            <span className="block text-lg font-semibold text-gray-900">{user.postsCount || 0}</span>
+            <span className="text-xs text-gray-500">Posts</span>
           </div>
-
-          {/* Name, Username, and Stats */}
-          <div className="flex-1 text-center sm:text-left">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="flex items-center justify-center sm:justify-start gap-2">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">
-                  {user.name}
-                </h2>
-                {user.isBlueTick && (
-                  <div className="group relative">
-                    <CheckCircle
-                      size={18}
-                      className="text-blue-500"
-                    />
-                    <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs font-medium px-2 py-1 rounded-md -top-8 left-1/2 transform -translate-x-1/2">
-                      Verified
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-2 justify-center sm:justify-start">
-                <button
-                  onClick={() => navigate("/editprofile")}
-                  className="flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-gray-200 transition"
-                >
-                  <Edit2 size={14} /> Edit Profile
-                </button>
-                <button
-                  onClick={() => {
-                    localStorage.removeItem("token");
-                    window.dispatchEvent(new Event("authChange"));
-                    navigate("/login");
-                  }}
-                  className="flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-gray-200 transition"
-                >
-                  <LogOut size={14} /> Logout
-                </button>
-              </div>
-            </div>
-            <p className="text-gray-500 text-sm mt-1">@{user.username}</p>
-
-            {/* Follower Stats */}
-            <div className="flex gap-6 mt-4 text-sm text-gray-800 justify-center sm:justify-start">
-              <p>
-                <span className="font-semibold">{user.postsCount || 0}</span>{" "}
-                posts
-              </p>
-              <p>
-                <span className="font-semibold">{user.followers || 0}</span>{" "}
-                followers
-              </p>
-              <p>
-                <span className="font-semibold">{user.following || 0}</span>{" "}
-                following
-              </p>
-            </div>
-
-            {/* Bio */}
-            {user.bio && (
-              <p className="mt-3 text-gray-700 text-sm font-medium leading-snug">
-                {user.bio}
-              </p>
-            )}
+          <div className="text-center">
+            <span className="block text-lg font-semibold text-gray-900">{user.likes || 0}</span>
+            <span className="text-xs text-gray-500">Likes</span>
+          </div>
+          <div className="text-center">
+            <span className="block text-lg font-semibold text-gray-900">{user.matches || 0}</span>
+            <span className="text-xs text-gray-500">Matches</span>
           </div>
         </div>
 
-        {/* Details Section */}
-        <div className="mt-6 space-y-2 text-gray-700 text-sm font-medium text-center sm:text-left">
-          <p>
-            <span className="font-semibold">Age:</span> {user.age || "-"}
-          </p>
-          <p>
-            <span className="font-semibold">Gender:</span> {user.gender || "-"}
-          </p>
-          <p>
-            <span className="font-semibold">Location:</span>{" "}
-            {user.location || "-"}
-          </p>
-          {user.interests?.length > 0 && (
-            <p>
-              <span className="font-semibold">Interests:</span>{" "}
-              {user.interests.join(", ")}
-            </p>
-          )}
+        {/* Bio */}
+        {user.bio && (
+          <p className="text-gray-700 text-center text-sm font-medium mb-4">{user.bio}</p>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row justify-center gap-3 w-full">
+          <button
+            onClick={() => navigate("/editprofile")}
+            className="flex-1 border border-gray-300 text-gray-900 px-4 py-2 rounded-full text-sm font-semibold hover:bg-gray-100 transition"
+          >
+            Edit Profile
+          </button>
+          <button
+            onClick={() => {
+              localStorage.removeItem("token");
+              window.dispatchEvent(new Event("authChange"));
+              navigate("/login");
+            }}
+            className="flex-1 border border-gray-300 text-gray-900 px-4 py-2 rounded-full text-sm font-semibold hover:bg-gray-100 transition"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </div>
-    
   );
 }
 

@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 backend-vauju
+img-vauju-app
+
 
 # Editor directories and files
 .vscode/*

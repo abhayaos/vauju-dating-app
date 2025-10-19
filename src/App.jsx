@@ -21,16 +21,27 @@ import ManageUser from "./Admin/ManageUsers";
 import Support from "./pages/Support";
 import HallOfFame from "./pages/HallOfFame";
 import PageNotFound from "./pages/PageNotFound";
-import Bug from "./Halloffame/Mandip/Bug";
+import Community from "./pages/Community";
+import Working from "./temp/Working";
+import MandipBlog from "./Halloffame/Mandip/Bug"; // <-- Adjusted path
+import Explore from "./pages/Explore"
+import Notification from "./pages/Notification";
 
 import "./App.css";
 
 function App() {
   const location = useLocation();
 
-  const hideLayout =
-    ["/login", "/register", "/messages", "/admin/login"].includes(location.pathname) ||
-    location.pathname.startsWith("/messages/");
+  // Pages where we hide header/navbar
+  const hideLayout = [
+    "/login",
+    "/register",
+    "/messages",
+    "/admin/login",
+    "/working",
+    "/hall-of-fame/bounty/user/mandip",
+    "/hall-of-fame",
+  ].includes(location.pathname) || location.pathname.startsWith("/messages/");
 
   return (
     <div className="App flex flex-col min-h-screen relative text-black bg-white">
@@ -42,6 +53,10 @@ function App() {
           <div className="hidden md:block">
             <Navbar />
           </div>
+
+        <div className="md:hidden">
+          <MobileNavbar />
+        </div>
         </>
       )}
 
@@ -62,16 +77,16 @@ function App() {
           <Route path="/admin/suspend" element={<SuspendUsers />} />
           <Route path="/admin/manage-users" element={<ManageUser />} />
           <Route path="/hall-of-fame" element={<HallOfFame />} />
-          <Route path="/community/hall-of-fame/bug" element={<Bug />} />
+          <Route path="/hall-of-fame/bounty/user/mandip" element={<MandipBlog />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/working" element={<Working />} />
+           <Route path="/explore" element={<Explore />} />
+          <Route path="/notifications" element={<Notification />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </main>
 
-      {!hideLayout && (
-        <div className="md:hidden">
-          <MobileNavbar />
-        </div>
-      )}
+
     </div>
   );
 }
