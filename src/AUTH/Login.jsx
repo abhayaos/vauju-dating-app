@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
+import { Mail, Lock } from "lucide-react"; // Icons
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -10,23 +11,23 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!email || !password) {
       toast.error("⚠️ Please fill in all fields!");
       return;
     }
 
     setLoading(true);
-
     try {
-      const res = await fetch("https://backend-vauju-1.onrender.com/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await fetch(
+        "https://backend-vauju-1.onrender.com/api/auth/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       const data = await res.json();
-
       if (!res.ok) {
         toast.error(data.message || "Invalid credentials 😔");
         setLoading(false);
@@ -34,21 +35,13 @@ function Login() {
       }
 
       toast.success("🎉 Logged in successfully!");
-      console.log("Login success:", data.user);
-
-      // Persist auth state for Navbar and other components
-      try {
-        // store user object (or token if backend provides one) under 'token'
-        localStorage.setItem("token", JSON.stringify(data.user || data.token || true));
-        // notify other components (same tab) that auth changed
-        window.dispatchEvent(new Event("authChange"));
-      } catch (err) {
-        console.warn("Could not persist auth state:", err);
-      }
-
-      // Redirect after short delay
+      localStorage.setItem(
+        "token",
+        JSON.stringify(data.user || data.token || true)
+      );
+      window.dispatchEvent(new Event("authChange"));
       setTimeout(() => navigate("/profile"), 1500);
-    } catch (err) {
+    } catch {
       toast.error("🚨 Server error! Try again later.");
     } finally {
       setLoading(false);
@@ -56,50 +49,41 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      {/* Hot Toast Container */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 px-4">
       <Toaster position="top-center" reverseOrder={false} />
 
-      <div className="bg-white shadow-lg rounded-xl w-full max-w-md p-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-          Welcome Back
+      <div className="bg-white/90 backdrop-blur-md shadow-2xl rounded-3xl w-full max-w-md p-10 border border-gray-200">
+        <h2 className="text-4xl font-bold text-gray-800 mb-4 text-center tracking-tight">
+          AuraMeet
         </h2>
-        <p className="text-gray-500 mb-4 text-center">
-          Log in to your HeartConnect account
+        <p className="text-gray-500 mb-8 text-center">
+          Log in to connect with People with Auraa 💖
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
           {/* Email */}
-          <div>
-            <label className="block text-gray-700 mb-2" htmlFor="email">
-              Email
-            </label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-3 text-gray-400" />
             <input
               type="email"
-              id="email"
-              placeholder="you@example.com"
+              placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              autoComplete="off"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
             />
           </div>
 
           {/* Password */}
-          <div>
-            <label className="block text-gray-700 mb-2" htmlFor="password">
-              Password
-            </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-3 text-gray-400" />
             <input
               type="password"
-              id="password"
-              placeholder="Enter your password"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              autoComplete="off"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
             />
           </div>
 
@@ -107,7 +91,7 @@ function Login() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full flex justify-center items-center bg-indigo-600 text-white py-3 rounded-lg transition font-semibold hover:bg-indigo-700 ${
+            className={`w-full flex justify-center items-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transform transition-all ${
               loading ? "opacity-70 cursor-not-allowed" : ""
             }`}
           >
@@ -141,7 +125,7 @@ function Login() {
           Don’t have an account?{" "}
           <Link
             to="/register"
-            className="text-indigo-600 hover:underline font-medium"
+            className="text-purple-600 font-semibold hover:underline"
           >
             Sign Up
           </Link>

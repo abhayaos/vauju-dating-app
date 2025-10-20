@@ -1,27 +1,43 @@
-import React from 'react';
-import { Search, Menu, Plus } from 'lucide-react';
+import React from "react";
+import { Search, Menu, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function Header() {
+  const navigate = useNavigate();
+
   return (
     <header className="bg-white  p-3 flex items-center sticky top-0 z-50">
       {/* Logo / App Name */}
-      <h1 className="text-xl font-bold text-black transition-colors">
+      <h1
+        onClick={() => navigate("/")}
+        className="text-xl font-bold text-black  cursor-pointer select-none"
+      >
         AuraMeet
       </h1>
+
       {/* Icons on the right */}
-      <div className="flex ml-auto items-center space-x-4">
-        {/* Search Icon */}
-        <button className="bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-shadow shadow-sm">
+      <div className="flex ml-auto items-center space-x-3">
+        {/* Search */}
+        <button
+          onClick={() => navigate("/search")}
+          className="bg-gray-100  hover:bg-gray-200  p-2 rounded-full transition-all duration-200"
+        >
           <Search size={20} />
         </button>
 
-        {/* Add / Plus Icon */}
-        <button className="bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-shadow shadow-sm">
+        {/* Create / Add */}
+        <button
+          onClick={() => navigate("/create")}
+          className="bg-gray-100  hover:bg-gray-200 p-2 rounded-full transition-all duration-200"
+        >
           <Plus size={20} />
         </button>
 
-        {/* Menu / Hamburger Icon */}
-        <button className="bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-shadow shadow-sm">
+        {/* Menu / Navigation */}
+        <button
+          onClick={() => navigate("/hamvav")}
+          className="bg-gray-100  hover:bg-gray-200 p-2 rounded-full transition-all duration-200"
+        >
           <Menu size={20} />
         </button>
       </div>

@@ -409,7 +409,7 @@ function Messages() {
   }, []);
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen bg-white ">
       <Toaster position="top-right" />
 
       {/* Left Section */}
@@ -419,12 +419,7 @@ function Messages() {
         }`}
       >
  <div className="flex items-center bg-gray-50 border-b border-gray-300 px-4 py-3">
- <button 
-  onClick={goToHome} // ✅ capital C
-  className="p-2 rounded-full hover:bg-gray-200 transition"
->
-  <ArrowLeft className="h-6 w-6 cursor-pointer text-gray-700" />
-</button>
+
 
   <h2 className="flex-1 text-center text-lg font-semibold text-gray-900">
     Chats
@@ -610,9 +605,10 @@ function Messages() {
             </footer>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-400 text-center px-4">
-            Select a user to start chatting 💬
-          </div>
+          <div className="hidden md:flex items-center justify-center h-full text-gray-400 text-center px-4">
+  Select a user to start chatting 💬
+</div>
+
         )}
       </main>
     </div>

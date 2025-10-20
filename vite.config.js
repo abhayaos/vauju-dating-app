@@ -1,11 +1,66 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: {
+        name: 'AuraMeet',
+        short_name: 'AuraMeet',
+        description: 'Connect and meet with your community easily 🌐',
+        theme_color: '#ffffff',
+        background_color: '#000000',
+        display: 'standalone',
+        start_url: '/',
+        icons: [
+          {
+            src: '/icons/icon-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: '/icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+          {
+            src: '/icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
+      },
+      workbox: {
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.destination === 'document',
+            handler: 'NetworkFirst',
+          },
+          {
+            urlPattern: ({ request }) => request.destination === 'image',
+            handler: 'CacheFirst',
+          },
+        ],
+        // 👇 Ignore known ad/network URLs to reduce console errors
+        navigateFallbackDenylist: [
+          /pagead\//,
+          /adsbygoogle\.js/,
+          /doubleclick\.net/,
+          /adservice\.google\.com/,
+          /adtrafficquality\.google/,
+        ],
+      },
+    }),
+  ],
+
   server: {
     proxy: {
       '/api': {
@@ -15,21 +70,21 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '/api'),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
-            console.log('proxy error', err);
+            console.log('Proxy error:', err);
           });
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Sending Request to the Target:', req.method, req.url);
+            console.log('➡️ Sending Request:', req.method, req.url);
           });
           proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+            console.log('✅ Response from Target:', proxyRes.statusCode, req.url);
           });
         },
       },
     },
-    // This is the key part to fix /@:username 404s
-    historyApiFallback: true, // all unknown routes fallback to index.html
+    historyApiFallback: true, // fixes /@:username 404 issue
   },
+
   build: {
     rollupOptions: {},
-  }
+  },
 });

@@ -16,8 +16,9 @@ function Community() {
         {
           id: 1,
           title: "App Update ✅",
-          content:
-            "The app is working properly! 🎉 Note: Messaging feature is currently under maintenance. We're actively fixing it and it will be back soon. Thanks for your patience! 💖",
+          content: `The app is working properly! 🎉
+Note: The messaging feature is currently under maintenance. We're actively fixing it and it will be back soon.
+Thanks for your patience! 💖`,
           author: "Admin",
           createdAt: new Date(),
         },
@@ -25,6 +26,16 @@ function Community() {
           id: 2,
           title: "Dating Tips 💘",
           content: "Always be yourself 😎",
+          author: "Admin",
+          createdAt: new Date(),
+        },
+        {
+          id: 3,
+          title: "Recent Issues!",
+          content: `We are currently working on the Messages page. Due to certain backend and frontend issues, some professional icons have been temporarily removed from Message.jsx.
+
+Please ensure you review our Terms and Conditions at vauju.vercel.app.
+If you are accessing the site via mobile, you can find it by tapping the three-line menu icon located at the top right corner beside the logo.`,
           author: "Admin",
           createdAt: new Date(),
         },
@@ -45,6 +56,33 @@ function Community() {
       minute: "2-digit",
     });
     return `${dateStr} at ${timeStr}`;
+  };
+
+  // Read more / less component
+  const PostContent = ({ content }) => {
+    const words = content.split(" ");
+    const [expanded, setExpanded] = useState(false);
+    const shouldTruncate = words.length > 30;
+
+    const displayedText = expanded
+      ? content
+      : words.slice(0, 30).join(" ") + (shouldTruncate ? "..." : "");
+
+    return (
+      <div className="text-gray-700 mb-4 whitespace-pre-wrap">
+        <pre className="font-sans whitespace-pre-wrap break-words text-gray-700 text-[15px] leading-relaxed">
+          {displayedText}
+        </pre>
+        {shouldTruncate && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-pink-500 font-medium hover:underline mt-1"
+          >
+            {expanded ? "Read Less" : "Read More"}
+          </button>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -88,7 +126,8 @@ function Community() {
                 About AuraMeet 💖
               </h2>
               <p className="text-gray-700 text-lg mb-4 leading-relaxed">
-                Welcome to <span className="font-semibold text-pink-500">AuraMeet</span> — 
+                Welcome to{" "}
+                <span className="font-semibold text-pink-500">AuraMeet</span> — 
                 Nepal’s first dating platform built to connect hearts with trust and tech.  
                 Created with passion by <b>Abhaya Bikram Shahi</b>.
               </p>
@@ -104,9 +143,15 @@ function Community() {
                   🎯 Our Campaigns
                 </h3>
                 <p className="text-gray-700 text-lg">
-                  💘 For <b>Males:</b> <span className="text-pink-500 font-semibold">"Vauju Khoj Abhiyan"</span>
+                  💘 For <b>Males:</b>{" "}
+                  <span className="text-pink-500 font-semibold">
+                    "Vauju Khoj Abhiyan"
+                  </span>
                   <br />
-                  💞 For <b>Females:</b> <span className="text-pink-500 font-semibold">"Vinaju Khoj Abhiyan"</span>
+                  💞 For <b>Females:</b>{" "}
+                  <span className="text-pink-500 font-semibold">
+                    "Vinaju Khoj Abhiyan"
+                  </span>
                 </p>
               </div>
 
@@ -132,7 +177,7 @@ function Community() {
                   <h2 className="text-xl font-semibold text-gray-800 mb-2">
                     {post.title}
                   </h2>
-                  <p className="text-gray-600 mb-4">{post.content}</p>
+                  <PostContent content={post.content} />
                   <div className="flex justify-between items-center text-sm text-gray-500">
                     <span>By {post.author}</span>
                     <span>Uploaded: {formatDateTime(post.createdAt)}</span>

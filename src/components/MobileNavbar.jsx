@@ -1,14 +1,15 @@
 // src/components/MobileNavbar.jsx
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, } from "react-router-dom";
 import { Home, Users, MessageCircle, Video, Bell } from "lucide-react";
 
 function MobileNavbar() {
   const location = useLocation();
 
+
   const navItems = [
     { path: "/", icon: Home, label: "Home" },
-    { path: "/friends", icon: Users, label: "Friends" },
+    { path: "/matches", icon: Users, label: "Friends" },
     { path: "/messages", icon: MessageCircle, label: "Messages" },
     { path: "/reels", icon: Video, label: "Reels" },
     { path: "/notifications", icon: Bell, label: "Notifications" },
