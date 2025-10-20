@@ -1,37 +1,37 @@
 // src/pages/Explore.jsx
-import React from "react";
+import React from 'react'
+import Baddie from '../explore-imgs/baddie.png'
+import Ghosts from '../explore-imgs/ghosts.png'
+import PP from '../explore-imgs/pp.png'
+import Readers from '../explore-imgs/readers.png'
+import Sigma from '../explore-imgs/sigma.png'
 
 function Explore() {
-  // Sample images (random placeholder)
-  const images = Array.from({ length: 30 }, (_, i) => `https://picsum.photos/300/300?random=${i}`);
+  const images = [Baddie, Ghosts, PP, Readers, Sigma]
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 px-2 sm:px-4">
-      {/* Hero / Title */}
-      <div className="text-center mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Explore 🔍</h1>
-        <p className="text-gray-600 text-sm sm:text-base">
-          Discover photos and connect with amazing people.
-        </p>
-      </div>
-
-      {/* Grid of images */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 md:p-8 flex flex-col items-center">
+      
+      {/* Flex + Grid layout */}
+      <div className="flex flex-wrap justify-center gap-4 w-full">
         {images.map((src, index) => (
           <div
             key={index}
-            className="relative w-full pb-full overflow-hidden rounded-lg group cursor-pointer"
+            className={`overflow-hidden rounded-lg cursor-pointer transition-transform duration-300 transform hover:scale-105 ${
+              index % 3 === 0 ? 'w-full sm:w-1/2 md:w-1/3' : 'w-1/2 sm:w-1/3 md:w-1/4'
+            }`}
           >
             <img
               src={src}
               alt={`Explore ${index}`}
-              className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-300 transform group-hover:scale-110"
+              className="w-full h-48 object-cover"
             />
           </div>
         ))}
       </div>
+      
     </div>
-  );
+  )
 }
 
-export default Explore;
+export default Explore

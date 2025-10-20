@@ -11,7 +11,6 @@ function MobileNavbar() {
     { path: "/", icon: Home, label: "Home" },
     { path: "/matches", icon: Users, label: "Friends" },
     { path: "/messages", icon: MessageCircle, label: "Messages" },
-    { path: "/reels", icon: Video, label: "Reels" },
     { path: "/notifications", icon: Bell, label: "Notifications" },
   ];
 

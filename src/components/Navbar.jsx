@@ -9,13 +9,12 @@ import Logo from "../assets/logo.png";
 import {
   Home,
   MessageSquare,
-  MessageCircle,
+  Podcast,
   Users,
   User,
   LogOut,
   LogIn,
   UserPlus,
-  PlayCircle,
 } from "lucide-react";
 
 function XSidebar() {
@@ -76,10 +75,9 @@ function XSidebar() {
 
   const navItems = [
     { path: "/", icon: <Home size={22} />, label: "Home" },
-    { path: "/reels", icon: <PlayCircle size={22} />, label: "Reels" },
     { path: "/matches", icon: <Users size={22} />, label: "Matches" },
     { path: "/messages", icon: <MessageSquare size={22} />, label: "Messages" },
-    { path: "/private", icon: <MessageCircle size={22} />, label: "Private Chat" },
+    { path: "/private", icon: <Podcast size={22} />, label: "Private Space" },
     {
       path: "/support",
       icon: (

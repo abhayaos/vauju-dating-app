@@ -28,7 +28,6 @@ import Explore from "./pages/Explore"
 import Notification from "./pages/Notification";
 import HamNav from "./MobileLayouyt/HamNav"
 import Create from "./MobileLayouyt/Create"
-import ReelPage from "./pages/Reels";
 import TermAndCondition from "./pages/TermAndCondition";
 
 import "./App.css";
@@ -88,7 +87,6 @@ function App() {
           <Route path="/notifications" element={<Notification />} />
            <Route path="/create" element={<Create />} />
           <Route path="/hamvav" element={<HamNav />} />
-           <Route path="/reels" element={<ReelPage />} />
            <Route path="/term-and-conditions" element={<TermAndCondition />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
