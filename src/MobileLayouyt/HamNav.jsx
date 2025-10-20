@@ -42,7 +42,7 @@ function HamNav() {
   };
 
   return (
-    <div className="bg-gray-50 md:ml-64 ml-0 min-h-screen text-gray-800 transition-all duration-300 flex flex-col justify-between">
+    <div className="bg-gray-50 md:ml-20 ml-0 min-h-screen text-gray-800 transition-all duration-300 flex flex-col justify-between">
 
       {/* User Section */}
       {isLoggedIn && user && (

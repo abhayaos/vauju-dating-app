@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Components
 import Header from "./components/Header";
@@ -23,30 +24,52 @@ import HallOfFame from "./pages/HallOfFame";
 import PageNotFound from "./pages/PageNotFound";
 import Community from "./pages/Community";
 import Working from "./temp/Working";
-import MandipBlog from "./Halloffame/Mandip/Bug"; // <-- Adjusted path
-import Explore from "./pages/Explore"
+import MandipBlog from "./Halloffame/Mandip/Bug";
+import Explore from "./pages/Explore";
 import Notification from "./pages/Notification";
-import HamNav from "./MobileLayouyt/HamNav"
-import Create from "./MobileLayouyt/Create"
+import HamNav from "./MobileLayouyt/HamNav";
+import Create from "./MobileLayouyt/Create";
 import TermAndCondition from "./pages/TermAndCondition";
 
 import "./App.css";
 
 function App() {
   const location = useLocation();
+  const [loading, setLoading] = useState(false);
 
-  // Pages where we hide header/navbar
-  const hideLayout = [
-    "/login",
-    "/register",
-    "/admin/login",
-    "/working",
-    "/hall-of-fame/bounty/user/mandip",
-    "/hall-of-fame",
-  ].includes(location.pathname) || location.pathname.startsWith("/messages/");
+  // Detect route change
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 800); // loader lasts for 0.8s
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
+  const hideLayout =
+    [
+      "/login",
+      "/register",
+      "/admin/login",
+      "/working",
+      "/hall-of-fame/bounty/user/mandip",
+      "/hall-of-fame",
+    ].includes(location.pathname) || location.pathname.startsWith("/messages/");
 
   return (
     <div className="App flex flex-col min-h-screen relative text-black bg-white">
+      {/* 🔥 Top Loading Bar */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            key="loader"
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.7, ease: "easeInOut" }}
+            className="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 z-[9999]"
+          />
+        )}
+      </AnimatePresence>
+
       {!hideLayout && (
         <>
           <div className="block md:hidden">
@@ -55,10 +78,9 @@ function App() {
           <div className="hidden md:block">
             <Navbar />
           </div>
-
-        <div className="md:hidden">
-          <MobileNavbar />
-        </div>
+          <div className="md:hidden">
+            <MobileNavbar />
+          </div>
         </>
       )}
 
@@ -79,19 +101,23 @@ function App() {
           <Route path="/admin/suspend" element={<SuspendUsers />} />
           <Route path="/admin/manage-users" element={<ManageUser />} />
           <Route path="/hall-of-fame" element={<HallOfFame />} />
-          <Route path="/hall-of-fame/bounty/user/mandip" element={<MandipBlog />} />
+          <Route
+            path="/hall-of-fame/bounty/user/mandip"
+            element={<MandipBlog />}
+          />
           <Route path="/community" element={<Community />} />
           <Route path="/working" element={<Working />} />
-           <Route path="/explore" element={<Explore />} />
+          <Route path="/explore" element={<Explore />} />
           <Route path="/notifications" element={<Notification />} />
-           <Route path="/create" element={<Create />} />
+          <Route path="/create" element={<Create />} />
           <Route path="/hamvav" element={<HamNav />} />
-           <Route path="/term-and-conditions" element={<TermAndCondition />} />
+          <Route
+            path="/term-and-conditions"
+            element={<TermAndCondition />}
+          />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </main>
-
-
     </div>
   );
 }
