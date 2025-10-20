@@ -40,7 +40,6 @@ function App() {
     "/login",
     "/register",
     "/admin/login",
-    "/messages",
     "/working",
     "/hall-of-fame/bounty/user/mandip",
     "/hall-of-fame",

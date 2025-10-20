@@ -470,7 +470,7 @@ function Messages() {
       >
         {selectedUser ? (
           <>
-            <header className="flex items-center justify-between p-3 border-b border-b-[#ccc] bg-white/90 backdrop-blur sticky top-0 z-10">
+            <header className="flex items-center justify-between p-3 border-b border-b-[#ccc] bg-white/90 backdrop-blur sticky top-0 ">
               <div className="flex items-center">
                 <button
                   onClick={() => {
