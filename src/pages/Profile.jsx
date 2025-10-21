@@ -4,6 +4,8 @@ import toast, { Toaster } from "react-hot-toast";
 import { CheckCircle } from "lucide-react";
 import { validateToken, decodeJWT, clearAuthData } from "../utils/auth";
 
+const BASE_API = "https://backend-vauju-1.onrender.com/api";
+
 function Profile() {
   const [user, setUser] = useState(null);
   const [suspended, setSuspended] = useState(false);
@@ -16,141 +18,131 @@ function Profile() {
   const token = localStorage.getItem("token");
   const payload = token ? decodeJWT(token) : null;
   const currentUserId = payload?._id;
-  const BASE_API = "https://backend-vauju-1.onrender.com/api"; // Use local backend for development
+
+  // Attempt to refresh token if expired
+  const refreshToken = async () => {
+    try {
+      const res = await fetch(`${BASE_API}/auth/refresh-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // If backend uses cookies for refresh tokens
+      });
+      if (res.ok) {
+        const { token } = await res.json();
+        localStorage.setItem("token", token);
+        console.log("Token refreshed successfully");
+        return token;
+      }
+      throw new Error("Token refresh failed");
+    } catch (err) {
+      console.error("Token refresh error:", err);
+      return null;
+    }
+  };
 
   useEffect(() => {
-    const tryFetchProfile = async (url, headers = {}) => {
-      console.log(`Trying to fetch from: ${url}`);
-      const res = await fetch(url, { headers });
-      console.log(`Response status: ${res.status}`);
-      
-      if (res.ok) {
-        const data = await res.json();
-        console.log("Success! Profile data:", data);
-        return data;
-      }
-      
-      if (res.status === 401) {
-        throw new Error('UNAUTHORIZED');
-      }
-      
-      return null;
-    };
-
     const fetchProfile = async () => {
       try {
-        let possibleUrls = [];
+        let url = "";
         let headers = {};
-        
-        // Debug URL parameters
-        console.log('URL Params:', { username, id });
-        console.log('Current URL:', window.location.pathname);
-        
-        // Check if viewing someone else's profile by username or ID
+        let profileData = null;
+
+        console.log("URL Params:", { username, id });
+        console.log("Current URL:", window.location.pathname);
+
         if (username) {
-          // Public profile view by username - try different API endpoints
-          console.log('Fetching profile for username:', username);
-          possibleUrls = [
-            `${BASE_API}/users/@${username}`,
-            `${BASE_API}/profile/${username}`,
-            `${BASE_API}/users/username/${username}`,
-            `${BASE_API}/user/${username}`,
-            `${BASE_API}/users?username=${username}`,
-            `https://backend-vauju-1.onrender.com/@${username}`  // Direct route
-          ];
+          // Public profile view by username
+          console.log("Fetching profile for username:", username);
+          url = `${BASE_API}/users/username/${username}`; // Use a single, reliable endpoint
           setIsOwnProfile(false);
         } else if (id) {
           // Public profile view by ID
-          console.log('Fetching profile for ID:', id);
-          possibleUrls = [
-            `${BASE_API}/users/${id}`,
-            `${BASE_API}/profile/${id}`,
-            `${BASE_API}/user/${id}`
-          ];
+          console.log("Fetching profile for ID:", id);
+          url = `${BASE_API}/users/${id}`; // Use a single, reliable endpoint
           setIsOwnProfile(false);
         } else {
-          // Own profile view - requires authentication
+          // Own profile view
           if (!token) {
             console.warn("No token found, redirecting to login");
             toast.error("Please log in to view your profile");
             navigate("/login", { replace: true });
             return;
           }
-          
-          if (!validateToken(token)) {
-            console.warn("Invalid or expired token, redirecting to login");
-            toast.error("Session expired. Please log in again.");
-            clearAuthData();
-            navigate("/login", { replace: true });
-            return;
-          }
-          
-          if (!currentUserId) {
-            console.warn("No user ID found in token, redirecting to login");
-            toast.error("Invalid session. Please log in again.");
-            clearAuthData();
-            navigate("/login", { replace: true });
-            return;
-          }
 
-          headers = { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'x-auth-token': token,
-            'token': token
-          };
-          
-          possibleUrls = [
-            `${BASE_API}/auth/me`,
-            `${BASE_API}/users/me`,
-            `${BASE_API}/profile/me`,
-            `${BASE_API}/user/me`,
-            `${BASE_API}/profile`
-          ];
-          setIsOwnProfile(true);
-        }
-        
-        // Try each URL until one works
-        let profileData = null;
-        for (const url of possibleUrls) {
-          try {
-            profileData = await tryFetchProfile(url, headers);
-            if (profileData) {
-              break;
-            }
-          } catch (err) {
-            if (err.message === 'UNAUTHORIZED') {
+          if (!validateToken(token)) {
+            console.warn("Invalid or expired token, attempting refresh");
+            const newToken = await refreshToken();
+            if (!newToken) {
               toast.error("Session expired. Please log in again.");
               clearAuthData();
               navigate("/login", { replace: true });
               return;
             }
-            // Continue to next URL
+          }
+
+          if (!currentUserId) {
+            console.warn("No user ID in token, attempting refresh");
+            const newToken = await refreshToken();
+            if (!newToken || !decodeJWT(newToken)?._id) {
+              toast.error("Invalid session. Please log in again.");
+              clearAuthData();
+              navigate("/login", { replace: true });
+              return;
+            }
+          }
+
+          headers = { Authorization: `Bearer ${token}` };
+          url = `${BASE_API}/profile/me`; // Use a single endpoint for own profile
+          setIsOwnProfile(true);
+        }
+
+        console.log(`Fetching from: ${url}`);
+        const res = await fetch(url, { headers });
+
+        if (!res.ok) {
+          if (res.status === 401 && isOwnProfile) {
+            console.warn("401 Unauthorized, attempting token refresh");
+            const newToken = await refreshToken();
+            if (newToken) {
+              const retryRes = await fetch(url, {
+                headers: { Authorization: `Bearer ${newToken}` },
+              });
+              if (retryRes.ok) {
+                profileData = await retryRes.json();
+              } else {
+                throw new Error("Retry failed after token refresh");
+              }
+            } else {
+              toast.error("Session expired. Please log in again.");
+              clearAuthData();
+              navigate("/login", { replace: true });
+              return;
+            }
+          } else if (res.status === 404) {
+            console.error("Profile not found");
+            setNotFound(true);
+            toast.error("Profile not found");
+            return;
+          } else {
+            throw new Error(`Server error: ${res.status}`);
           }
         }
-        
-        if (!profileData) {
-          console.error('All profile endpoints failed');
-          setNotFound(true);
-          toast.error("Profile not found");
-          return;
-        }
+
+        profileData = await res.json();
+        console.log("Success! Profile data:", profileData);
 
         setUser(profileData);
 
         if (profileData?.suspended) {
           setSuspended(true);
           if (isOwnProfile) {
-            toast.error("Your account is suspended. Logging out...");
-            setTimeout(() => {
-              localStorage.removeItem("token");
-              navigate("/login", { replace: true });
-            }, 1500);
+            toast.error("Your account is suspended. Please contact support.");
+            // Don't auto-logout; let user see the message
           }
         }
       } catch (err) {
         console.error("Fetch profile error:", err);
-        toast.error("Failed to load profile: " + err.message);
+        toast.error("Failed to load profile: " + (err.message || "unknown"));
         setNotFound(true);
       }
     };
@@ -171,33 +163,54 @@ function Profile() {
 
     try {
       setUploading(true);
+      let currentToken = localStorage.getItem("token");
+      if (!currentToken || !validateToken(currentToken)) {
+        currentToken = await refreshToken();
+        if (!currentToken) {
+          toast.error("Session expired. Please log in again.");
+          clearAuthData();
+          navigate("/login", { replace: true });
+          return;
+        }
+      }
+
       const formData = new FormData();
       formData.append("profilePic", file);
 
       const res = await fetch(`${BASE_API}/profile/upload`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${currentToken}` },
         body: formData,
       });
 
-      if (res.status === 401) {
-        const errorBody = await res.text().catch(() => "No response body");
-        console.error("Unauthorized: Session expired during upload", {
-          status: res.status,
-          statusText: res.statusText,
-          response: errorBody,
-        });
-        toast.error("Session expired. Please log in again.");
-        localStorage.removeItem("token");
-        navigate("/login", { replace: true });
-        return;
-      }
-
-      const data = await res.json();
       if (!res.ok) {
+        if (res.status === 401) {
+          console.warn("401 Unauthorized during upload, attempting refresh");
+          currentToken = await refreshToken();
+          if (currentToken) {
+            const retryRes = await fetch(`${BASE_API}/profile/upload`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${currentToken}` },
+              body: formData,
+            });
+            if (retryRes.ok) {
+              const data = await retryRes.json();
+              setUser((prev) => ({ ...prev, profilePic: data.url }));
+              toast.success("Profile picture updated!");
+              setUploading(false);
+              return;
+            }
+          }
+          toast.error("Session expired. Please log in again.");
+          clearAuthData();
+          navigate("/login", { replace: true });
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
         throw new Error(data.message || "Failed to upload profile picture");
       }
 
+      const data = await res.json();
       setUser((prev) => ({ ...prev, profilePic: data.url }));
       toast.success("Profile picture updated!");
     } catch (err) {
@@ -210,7 +223,7 @@ function Profile() {
 
   if (notFound) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-gray-600 text-lg">
+      <div className="flex justify-center items-center min-h-screen text-gray-600 text-lg bg-gray-50">
         Profile not found 😕
       </div>
     );
@@ -218,10 +231,10 @@ function Profile() {
 
   if (!user) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-screen text-gray-500 animate-pulse">
+      <div className="flex flex-col justify-center items-center min-h-screen text-gray-500 animate-pulse bg-gray-50">
         <div className="text-center">
           <p className="text-lg mb-2">Loading profile...</p>
-          <p className="text-sm text-gray-400">Check the debug panel for more info</p>
+          <p className="text-sm text-gray-400">Check the console for debug info</p>
         </div>
       </div>
     );
@@ -230,11 +243,10 @@ function Profile() {
   return (
     <div className="min-h-screen flex flex-col items-center pt-14 pb-8 px-5 bg-gray-50">
       <Toaster position="top-center" />
-      <AuthDebug />
-    
+
       {suspended && (
-        <div className="w-full text-center text-red-600 bg-red-50 py-2 rounded-md mb-4">
-          Your account is suspended 😔
+        <div className="w-full max-w-md text-center text-red-600 bg-red-50 py-3 rounded-md mb-4">
+          Your account is suspended 😔. Please contact support.
         </div>
       )}
 
@@ -242,18 +254,20 @@ function Profile() {
         <img
           src={user.profilePic || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
           alt="Profile"
-          className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-gray-200 object-cover cursor-pointer ${
+          className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-blue-200 object-cover cursor-pointer ${
             uploading ? "opacity-50" : ""
           }`}
-          onClick={() => document.getElementById("profilePicInput").click()}
+          onClick={() => isOwnProfile && document.getElementById("profilePicInput").click()}
         />
-        <input
-          type="file"
-          id="profilePicInput"
-          accept="image/*"
-          className="hidden"
-          onChange={handleProfilePicChange}
-        />
+        {isOwnProfile && (
+          <input
+            type="file"
+            id="profilePicInput"
+            accept="image/*"
+            className="hidden"
+            onChange={handleProfilePicChange}
+          />
+        )}
       </div>
 
       <div className="flex items-center gap-2 mb-1">
@@ -270,7 +284,7 @@ function Profile() {
 
       <p className="text-gray-500 text-sm mb-5">@{user.username}</p>
       {user.bio && (
-        <p className="text-gray-700 text-center text-sm sm:text-base mb-6">{user.bio}</p>
+        <p className="text-gray-700 text-center text-sm sm:text-base mb-6 max-w-md">{user.bio}</p>
       )}
 
       <div className="flex justify-center gap-10 mb-5">
@@ -287,16 +301,16 @@ function Profile() {
           <>
             <button
               onClick={() => navigate("/editprofile")}
-              className="flex-1 bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800"
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 transition"
             >
               Edit Profile
             </button>
             <button
               onClick={() => {
-                localStorage.removeItem("token");
+                clearAuthData();
                 navigate("/login", { replace: true });
               }}
-              className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-300"
+              className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-300 transition"
             >
               Logout
             </button>
@@ -305,13 +319,13 @@ function Profile() {
           <>
             <button
               onClick={() => navigate(`/messages/${user._id}`)}
-              className="flex-1 bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-red-700"
+              className="flex-1 bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-red-700 transition"
             >
               Message
             </button>
             <button
               onClick={() => navigate("/matches")}
-              className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-300"
+              className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-300 transition"
             >
               Back to Matches
             </button>
