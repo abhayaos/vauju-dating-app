@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { CheckCircle } from "lucide-react";
-import axios from "axios";
 
 function Profile() {
   const [user, setUser] = useState(null);
   const [suspended, setSuspended] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
 
   const token = JSON.parse(localStorage.getItem("token"));
@@ -32,12 +32,13 @@ function Profile() {
 
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(`${BASE_API}/profile`, {
+        const res = await fetch(`${BASE_API}/profile`, {
           headers: { "x-user-id": currentUserId },
-          timeout: 10000,
         });
-        setUser(res.data);
-        if (res.data?.suspended) {
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        const data = await res.json();
+        setUser(data);
+        if (data?.suspended) {
           setSuspended(true);
           toast.error("Your account is suspended. Logging out...");
           setTimeout(() => {
@@ -59,6 +60,40 @@ function Profile() {
     fetchProfile();
   }, [navigate, currentUserId, token]);
 
+  const handleProfilePicChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return toast.error("Please select an image file");
+
+    const reader = new FileReader();
+    reader.onloadend = () => setUser((prev) => ({ ...prev, profilePic: reader.result }));
+    reader.readAsDataURL(file);
+
+    // Upload to backend
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("profilePic", file);
+
+      const res = await fetch(`${BASE_API}/profile/upload`, {
+        method: "POST",
+        headers: { "x-user-id": currentUserId },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Upload failed");
+
+      setUser((prev) => ({ ...prev, profilePic: data.url }));
+      localStorage.setItem("token", JSON.stringify({ ...token, profilePic: data.url }));
+      toast.success("Profile picture updated!");
+    } catch (err) {
+      toast.error(err.message || "Failed to upload profile picture");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (notFound) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50 text-gray-600 text-lg font-medium">
@@ -72,19 +107,8 @@ function Profile() {
       <div className="flex justify-center items-center min-h-screen bg-gray-50">
         <div className="text-gray-500 text-base sm:text-lg font-medium animate-pulse flex items-center gap-2">
           <svg className="animate-spin h-6 w-6 text-pink-500" viewBox="0 0 24 24">
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v8H4z"
-            />
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
           </svg>
           Loading profile...
         </div>
@@ -96,19 +120,26 @@ function Profile() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center pt-14 pb-8 px-5">
       <Toaster position="top-center" />
 
-      {/* Suspended notice */}
       {suspended && (
         <div className="w-full text-center text-red-600 bg-red-50 py-2 rounded-md mb-4 text-sm font-medium">
           Your account is suspended. Logging out... 😔
         </div>
       )}
 
-      {/* Profile Image */}
+      {/* Profile Image with Upload */}
       <div className="relative mb-4">
         <img
           src={user.profilePic || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
           alt="Profile"
-          className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-gray-200 object-cover shadow-sm hover:scale-105 transition-transform duration-200"
+          className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-gray-200 object-cover shadow-sm hover:scale-105 transition-transform duration-200 cursor-pointer ${uploading ? "opacity-50" : ""}`}
+          onClick={() => document.getElementById("profilePicInput").click()}
+        />
+        <input
+          type="file"
+          id="profilePicInput"
+          accept="image/*"
+          className="hidden"
+          onChange={handleProfilePicChange}
         />
       </div>
 
@@ -126,7 +157,7 @@ function Profile() {
       </div>
 
       <p className="text-gray-500 text-sm mb-5">@{user.username}</p>
-          {/* Bio */}
+
       {user.bio && (
         <p className="text-gray-700 text-center text-sm sm:text-base font-normal leading-relaxed max-w-xs mb-6">
           {user.bio}
@@ -146,8 +177,6 @@ function Profile() {
           </div>
         ))}
       </div>
-
-  
 
       {/* Buttons */}
       <div className="flex flex-col sm:flex-row justify-center gap-3 w-full max-w-xs">
@@ -173,3 +202,4 @@ function Profile() {
 }
 
 export default Profile;
+

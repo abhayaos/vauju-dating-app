@@ -18,6 +18,7 @@ function EditProfile() {
   });
   const [loading, setLoading] = useState(false);
 
+  // Load user profile on mount
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("token"));
     if (!user || !user._id) return navigate("/login");
@@ -44,11 +45,53 @@ function EditProfile() {
       .catch((err) => toast.error("Failed to load profile: " + err.message));
   }, [navigate]);
 
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle profile image upload
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      return;
+    }
+
+    // Optional: instant preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setForm((prev) => ({ ...prev, profilePic: reader.result }));
+    };
+    reader.readAsDataURL(file);
+
+    // Upload to backend
+    try {
+      const user = JSON.parse(localStorage.getItem("token"));
+      const formData = new FormData();
+      formData.append("profilePic", file);
+
+      const res = await fetch(`${BASE_URL}/api/profile/upload`, {
+        method: "POST",
+        headers: { "x-user-id": user._id },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Upload failed");
+
+      // Save the uploaded image URL
+      setForm((prev) => ({ ...prev, profilePic: data.url }));
+      toast.success("Profile picture updated!");
+    } catch (err) {
+      toast.error(err.message || "Failed to upload profile picture");
+    }
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -105,8 +148,17 @@ function EditProfile() {
           <img
             src={form.profilePic}
             alt="Profile"
-            className="w-24 h-24 rounded-full object-cover"
+            className="w-24 h-24 rounded-full object-cover mb-2"
           />
+          <label className="cursor-pointer text-sm text-blue-600 hover:underline">
+            Change Profile Picture
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </label>
         </div>
 
         {/* Form */}
@@ -128,7 +180,9 @@ function EditProfile() {
 
           {/* Name */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              Name
+            </label>
             <input
               name="name"
               value={form.name}

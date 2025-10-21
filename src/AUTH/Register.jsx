@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
+import { io } from "socket.io-client";
 
 function Register() {
   const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -13,89 +15,148 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Regex for allowed emails
   const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com|outlook\.com)$/;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
+
+    // 1️⃣ Check email first
     if (!emailRegex.test(email)) {
       toast.error("Invalid email! Only Gmail, Hotmail, Outlook allowed.");
       return;
     }
+
+    // 2️⃣ Check password confirmation
     if (password !== confirmPassword) {
       setErrors({ confirmPassword: "Passwords do not match" });
       return;
     }
+
     try {
       setLoading(true);
+
+      // ✅ Register user
       const { data } = await axios.post(
         "https://backend-vauju-1.onrender.com/api/auth/register",
-        { username, name, email, password, captchaVerified: true }
+        { username, name, email, password }
       );
-      setLoading(false);
-      navigate("/login");
+
+      // ✅ Save JWT (make sure backend sends it)
+      localStorage.setItem("token", data.token);
+
+      // ✅ Connect to Socket.IO
+      const socket = io("https://backend-vauju-1.onrender.com");
+
+      // Send JWT for authentication
+      socket.emit("authenticate", data.token);
+
+      // Listen for auth success / error
+      socket.on("authSuccess", (msg) => {
+        toast.success(msg.message); // 🎉 JWT verified!
+      });
+
+      socket.on("authError", (msg) => {
+        toast.error(msg.message); // ❌ Invalid token
+      });
+
+      toast.success("🎉 Registration successful!");
+      setTimeout(() => navigate("/profile"), 1500);
     } catch (error) {
+      console.error("Registration failed:", error.response?.data || error.message);
       setErrors({ backend: error.response?.data?.message || "Registration failed!" });
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <Toaster />
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 md:p-10">
-        {/* Icon / hero */}
-        <div className="flex justify-center mb-6">
-          <div className="bg-pink-500 text-white w-16 h-16 flex items-center justify-center rounded-full text-3xl font-bold shadow-md">
-            ❤️
-          </div>
-        </div>
-
-        <h2 className="text-3xl font-bold mb-4 text-center text-gray-800">Join AuraMeet</h2>
-        <p className="text-center text-gray-500 mb-6">
-          Find your perfect match today. Create your account!
-        </p>
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
 
         {errors.backend && (
           <p className="text-red-600 text-center mb-4">{errors.backend}</p>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-          {[
-            { label: "Name", value: name, setter: setName, type: "text" },
-            { label: "Username", value: username, setter: setUsername, type: "text" },
-            { label: "Email", value: email, setter: setEmail, type: "email" },
-            { label: "Password", value: password, setter: setPassword, type: "password" },
-            { label: "Confirm Password", value: confirmPassword, setter: setConfirmPassword, type: "password" },
-          ].map((field, idx) => (
-            <div key={idx}>
-              <label className="block mb-1 font-medium text-gray-700">{field.label}</label>
-              <input
-                type={field.type}
-                value={field.value}
-                onChange={(e) => field.setter(e.target.value)}
-                className="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-pink-400 focus:outline-none text-gray-800"
-                required
-                autoComplete="off"
-              />
-              {field.label === "Confirm Password" && errors.confirmPassword && (
-                <p className="text-red-600 mt-1">{errors.confirmPassword}</p>
-              )}
-            </div>
-          ))}
+          <div>
+            <label className="block mb-1 font-medium">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              required
+              autoComplete="off"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              required
+              autoComplete="off"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              required
+              autoComplete="off"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              required
+              autoComplete="new-password"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium">Confirm Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              required
+              autoComplete="new-password"
+            />
+            {errors.confirmPassword && (
+              <p className="text-red-600 mt-1">{errors.confirmPassword}</p>
+            )}
+          </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 font-semibold rounded-xl transition disabled:opacity-50 mt-3"
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
           >
             {loading ? "Signing Up..." : "Sign Up"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-gray-500">
+        <p className="mt-4 text-center text-gray-600">
           Already have an account?{" "}
-          <Link to="/login" className="text-pink-500 font-semibold hover:underline">
+          <Link to="/login" className="text-blue-600 hover:underline">
             Log In
           </Link>
         </p>
