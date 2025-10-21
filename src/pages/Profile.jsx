@@ -16,7 +16,7 @@ function Profile() {
   const token = localStorage.getItem("token");
   const payload = token ? decodeJWT(token) : null;
   const currentUserId = payload?._id;
-  const BASE_API = "https://backend-vauju-1.onrender.com//api"; // Use local backend for development
+  const BASE_API = "https://backend-vauju-1.onrender.com/api"; // Use local backend for development
 
   useEffect(() => {
     const tryFetchProfile = async (url, headers = {}) => {
@@ -56,7 +56,7 @@ function Profile() {
             `${BASE_API}/users/username/${username}`,
             `${BASE_API}/user/${username}`,
             `${BASE_API}/users?username=${username}`,
-            `https://backend-vauju-1.onrender.com//@${username}`  // Direct route
+            `https://backend-vauju-1.onrender.com/@${username}`  // Direct route
           ];
           setIsOwnProfile(false);
         } else if (id) {
