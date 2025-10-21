@@ -60,17 +60,7 @@ function Register() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-          <div>
-            <label className="block mb-1 font-medium">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              required
-              autoComplete="off"
-            />
-          </div>
+   
 
           <div>
             <label className="block mb-1 font-medium">Name</label>
@@ -78,6 +68,17 @@ function Register() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              required
+              autoComplete="off"
+            />
+          </div>
+                 <div>
+            <label className="block mb-1 font-medium">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
               autoComplete="off"
