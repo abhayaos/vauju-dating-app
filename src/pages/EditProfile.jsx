@@ -289,5 +289,4 @@ function EditProfile() {
     </div>
   );
 }
-
 export default EditProfile;
