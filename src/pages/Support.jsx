@@ -28,7 +28,7 @@ function Support() {
             </Link>
 
             <Link
-              to="/blog"
+              to="/blogs"
               className="inline-block bg-gradient-to-r from-blue-500 to-purple-600 text-white px-5 py-2.5 sm:px-6 sm:py-3 rounded-full font-semibold text-base sm:text-lg shadow hover:opacity-90 transition transform hover:-translate-y-0.5"
             >
               Read Our Blog
