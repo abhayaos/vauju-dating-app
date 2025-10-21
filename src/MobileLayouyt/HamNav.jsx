@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// src/components/HamNav.jsx
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   User,
@@ -13,12 +14,31 @@ import {
   LogIn,
   ScrollText,
   Star,
-} from "lucide-react";
+  BookOpen,
+} from "lucide-react"; // Added BookOpen for Blog icon
 
 function HamNav() {
   const navigate = useNavigate();
   const [user] = useState(JSON.parse(localStorage.getItem("user")));
   const isLoggedIn = !!localStorage.getItem("token");
+  const [loading, setLoading] = useState(true);
+  const [dots, setDots] = useState(".");
+
+  // Fake loading animation for 2.5 sec
+  useEffect(() => {
+    const dotInterval = setInterval(() => {
+      setDots((prev) => (prev === "..." ? "." : prev + "."));
+    }, 500);
+
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2500);
+
+    return () => {
+      clearInterval(dotInterval);
+      clearTimeout(timer);
+    };
+  }, []);
 
   // Menu items including Terms & Conditions and Community
   const menuItems = [
@@ -41,6 +61,14 @@ function HamNav() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-black text-white text-2xl font-semibold">
+        Loading{dots}
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-50 md:ml-20 ml-0 min-h-screen text-gray-800 transition-all duration-300 flex flex-col justify-between">
 
@@ -57,7 +85,6 @@ function HamNav() {
         </div>
       )}
 
-      {/* Not Logged In Section */}
       {!isLoggedIn && (
         <div className="bg-white p-5 mt-4 mx-4 rounded-2xl shadow-md text-center border border-gray-100">
           <p className="text-gray-600 text-sm mb-3">You’re not logged in</p>
@@ -84,8 +111,28 @@ function HamNav() {
         ))}
       </div>
 
+      {/* Blog Button */}
+      <div className="mt-5 mx-4">
+        <button
+          onClick={() => navigate("/blogs")}
+          className="w-full flex items-center justify-center gap-2 py-3 font-semibold rounded-xl shadow-md bg-gradient-to-r from-green-400 to-teal-500 text-white hover:opacity-90 active:scale-[0.97] transition-all"
+        >
+          <BookOpen size={18} /> Blog
+        </button>
+      </div>
+
+      {/* Help Button */}
+      <div className="mt-3 mx-4">
+        <button
+          onClick={() => navigate("/support")}
+          className="w-full flex items-center justify-center gap-2 py-3 font-semibold rounded-xl shadow-md bg-gradient-to-r from-yellow-400 to-pink-400 text-white hover:opacity-90 active:scale-[0.97] transition-all"
+        >
+          <HelpCircle size={18} /> Help & Support
+        </button>
+      </div>
+
       {/* Auth Button */}
-      <div className="mt-6 mx-4">
+      <div className="mt-4 mx-4">
         <button
           onClick={handleAuthClick}
           className={`w-full flex items-center justify-center gap-2 py-3 font-semibold rounded-xl shadow-md transition-all active:scale-[0.97] ${

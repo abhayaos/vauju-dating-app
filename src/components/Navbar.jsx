@@ -9,12 +9,14 @@ import Logo from "../assets/logo.png";
 import {
   Home,
   MessageSquare,
-  Podcast,
   Users,
   User,
   LogOut,
   LogIn,
   UserPlus,
+  Compass,
+  Heart,
+  Podcast,
 } from "lucide-react";
 
 function XSidebar() {
@@ -74,15 +76,17 @@ function XSidebar() {
   };
 
   const navItems = [
-    { path: "/", icon: <Home size={22} />, label: "Home" },
-    { path: "/matches", icon: <Users size={22} />, label: "Matches" },
-    { path: "/messages", icon: <MessageSquare size={22} />, label: "Messages" },
-    { path: "/private", icon: <Podcast size={22} />, label: "Private Space" },
+    { path: "/", icon: <Home size={20} />, label: "Home" },
+    { path: "/explore", icon: <Compass size={20} />, label: "Explore" },
+    { path: "/matches", icon: <Users size={20} />, label: "Matches" },
+    { path: "/messages", icon: <MessageSquare size={20} />, label: "Messages" },
+    { path: "/notifications", icon: <Heart size={20} />, label: "Notifications" },
+    { path: "/private-space", icon: <Podcast size={20} />, label: "Private Space" },
     {
       path: "/support",
       icon: (
-        <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
-          <img src={SupportIcon} alt="Support" className="w-4 h-4" />
+        <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+          <img src={SupportIcon} alt="Support" className="w-3.5 h-3.5" />
         </div>
       ),
       label: "Support",
@@ -95,29 +99,28 @@ function XSidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-20 bg-white border-r border-gray-200 shadow-lg flex flex-col justify-between z-50">
-      {/* Top Nav */}
-      <div className="flex flex-col items-center mt-6 space-y-2">
+    <aside className="fixed left-0 top-0 h-full w-[70px] bg-white border-r border-gray-200 shadow-md flex flex-col justify-between z-50">
+      {/* Top Section */}
+      <div className="flex flex-col items-center mt-4 space-y-1">
         {/* Logo */}
         <Link
           to="/"
-          className="flex items-center justify-center py-6 border-b border-gray-100 w-full hover:bg-gray-50 transition"
+          className="flex items-center justify-center py-4 border-b border-gray-100 w-full hover:bg-gray-50 transition"
         >
-          <img src={Logo} alt="Logo" className="w-10 h-10" />
+          <img src={Logo} alt="Logo" className="w-8 h-8" />
         </Link>
 
-        {/* Navigation */}
-        <nav className="flex flex-col mt-6 space-y-3">
+        {/* Nav */}
+        <nav className="flex flex-col mt-4 space-y-2">
           {navItems.map((item, idx) => (
             <Link
               key={idx}
               to={item.path}
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200
-                ${
-                  isActive(item.path)
-                    ? "bg-black text-white shadow-md scale-110"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-black"
-                }`}
+              className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 ${
+                isActive(item.path)
+                  ? "bg-black text-white shadow-md scale-105"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-black"
+              }`}
               title={item.label}
             >
               {item.icon}
@@ -126,33 +129,33 @@ function XSidebar() {
         </nav>
       </div>
 
-      {/* Bottom Auth Buttons */}
-      <div className="flex flex-col items-center mb-6 px-1 border-t border-gray-100 pt-4 relative">
+      {/* Auth Section */}
+      <div className="flex flex-col items-center mb-4 px-1 border-t border-gray-100 pt-3 relative">
         {isLoggedIn ? (
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown((prev) => !prev)}
-              className="flex items-center justify-center w-12 h-12 rounded-full hover:bg-gray-100 transition duration-200 text-gray-700"
+              className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition duration-200 text-gray-700"
               title="Account"
             >
-              <User size={22} />
+              <User size={20} />
             </button>
 
             {showDropdown && (
-              <div className="absolute ml-5 bottom-14 left-1/2 transform -translate-x-1/2 flex flex-col w-32 bg-white border border-gray-200 shadow-md rounded-md overflow-hidden z-50">
+              <div className="absolute ml-5 bottom-12 left-1/2 transform -translate-x-1/2 flex flex-col w-28 bg-white border border-gray-200 shadow-md rounded-md overflow-hidden z-50">
                 <Link
                   to="/profile"
-                  className="px-4 py-2 hover:bg-gray-100 flex items-center space-x-2"
+                  className="px-3 py-2 hover:bg-gray-100 flex items-center space-x-1"
                 >
-                  <User size={18} />
-                  <span>Profile</span>
+                  <User size={16} />
+                  <span className="text-sm">Profile</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 hover:bg-red-50 hover:text-red-500 flex items-center space-x-2 w-full text-left"
+                  className="px-3 py-2 hover:bg-red-50 hover:text-red-500 flex items-center space-x-1 w-full text-left"
                 >
-                  <LogOut size={18} />
-                  <span>Logout</span>
+                  <LogOut size={16} />
+                  <span className="text-sm">Logout</span>
                 </button>
               </div>
             )}
@@ -161,17 +164,17 @@ function XSidebar() {
           <>
             <Link
               to="/login"
-              className="flex items-center justify-center w-12 h-12 rounded-full bg-black text-white hover:bg-gray-900 transition duration-200"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-black text-white hover:bg-gray-900 transition duration-200"
               title="Login"
             >
-              <LogIn size={18} />
+              <LogIn size={16} />
             </Link>
             <Link
               to="/register"
-              className="flex items-center justify-center w-12 h-12 rounded-full border border-black text-black hover:bg-gray-50 transition duration-200"
+              className="flex items-center justify-center w-10 h-10 rounded-full border border-black text-black hover:bg-gray-50 transition duration-200 mt-2"
               title="Register"
             >
-              <UserPlus size={18} />
+              <UserPlus size={16} />
             </Link>
           </>
         )}

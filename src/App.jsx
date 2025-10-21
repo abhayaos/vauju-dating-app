@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useEffect, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,6 +31,9 @@ import Notification from "./pages/Notification";
 import HamNav from "./MobileLayouyt/HamNav";
 import Create from "./MobileLayouyt/Create";
 import TermAndCondition from "./pages/TermAndCondition";
+import PrivateSpeech from "./pages/PrivateSpeech";
+import Blogs from "./pages/Blogs"; // <-- FIXED import
+import NameChanging from "./Blogs/NameChanging"
 
 import "./App.css";
 
@@ -101,6 +105,7 @@ function App() {
           <Route path="/admin/suspend" element={<SuspendUsers />} />
           <Route path="/admin/manage-users" element={<ManageUser />} />
           <Route path="/hall-of-fame" element={<HallOfFame />} />
+          <Route path="/blogs" element={<Blogs />} /> {/* <-- FIXED */}
           <Route
             path="/hall-of-fame/bounty/user/mandip"
             element={<MandipBlog />}
@@ -111,10 +116,12 @@ function App() {
           <Route path="/notifications" element={<Notification />} />
           <Route path="/create" element={<Create />} />
           <Route path="/hamvav" element={<HamNav />} />
+          <Route path="/blogs//blog/how-tp-update-profile-in-aura-meet" element={<NameChanging />} />
           <Route
             path="/term-and-conditions"
             element={<TermAndCondition />}
           />
+          <Route path="/private-space" element={<PrivateSpeech />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </main>
