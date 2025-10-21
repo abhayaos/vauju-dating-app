@@ -6,18 +6,7 @@ import SupportIcon from "../assets/support.png";
 import Logo from "../assets/logo.png";
 
 // Icons
-import {
-  Home,
-  MessageSquare,
-  Users,
-  User,
-  LogOut,
-  LogIn,
-  UserPlus,
-  Compass,
-  Heart,
-  Podcast,
-} from "lucide-react";
+import { Home, MessageSquare, Users, User, LogOut, LogIn, UserPlus, Compass, Heart, Podcast } from "lucide-react";
 
 function XSidebar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -29,9 +18,10 @@ function XSidebar() {
   // Auth check
   useEffect(() => {
     const checkAuth = () => {
-      const token = JSON.parse(localStorage.getItem("token") || "null");
+      const token = localStorage.getItem("token"); // JWT is a string
       setIsLoggedIn(!!token);
     };
+
     checkAuth();
 
     const onStorage = (e) => {
@@ -51,17 +41,12 @@ function XSidebar() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogout = () => {
@@ -102,15 +87,10 @@ function XSidebar() {
     <aside className="fixed left-0 top-0 h-full w-[70px] bg-white border-r border-gray-200 shadow-md flex flex-col justify-between z-50">
       {/* Top Section */}
       <div className="flex flex-col items-center mt-4 space-y-1">
-        {/* Logo */}
-        <Link
-          to="/"
-          className="flex items-center justify-center py-4 border-b border-gray-100 w-full hover:bg-gray-50 transition"
-        >
+        <Link to="/" className="flex items-center justify-center py-4 border-b border-gray-100 w-full hover:bg-gray-50 transition">
           <img src={Logo} alt="Logo" className="w-8 h-8" />
         </Link>
 
-        {/* Nav */}
         <nav className="flex flex-col mt-4 space-y-2">
           {navItems.map((item, idx) => (
             <Link

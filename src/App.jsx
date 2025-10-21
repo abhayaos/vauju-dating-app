@@ -94,12 +94,13 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:id" element={<Profile />} />
+          <Route path="/@:username" element={<Profile />} />
           <Route path="/editprofile" element={<EditProfile />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/messages/:userId" element={<Messages />} />
           <Route path="/matches" element={<Matches />} />
           <Route path="/support" element={<Support />} />
-          <Route path="/@:username" element={<Profile />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/suspend" element={<SuspendUsers />} />

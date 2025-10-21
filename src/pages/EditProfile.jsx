@@ -1,8 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
 
-const BASE_URL = "https://backend-vauju-1.onrender.com";
+// Use environment variable for BASE_URL
+const BASE_URL = import.meta.env.VITE_API_URL || "https://backend-vauju-1.onrender.com/";
+
+// Utility function to decode JWT and get userId
+const getUserIdFromToken = (token) => {
+  try {
+    const payload = jwtDecode(token); // Use named export
+    return payload._id || payload.id || payload.sub;
+  } catch (err) {
+    console.error("Invalid token:", err);
+    return null;
+  }
+};
 
 function EditProfile() {
   const navigate = useNavigate();
@@ -20,15 +33,30 @@ function EditProfile() {
 
   // Load user profile on mount
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("token"));
-    if (!user || !user._id) return navigate("/login");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please log in to continue");
+      return navigate("/login");
+    }
 
-    fetch(`${BASE_URL}/api/profile`, { headers: { "x-user-id": user._id } })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
-      })
-      .then((data) =>
+    const userId = getUserIdFromToken(token);
+    if (!userId) {
+      toast.error("Invalid session. Please log in again.");
+      return navigate("/login");
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // Use standard Authorization header
+          },
+        });
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText || "Failed to fetch profile");
+        }
+        const data = await res.json();
         setForm({
           username: data.username || "",
           name: data.name || "",
@@ -40,9 +68,16 @@ function EditProfile() {
           profilePic:
             data.profilePic ||
             "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-        })
-      )
-      .catch((err) => toast.error("Failed to load profile: " + err.message));
+        });
+      } catch (err) {
+        toast.error(`Failed to load profile: ${err.message}`);
+        if (err.message.includes("Unauthorized")) {
+          navigate("/login");
+        }
+      }
+    };
+
+    fetchProfile();
   }, [navigate]);
 
   // Handle input changes
@@ -56,12 +91,17 @@ function EditProfile() {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file type and size
     if (!file.type.startsWith("image/")) {
       toast.error("Please select a valid image file");
       return;
     }
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
 
-    // Optional: instant preview
+    // Instant preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setForm((prev) => ({ ...prev, profilePic: reader.result }));
@@ -70,20 +110,27 @@ function EditProfile() {
 
     // Upload to backend
     try {
-      const user = JSON.parse(localStorage.getItem("token"));
+      const token = localStorage.getItem("token");
+      const userId = getUserIdFromToken(token);
+      if (!userId) {
+        toast.error("Invalid session. Please log in again.");
+        return navigate("/login");
+      }
+
       const formData = new FormData();
       formData.append("profilePic", file);
 
       const res = await fetch(`${BASE_URL}/api/profile/upload`, {
         method: "POST",
-        headers: { "x-user-id": user._id },
+        headers: {
+          Authorization: `Bearer ${token}`, // Use standard Authorization header
+        },
         body: formData,
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Upload failed");
 
-      // Save the uploaded image URL
       setForm((prev) => ({ ...prev, profilePic: data.url }));
       toast.success("Profile picture updated!");
     } catch (err) {
@@ -95,11 +142,35 @@ function EditProfile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const user = JSON.parse(localStorage.getItem("token"));
-    if (!user || !user._id) return;
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please log in to continue");
+      setLoading(false);
+      return navigate("/login");
+    }
+
+    const userId = getUserIdFromToken(token);
+    if (!userId) {
+      toast.error("Invalid session. Please log in again.");
+      setLoading(false);
+      return navigate("/login");
+    }
+
+    // Validate age
     if (Number(form.age) < 13) {
       toast.error("You must be at least 13 years old.");
+      setLoading(false);
+      return;
+    }
+
+    // Validate interests
+    const interests = form.interests
+      .split(",")
+      .map((i) => i.trim())
+      .filter(Boolean);
+    if (interests.length > 10) {
+      toast.error("You can have a maximum of 10 interests.");
       setLoading(false);
       return;
     }
@@ -109,26 +180,25 @@ function EditProfile() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": user._id,
+          Authorization: `Bearer ${token}`, // Use standard Authorization header
         },
         body: JSON.stringify({
           ...form,
-          interests: form.interests
-            .split(",")
-            .map((i) => i.trim())
-            .filter(Boolean),
+          interests,
         }),
       });
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Update failed");
 
-      localStorage.setItem("token", JSON.stringify({ ...user, ...result }));
       window.dispatchEvent(new Event("authChange"));
       toast.success("Profile updated successfully!");
       navigate("/profile");
     } catch (err) {
       toast.error(err.message || "Failed to update profile");
+      if (err.message.includes("Unauthorized")) {
+        navigate("/login");
+      }
     } finally {
       setLoading(false);
     }
@@ -138,15 +208,12 @@ function EditProfile() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">
       <Toaster position="top-center" />
       <div className="w-full max-w-md">
-        {/* Header */}
         <h2 className="text-2xl font-semibold text-gray-900 text-center mb-6">
           Edit Profile
         </h2>
-
-        {/* Profile Picture */}
         <div className="flex flex-col items-center mb-6">
           <img
-            src={form.profilePic}
+            src={form.profilePic || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover mb-2"
           />
@@ -160,14 +227,9 @@ function EditProfile() {
             />
           </label>
         </div>
-
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">
-              Username
-            </label>
+            <label className="text-sm font-medium text-gray-700 mb-1">Username</label>
             <input
               name="username"
               value={form.username}
@@ -177,12 +239,8 @@ function EditProfile() {
               required
             />
           </div>
-
-          {/* Name */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
+            <label className="text-sm font-medium text-gray-700 mb-1">Name</label>
             <input
               name="name"
               value={form.name}
@@ -191,8 +249,6 @@ function EditProfile() {
               placeholder="Full name"
             />
           </div>
-
-          {/* Bio */}
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 mb-1">Bio</label>
             <textarea
@@ -203,13 +259,9 @@ function EditProfile() {
               placeholder="Tell something about yourself"
             />
           </div>
-
-          {/* Age & Gender */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                Age
-              </label>
+              <label className="text-sm font-medium text-gray-700 mb-1">Age</label>
               <input
                 name="age"
                 type="number"
@@ -221,9 +273,7 @@ function EditProfile() {
               />
             </div>
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                Gender
-              </label>
+              <label className="text-sm font-medium text-gray-700 mb-1">Gender</label>
               <select
                 name="gender"
                 value={form.gender}
@@ -236,26 +286,18 @@ function EditProfile() {
               </select>
             </div>
           </div>
-
-          {/* Interests */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">
-              Interests
-            </label>
+            <label className="text-sm font-medium text-gray-700 mb-1">Interests</label>
             <input
               name="interests"
               value={form.interests}
               onChange={handleChange}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none"
-              placeholder="Interests (comma separated)"
+              placeholder="Interests (comma separated, max 10)"
             />
           </div>
-
-          {/* Location */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">
-              Location
-            </label>
+            <label className="text-sm font-medium text-gray-700 mb-1">Location</label>
             <input
               name="location"
               value={form.location}
@@ -264,8 +306,6 @@ function EditProfile() {
               placeholder="Location"
             />
           </div>
-
-          {/* Buttons */}
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
@@ -289,4 +329,5 @@ function EditProfile() {
     </div>
   );
 }
+
 export default EditProfile;

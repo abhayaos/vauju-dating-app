@@ -22,7 +22,7 @@ function AdminLogin() {
 
     try {
       const res = await fetch(
-        "http://backend-vauju-1.onrender.com/admin/login",
+        "http://localhost:5000/admin/login",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -3,10 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageSquare, Heart } from "lucide-react";
 
-const BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? "https://backend-vauju-1.onrender.com"
-    : "";
+const BASE_URL = "https://backend-vauju-1.onrender.com/";
 
 function Matches() {
   const [matches, setMatches] = useState([]);
@@ -189,7 +186,7 @@ function Matches() {
                 className="flex flex-col justify-between p-4 rounded-xl shadow-md bg-white border border-gray-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && navigate(`/profile/${u._id}`)}
+                onKeyDown={(e) => e.key === "Enter" && navigate(u.username ? `/@${u.username}` : `/profile/${u._id}`)}
               >
                 <div className="space-y-2 text-center">
                   <div className="relative w-16 h-16 mx-auto rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
@@ -219,7 +216,7 @@ function Matches() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => navigate(`/profile/${u._id}`)}
+                      onClick={() => navigate(u.username ? `/@${u.username}` : `/profile/${u._id}`)}
                       className="flex-1 text-center bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium py-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-amber-400"
                       aria-label={`View ${u.name || "user"}'s profile`}
                     >

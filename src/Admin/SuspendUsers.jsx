@@ -23,7 +23,7 @@ function SuspendUsers() {
 
   const toggle = async (id, next) => {
     try {
-      const res = await fetch(`https://backend-vauju-1.onrender.com/admin/suspend/${id}`, {
+      const res = await fetch(`http://localhost:5000/admin/suspend/${id}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
         body: JSON.stringify({ suspended: next })
       })

@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { io as ioClient } from "socket.io-client";
-import { UserCircle2, MessageSquare, Circle, ArrowLeft  } from "lucide-react";
+import { UserCircle2, MessageSquare, Circle, ArrowLeft } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
 
-const API_URL = "https://backend-vauju-1.onrender.com";
+const API_URL = "https://backend-vauju-1.onrender.com/";
 
 function Messages() {
   const [users, setUsers] = useState([]);
@@ -16,13 +17,61 @@ function Messages() {
   const convoRef = useRef(null);
   const socketRef = useRef(null);
   const presenceTimeoutRef = useRef({});
-
-
-  let messageCache = []
-
+  const messageCache = useRef([]);
 
   const goToHome = () => {
     navigate("/");
+  };
+
+  const getMeId = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.warn("No token found in localStorage");
+      return null;
+    }
+    try {
+      const payload = jwtDecode(token);
+      if (!payload._id && !payload.id && !payload.sub) {
+        console.warn("No user ID found in token payload");
+        return null;
+      }
+      return payload._id || payload.id || payload.sub;
+    } catch (err) {
+      console.error("Invalid token:", err);
+      return null;
+    }
+  };
+
+  const isTokenExpired = (token) => {
+    try {
+      const payload = jwtDecode(token);
+      return payload.exp * 1000 < Date.now();
+    } catch {
+      console.warn("Token parsing failed during expiration check");
+      return true;
+    }
+  };
+
+  // Attempt to refresh token (if supported by backend)
+  const refreshToken = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/refresh-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // If backend uses cookies for refresh tokens
+      });
+      if (res.ok) {
+        const { token } = await res.json();
+        localStorage.setItem("token", token);
+        console.log("Token refreshed successfully");
+        return token;
+      } else {
+        throw new Error("Token refresh failed");
+      }
+    } catch (err) {
+      console.error("Token refresh error:", err);
+      return null;
+    }
   };
 
   // 🔔 Request Notification Permission Once
@@ -40,25 +89,51 @@ function Messages() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = JSON.parse(localStorage.getItem("token")) || {};
-        if (!token._id) {
-          console.warn("No user token found");
-          return;
+        let token = localStorage.getItem("token");
+        let me = getMeId();
+        if (!token || !me) {
+          if (token && isTokenExpired(token)) {
+            token = await refreshToken();
+            me = getMeId(); // Re-fetch ID with new token
+          }
+          if (!token || !me) {
+            console.warn("No valid token or user ID, redirecting to login");
+            toast.error("Please log in to continue");
+            navigate("/login");
+            return;
+          }
         }
-        if (messageCache.length > 0) {
-          setUsers(messageCache);
+
+        if (messageCache.current.length > 0) {
+          setUsers(messageCache.current);
           return;
-        } else {
-          messageCache = users;
         }
 
         const res = await fetch(`${API_URL}/api/profile/messages-users`, {
-          headers: { "x-user-id": token._id },
+          headers: { Authorization: `Bearer ${token}` },
           timeout: 10000,
         });
 
         if (!res.ok) {
           if (res.status === 401) {
+            console.warn("401 Unauthorized, attempting token refresh");
+            token = await refreshToken();
+            if (token) {
+              const retryRes = await fetch(`${API_URL}/api/profile/messages-users`, {
+                headers: { Authorization: `Bearer ${token}` },
+                timeout: 10000,
+              });
+              if (retryRes.ok) {
+                const data = await retryRes.json();
+                const list = Array.isArray(data) ? data : [];
+                const onlineIds = await fetchOnlineUsers(token);
+                const onlineSet = new Set((onlineIds || []).map(String));
+                const updatedUsers = list.map((u) => ({ isOnline: onlineSet.has(String(u._id)), ...u }));
+                setUsers(updatedUsers);
+                messageCache.current = updatedUsers;
+                return;
+              }
+            }
             toast.error("Please login again");
             localStorage.removeItem("token");
             navigate("/login");
@@ -75,31 +150,37 @@ function Messages() {
         const data = await res.json();
         const list = Array.isArray(data) ? data : [];
 
-        let onlineIds = [];
-        try {
-          const onlineRes = await fetch(`${API_URL}/api/messages/online-users`, {
-            headers: { "x-user-id": token._id },
-            timeout: 5000,
-          });
-          if (onlineRes.ok) onlineIds = await onlineRes.json();
-        } catch (e) {
-          console.warn("Online users fetch failed:", e);
-        }
-
+        const onlineIds = await fetchOnlineUsers(token);
         const onlineSet = new Set((onlineIds || []).map(String));
-        setUsers(list.map((u) => ({ isOnline: onlineSet.has(String(u._id)), ...u })));
+        const updatedUsers = list.map((u) => ({ isOnline: onlineSet.has(String(u._id)), ...u }));
+        setUsers(updatedUsers);
+        messageCache.current = updatedUsers;
       } catch (err) {
         console.error("Messages fetch error:", err);
         toast.error("Failed to fetch users: " + (err.message || "unknown"));
       }
     };
+
+    const fetchOnlineUsers = async (token) => {
+      try {
+        const onlineRes = await fetch(`${API_URL}/api/messages/online-users`, {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 5000,
+        });
+        if (onlineRes.ok) return await onlineRes.json();
+        return [];
+      } catch (e) {
+        console.warn("Online users fetch failed:", e);
+        return [];
+      }
+    };
+
     fetchUsers();
   }, [navigate]);
 
   // Handle user selection based on URL params
   useEffect(() => {
     if (!params.userId) {
-      // Clear state when navigating to /messages
       setSelectedUser(null);
       setMessages([]);
       Object.values(presenceTimeoutRef.current).forEach(clearTimeout);
@@ -113,11 +194,13 @@ function Messages() {
   // Heartbeat for presence
   useEffect(() => {
     const doBeat = async () => {
+      const token = localStorage.getItem("token");
+      const me = getMeId();
+      if (!me || !token || isTokenExpired(token)) return;
       try {
-        const me = getMeId();
         await fetch(`${API_URL}/api/messages/heartbeat`, {
           method: "POST",
-          headers: { "x-user-id": me },
+          headers: { Authorization: `Bearer ${token}` },
         });
       } catch {}
     };
@@ -129,9 +212,9 @@ function Messages() {
   // Socket.IO setup with reinitialization on user change
   useEffect(() => {
     const me = getMeId();
-    if (!me || !selectedUser) return;
+    let token = localStorage.getItem("token");
+    if (!me || !token || !selectedUser || isTokenExpired(token)) return;
 
-    // Disconnect previous socket if it exists
     if (socketRef.current) {
       socketRef.current.off("message");
       socketRef.current.off("seen");
@@ -143,6 +226,7 @@ function Messages() {
     const socket = ioClient(API_URL, {
       transports: ["websocket"],
       autoConnect: true,
+      auth: { token },
     });
     socketRef.current = socket;
 
@@ -169,13 +253,12 @@ function Messages() {
         if (String(m.from) === String(selectedUser._id)) {
           fetch(`${API_URL}/api/messages/seen/${m._id}`, {
             method: "PUT",
-            headers: { "x-user-id": getMeId() },
+            headers: { Authorization: `Bearer ${token}` },
           });
         }
       }
 
-      const meId = getMeId();
-      if (String(m.from) !== String(meId) && "Notification" in window && Notification.permission === "granted") {
+      if (String(m.from) !== String(me) && "Notification" in window && Notification.permission === "granted") {
         const sender = users.find((u) => String(u._id) === String(m.from));
         const title = sender ? `${sender.name} sent a message` : "New Message";
         const body = m.text || "You’ve got a new message!";
@@ -249,20 +332,16 @@ function Messages() {
         socket.off("presence");
         Object.values(presenceTimeoutRef.current).forEach(clearTimeout);
         presenceTimeoutRef.current = {};
-        socket.emit("presence", { userId: me, online: false });
+        if (socketRef.current?.connected) {
+          socket.emit("presence", { userId: me, online: false });
+        }
         socket.disconnect();
         socketRef.current = null;
       } catch {}
     };
-  }, [selectedUser, navigate]); // Reinitialize socket when selectedUser changes
-
-  const getMeId = () => {
-    const t = JSON.parse(localStorage.getItem("token")) || {};
-    return t._id;
-  };
+  }, [selectedUser, navigate]);
 
   const handleSelectUser = async (user) => {
-    // Clear previous state to remove "buffer"
     setMessages([]);
     Object.values(presenceTimeoutRef.current).forEach(clearTimeout);
     presenceTimeoutRef.current = {};
@@ -291,20 +370,47 @@ function Messages() {
 
   const fetchConversation = async (userId) => {
     try {
+      let token = localStorage.getItem("token");
       const me = getMeId();
-      if (!me) {
-        toast.error("Please login first");
-        navigate("/login");
-        return;
+      if (!me || !token || isTokenExpired(token)) {
+        if (token && isTokenExpired(token)) {
+          token = await refreshToken();
+          if (!token) {
+            toast.error("Please login first");
+            navigate("/login");
+            return;
+          }
+        } else {
+          toast.error("Please login first");
+          navigate("/login");
+          return;
+        }
       }
 
       const res = await fetch(`${API_URL}/api/messages/conversation/${userId}`, {
-        headers: { "x-user-id": me },
+        headers: { Authorization: `Bearer ${token}` },
         timeout: 10000,
       });
 
       if (!res.ok) {
         if (res.status === 401) {
+          console.warn("401 Unauthorized, attempting token refresh");
+          token = await refreshToken();
+          if (token) {
+            const retryRes = await fetch(`${API_URL}/api/messages/conversation/${userId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              timeout: 10000,
+            });
+            if (retryRes.ok) {
+              const data = await retryRes.json();
+              setMessages(Array.isArray(data) ? data : []);
+              convoRef.current?.scrollTo({
+                top: convoRef.current.scrollHeight,
+                behavior: "auto",
+              });
+              return;
+            }
+          }
           toast.error("Please login again");
           localStorage.removeItem("token");
           navigate("/login");
@@ -328,18 +434,28 @@ function Messages() {
   const handleSend = async () => {
     if (!text.trim() || !selectedUser) return;
     try {
+      let token = localStorage.getItem("token");
       const me = getMeId();
-      if (!me) {
-        toast.error("Please login first");
-        navigate("/login");
-        return;
+      if (!me || !token || isTokenExpired(token)) {
+        if (token && isTokenExpired(token)) {
+          token = await refreshToken();
+          if (!token) {
+            toast.error("Please login first");
+            navigate("/login");
+            return;
+          }
+        } else {
+          toast.error("Please login first");
+          navigate("/login");
+          return;
+        }
       }
 
       const res = await fetch(`${API_URL}/api/messages/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": me,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ to: selectedUser._id, text: text.trim() }),
         timeout: 10000,
@@ -347,6 +463,29 @@ function Messages() {
 
       if (!res.ok) {
         if (res.status === 401) {
+          console.warn("401 Unauthorized, attempting token refresh");
+          token = await refreshToken();
+          if (token) {
+            const retryRes = await fetch(`${API_URL}/api/messages/send`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ to: selectedUser._id, text: text.trim() }),
+              timeout: 10000,
+            });
+            if (retryRes.ok) {
+              const m = await retryRes.json();
+              setMessages((prev) => [...prev, m]);
+              setText("");
+              convoRef.current?.scrollTo({
+                top: convoRef.current.scrollHeight,
+                behavior: "auto",
+              });
+              return;
+            }
+          }
           toast.error("Please login again");
           localStorage.removeItem("token");
           navigate("/login");
@@ -370,17 +509,28 @@ function Messages() {
 
   const markAllAsSeenWith = async (userId) => {
     try {
+      let token = localStorage.getItem("token");
       const me = getMeId();
+      if (!me || !token || isTokenExpired(token)) {
+        if (token && isTokenExpired(token)) {
+          token = await refreshToken();
+          if (!token) return;
+        } else {
+          return;
+        }
+      }
+
       const res = await fetch(`${API_URL}/api/messages/conversation/${userId}`, {
-        headers: { "x-user-id": me },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) return;
+
       const msgs = await res.json();
       const unseen = msgs.filter((m) => String(m.from) === String(userId) && !m.seen);
       for (const m of unseen) {
         await fetch(`${API_URL}/api/messages/seen/${m._id}`, {
           method: "PUT",
-          headers: { "x-user-id": me },
+          headers: { Authorization: `Bearer ${token}` },
         });
       }
       await fetchConversation(userId);
@@ -389,10 +539,9 @@ function Messages() {
     }
   };
 
-  // Cleanup when navigating away from Messages component
+  // Cleanup when navigating away
   useEffect(() => {
     return () => {
-      // Clear all state and socket when component unmounts
       setMessages([]);
       setSelectedUser(null);
       Object.values(presenceTimeoutRef.current).forEach(clearTimeout);
@@ -401,7 +550,10 @@ function Messages() {
         socketRef.current.off("message");
         socketRef.current.off("seen");
         socketRef.current.off("presence");
-        socketRef.current.emit("presence", { userId: getMeId(), online: false });
+        const me = getMeId();
+        if (me && socketRef.current?.connected) {
+          socketRef.current.emit("presence", { userId: me, online: false });
+        }
         socketRef.current.disconnect();
         socketRef.current = null;
       }
@@ -409,25 +561,24 @@ function Messages() {
   }, []);
 
   return (
-    <div className="flex h-screen bg-white ">
+    <div className="flex h-screen bg-white">
       <Toaster position="top-right" />
-
-      {/* Left Section */}
       <aside
         className={`w-full sm:w-80 border-r border-gray-200 bg-white overflow-y-auto transition-all duration-300 ${
           selectedUser ? "hidden sm:block" : ""
         }`}
       >
- <div className="flex items-center bg-gray-50 border-b border-gray-300 px-4 py-3">
-
-
-  <h2 className="flex-1 text-center text-lg font-semibold text-gray-900">
-    Chats
-  </h2>
-</div>
-
-
-
+        <div className="flex items-center bg-gray-50 border-b border-gray-300 px-4 py-3">
+          <button
+            onClick={goToHome}
+            className="text-gray-600 font-medium hover:text-gray-800 mr-4"
+          >
+            <ArrowLeft />
+          </button>
+          <h2 className="flex-1 text-center text-lg font-semibold text-gray-900">
+            Chats
+          </h2>
+        </div>
         {users.length > 0 ? (
           users.map((user) => (
             <div
@@ -442,13 +593,13 @@ function Messages() {
                 <h3 className="text-[15px] font-semibold truncate text-gray-900">
                   {user.name}
                 </h3>
-              <p className="text-gray-500 text-sm">
-                {user.lastMessage
-                  ? user.lastMessage.length > 30
-                    ? user.lastMessage.slice(0, 30) + "..."
-                    : user.lastMessage
-                  : "No messages yet"}
-              </p>
+                <p className="text-gray-500 text-sm">
+                  {user.lastMessage
+                    ? user.lastMessage.length > 30
+                      ? user.lastMessage.slice(0, 30) + "..."
+                      : user.lastMessage
+                    : "No messages yet"}
+                </p>
               </div>
               <Circle
                 className={`w-2.5 h-2.5 ml-2 ${
@@ -461,8 +612,6 @@ function Messages() {
           <p className="text-center text-gray-500 py-6">No users found 😕</p>
         )}
       </aside>
-
-      {/* Right Section */}
       <main
         className={`flex-1 flex flex-col bg-white transition-all duration-300 ${
           selectedUser ? "w-full sm:w-[calc(100%-20rem)]" : ""
@@ -470,7 +619,7 @@ function Messages() {
       >
         {selectedUser ? (
           <>
-            <header className="flex items-center justify-between p-3 border-b border-b-[#ccc] bg-white/90 backdrop-blur sticky top-0 ">
+            <header className="flex items-center justify-between p-3 border-b border-b-[#ccc] bg-white/90 backdrop-blur sticky top-0">
               <div className="flex items-center">
                 <button
                   onClick={() => {
@@ -482,7 +631,7 @@ function Messages() {
                   }}
                   className="mr-2 sm:hidden text-gray-600 font-medium hover:text-gray-800"
                 >
-                    <ArrowLeft />
+                  <ArrowLeft />
                 </button>
                 <UserCircle2 className="w-8 h-8 text-gray-400" />
                 <div className="ml-3">
@@ -498,9 +647,7 @@ function Messages() {
                   </span>
                 </div>
               </div>
-             
             </header>
-
             <div ref={convoRef} className="flex-1 p-3 overflow-y-auto bg-white">
               {messages.length === 0 ? (
                 <p className="text-gray-500 text-center mt-10">
@@ -552,7 +699,7 @@ function Messages() {
                           className={`group relative inline-block px-4 py-2 rounded-2xl whitespace-pre-wrap break-words leading-relaxed max-w-[80%] border 
                           ${
                             isMine
-                              ? "bg-white text-gray-900 border-blue-200 shadow-sm"
+                              ? "bg-blue-100 text-gray-900 border-blue-200 shadow-sm"
                               : "bg-white text-gray-900 border-gray-200 shadow-sm"
                           }`}
                         >
@@ -584,21 +731,20 @@ function Messages() {
                 })
               )}
             </div>
-
             <footer className="p-3 border-t bg-white flex items-center gap-2 sticky bottom-0">
               <input
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 type="text"
                 placeholder="Type a message..."
-                className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-300 transition text-[14px]"
+                className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300 transition text-[14px]"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleSend();
                 }}
               />
               <button
                 onClick={handleSend}
-                className="px-4 py-2 rounded-full flex items-center gap-1 bg-gray-900 hover:bg-black text-white text-[14px]"
+                className="px-4 py-2 rounded-full flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-[14px]"
               >
                 <MessageSquare className="w-5 h-5" /> Send
               </button>
@@ -606,9 +752,8 @@ function Messages() {
           </>
         ) : (
           <div className="hidden md:flex items-center justify-center h-full text-gray-400 text-center px-4">
-  Select a user to start chatting 💬
-</div>
-
+            Select a user to start chatting 💬
+          </div>
         )}
       </main>
     </div>

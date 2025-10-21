@@ -47,7 +47,7 @@ function Register() {
       localStorage.setItem("token", data.token);
 
       // ✅ Connect to Socket.IO
-      const socket = io("https://backend-vauju-1.onrender.com");
+      const socket = io("http://localhost:5000");
 
       // Send JWT for authentication
       socket.emit("authenticate", data.token);
