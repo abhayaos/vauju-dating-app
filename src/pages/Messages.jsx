@@ -9,7 +9,6 @@ function Messages() {
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
 
-  // Fetch users when modal opens
   useEffect(() => {
     if (!showModal) return;
 
@@ -23,25 +22,27 @@ function Messages() {
     setError("");
 
     fetch("https://backend-vauju-1.onrender.com/api/profile/messages-users", {
+      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     })
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch users: " + res.status);
+        if (!res.ok) throw new Error(`Failed to fetch users: ${res.status}`);
         return res.json();
       })
       .then((data) => {
-        // Ensure data.users exists
-        const fetchedUsers = Array.isArray(data.users) ? data.users : [];
-        // simulate loading for 2 sec
-        setTimeout(() => {
-          setUsers(fetchedUsers);
-          setLoading(false);
-        }, 2000);
+        console.log("API Response:", data); // Log response for debugging
+        const fetchedUsers = Array.isArray(data) ? data : Array.isArray(data.users) ? data.users : [];
+        if (fetchedUsers.length === 0) {
+          setError("No users found in the response. Please check the backend API.");
+        }
+        setUsers(fetchedUsers);
+        setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Fetch Error:", err);
         setError(err.message);
         setLoading(false);
       });
@@ -50,14 +51,13 @@ function Messages() {
   const filteredUsers = Array.isArray(users)
     ? users.filter(
         (u) =>
-          u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          u.username.toLowerCase().includes(searchQuery.toLowerCase())
+          (u.name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+          (u.username?.toLowerCase() || "").includes(searchQuery.toLowerCase())
       )
     : [];
 
   return (
     <main className="flex h-screen bg-white text-black ml-0 md:ml-18">
-      {/* Left Sidebar */}
       <section className="w-full md:w-1/3 border-r border-gray-200 flex flex-col relative">
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold">Messages</h2>
@@ -97,7 +97,6 @@ function Messages() {
         </div>
       </section>
 
-      {/* Right Chat */}
       <section className="hidden md:flex flex-col flex-1 items-center justify-center bg-gray-50">
         <div className="text-center max-w-sm">
           <h2 className="text-2xl font-bold mb-2">Select a message</h2>
@@ -114,7 +113,6 @@ function Messages() {
         </div>
       </section>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl w-80 sm:w-96 p-6 relative">
@@ -126,13 +124,16 @@ function Messages() {
             </button>
             <h3 className="text-xl font-bold mb-4">Start New Message</h3>
 
-            <input
-              type="text"
-              placeholder="Search users..."
-              className="w-full px-4 py-2 border rounded-full mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search users..."
+                className="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
 
             {loading ? (
               <div className="flex justify-center items-center py-8">
@@ -141,7 +142,7 @@ function Messages() {
             ) : error ? (
               <p className="text-red-500 text-center">{error}</p>
             ) : filteredUsers.length === 0 ? (
-              <p className="text-gray-500 text-center">No users found.</p>
+              <p className="text-gray-500 text-center">No users available to message.</p>
             ) : (
               <ul className="max-h-64 overflow-y-auto">
                 {filteredUsers.map((user) => (
@@ -153,8 +154,8 @@ function Messages() {
                       setShowModal(false);
                     }}
                   >
-                    <span className="font-semibold">{user.name}</span>
-                    <span className="text-gray-500 text-sm">@{user.username}</span>
+                    <span className="font-semibold">{user.name || "Unknown"}</span>
+                    <span className="text-gray-500 text-sm">@{user.username || "unknown"}</span>
                   </li>
                 ))}
               </ul>
