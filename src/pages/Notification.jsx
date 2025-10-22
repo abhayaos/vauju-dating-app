@@ -4,7 +4,7 @@ import { BellRing } from "lucide-react";
 // Helper function to format relative time
 function getRelativeTime(date) {
   const now = new Date();
-  const diffMs = now - date; // difference in milliseconds
+  const diffMs = now - date;
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
   const diffHour = Math.floor(diffMin / 60);
@@ -20,9 +20,9 @@ function Notification() {
   const notifications = [
     {
       id: 1,
-      title: "App updates!",
+      title: "App Updates! 🎉",
       message:
-        "The app is working properly! 🎉 Note: Messaging feature is currently under maintenance. We're actively fixing it and it will be back soon. Thanks for your patience! 💖.",
+        "The app is working properly! Note: Messaging feature is currently under maintenance. We're actively fixing it and it will be back soon. Thanks for your patience! 💖",
       timeStamp: new Date(new Date().getTime() - 2 * 60 * 60 * 1000), // 2 hours ago
       unread: true,
     },
@@ -42,6 +42,7 @@ function Notification() {
                 key={notif.id}
                 className="bg-white p-4 md:p-5 rounded-xl shadow-md hover:shadow-lg transition flex flex-col sm:flex-row sm:justify-between items-start sm:items-center group"
               >
+                {/* Icon + Content */}
                 <div className="flex items-start sm:items-center gap-3">
                   <div className="relative">
                     <BellRing className="text-pink-500" size={24} />
@@ -54,6 +55,8 @@ function Notification() {
                     <p className="text-gray-600 text-sm sm:text-base">{notif.message}</p>
                   </div>
                 </div>
+
+                {/* Timestamp */}
                 <span className="text-gray-400 text-xs sm:text-sm mt-2 sm:mt-0">
                   {getRelativeTime(notif.timeStamp)}
                 </span>
