@@ -7,37 +7,38 @@ function Messages() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [error, setError] = useState(""); // to show any errors
+  const [error, setError] = useState("");
 
-  // Fetch users from backend when modal opens
+  // Fetch users when modal opens
   useEffect(() => {
     if (!showModal) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("You must be logged in to see users.");
+      return;
+    }
 
     setLoading(true);
     setError("");
 
-    const token = localStorage.getItem("token"); // replace with your auth storage
-    if (!token) {
-      setError("You must be logged in to see users.");
-      setLoading(false);
-      return;
-    }
-
     fetch("https://backend-vauju-1.onrender.com/api/profile/messages-users", {
       headers: {
-        Authorization: "Bearer " + token,
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch users: " + res.status);
-        }
+        if (!res.ok) throw new Error("Failed to fetch users: " + res.status);
         return res.json();
       })
       .then((data) => {
-        // Ensure users is always an array
-        setUsers(Array.isArray(data.users) ? data.users : []);
-        setLoading(false);
+        // Ensure data.users exists
+        const fetchedUsers = Array.isArray(data.users) ? data.users : [];
+        // simulate loading for 2 sec
+        setTimeout(() => {
+          setUsers(fetchedUsers);
+          setLoading(false);
+        }, 2000);
       })
       .catch((err) => {
         console.error(err);
@@ -46,12 +47,11 @@ function Messages() {
       });
   }, [showModal]);
 
-  // Filter users safely
   const filteredUsers = Array.isArray(users)
     ? users.filter(
-        (user) =>
-          user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.username.toLowerCase().includes(searchQuery.toLowerCase())
+        (u) =>
+          u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          u.username.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
 
@@ -59,7 +59,6 @@ function Messages() {
     <main className="flex h-screen bg-white text-black ml-0 md:ml-18">
       {/* Left Sidebar */}
       <section className="w-full md:w-1/3 border-r border-gray-200 flex flex-col relative">
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold">Messages</h2>
           <button
@@ -70,7 +69,6 @@ function Messages() {
           </button>
         </div>
 
-        {/* Filters */}
         <div className="px-4 py-3 border-b border-gray-200">
           <div className="flex items-center gap-2 mt-3">
             {["All", "Unread", "Groups"].map((filter) => (
@@ -89,7 +87,6 @@ function Messages() {
           </div>
         </div>
 
-        {/* Empty State */}
         <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
           <div className="max-w-xs">
             <h3 className="text-lg font-semibold mb-2">No Messages Yet</h3>
@@ -100,7 +97,7 @@ function Messages() {
         </div>
       </section>
 
-      {/* Right Chat Section */}
+      {/* Right Chat */}
       <section className="hidden md:flex flex-col flex-1 items-center justify-center bg-gray-50">
         <div className="text-center max-w-sm">
           <h2 className="text-2xl font-bold mb-2">Select a message</h2>
@@ -117,7 +114,7 @@ function Messages() {
         </div>
       </section>
 
-      {/* New Message Modal */}
+      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl w-80 sm:w-96 p-6 relative">
@@ -138,7 +135,9 @@ function Messages() {
             />
 
             {loading ? (
-              <p className="text-gray-500 text-center">Loading users...</p>
+              <div className="flex justify-center items-center py-8">
+                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent border-b-transparent rounded-full animate-spin"></div>
+              </div>
             ) : error ? (
               <p className="text-red-500 text-center">{error}</p>
             ) : filteredUsers.length === 0 ? (
