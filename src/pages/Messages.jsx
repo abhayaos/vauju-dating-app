@@ -41,7 +41,6 @@ function Messages() {
       return null;
     }
   };
-
   const isTokenExpired = (token) => {
     try {
       const payload = jwtDecode(token);
