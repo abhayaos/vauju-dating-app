@@ -84,7 +84,7 @@ function XSidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-[70px] bg-white border-r border-gray-200 shadow-md flex flex-col justify-between z-50">
+    <aside className="fixed left-0 top-0 h-full w-[70px] bg-white border-r border-gray-200 flex flex-col justify-between z-50">
       {/* Top Section */}
       <div className="flex flex-col items-center mt-4 space-y-1">
         <Link to="/" className="flex items-center justify-center py-4 border-b border-gray-100 w-full hover:bg-gray-50 transition">
