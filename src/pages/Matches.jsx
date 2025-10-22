@@ -7,24 +7,34 @@ function Matches() {
 
   const fetchMatches = async () => {
     try {
+      const token = localStorage.getItem("token");
+      const headers = { "Content-Type": "application/json" };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const response = await fetch(
         "https://backend-vauju-1.onrender.com/api/matches",
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { method: "GET", headers }
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch matches: ${response.statusText}`);
+        throw new Error(`Failed to fetch matches: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      setMatches(data);
+      console.log("Matches API Response:", data); // Debug: Check this in console
+      const fetchedMatches = Array.isArray(data) ? data : Array.isArray(data.matches) ? data.matches : [];
+      setMatches(fetchedMatches);
       setLoading(false);
+
+      // No error for empty array—handle in UI
+      if (fetchedMatches.length === 0) {
+        console.log("Empty matches—database may need seeding.");
+      }
     } catch (err) {
-      setError(err.message || "An unexpected error occurred");
+      console.error("Fetch Error:", err);
+      setError(err.message);
       setLoading(false);
     }
   };
@@ -60,7 +70,12 @@ function Matches() {
       <h1 className="text-3xl font-bold mb-6 text-center">Matches</h1>
 
       {matches.length === 0 ? (
-        <p className="text-center text-gray-500">No matches found</p>
+        <div className="text-center py-8">
+          <p className="text-gray-500 mb-4">No matches yet.</p>
+          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Create Your First Match
+          </button>
+        </div>
       ) : (
         <ul className="space-y-4">
           {matches.map((match) => (
@@ -69,7 +84,7 @@ function Matches() {
               className="p-4 border border-gray-200 rounded shadow-sm hover:shadow-md transition"
             >
               <div className="flex justify-between items-center">
-                <span className="font-medium text-lg">{match.name}</span>
+                <span className="font-medium text-lg">{match.name || "Unnamed Match"}</span>
                 {match.date && (
                   <span className="text-gray-500 text-sm">
                     {new Date(match.date).toLocaleDateString()}
