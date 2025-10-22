@@ -5,7 +5,7 @@ import { UserCircle2, MessageSquare, Circle, ArrowLeft } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
 
-const API_URL = "https://backend-vauju-1.onrender.com/";
+const API_URL = "https://backend-vauju-1.onrender.com";
 
 function Messages() {
   const [users, setUsers] = useState([]);
