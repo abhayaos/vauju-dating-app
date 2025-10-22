@@ -4,7 +4,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
 
 // Use environment variable for BASE_URL
-const BASE_URL = import.meta.env.VITE_API_URL || "https://backend-vauju-1.onrender.com/";
+const BASE_URL = import.meta.env.VITE_API_URL || "https://backend-vauju-1.onrender.com";
 
 // Utility function to decode JWT and get userId
 const getUserIdFromToken = (token) => {

@@ -1,235 +1,87 @@
-// src/pages/Matches.jsx
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { MessageSquare, Heart } from "lucide-react";
-
-const BASE_URL = "https://backend-vauju-1.onrender.com/";
 
 function Matches() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [status, setStatus] = useState({ pendingApproval: false, suspended: false });
-  const [filter, setFilter] = useState("all"); // Filter state: all, online, nearby
-  const [selectedInterest, setSelectedInterest] = useState(""); // Interest filter
-  const navigate = useNavigate();
+
+  const fetchMatches = async () => {
+    try {
+      const response = await fetch(
+        "https://backend-vauju-1.onrender.com/api/matches",
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch matches: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setMatches(data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message || "An unexpected error occurred");
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const token = JSON.parse(localStorage.getItem("token"));
-    if (!token?._id) {
-      setLoading(false);
-      setError("Please log in to view your matches");
-      navigate("/login", { replace: true });
-      return;
-    }
-
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const profRes = await fetch(`${BASE_URL}/api/profile`, {
-          headers: { "x-user-id": token._id },
-        });
-        if (!profRes.ok) throw new Error("Failed to fetch your profile");
-        const me = await profRes.json();
-
-        setStatus({
-          pendingApproval: !!(me.visibilityRequested && !me.visibilityApproved),
-          suspended: !!me.suspended,
-        });
-
-        const res = await fetch(`${BASE_URL}/api/profile/matches`, {
-          headers: { "x-user-id": token._id },
-        });
-        if (!res.ok) throw new Error("Failed to fetch matches");
-        const data = await res.json();
-
-        // Simulate location data if not provided by API
-        const enrichedData = data.map((user) => ({
-          ...user,
-          location: user.location || "Nepal",
-          isOnline: Math.random() > 0.5, // Placeholder
-        }));
-
-        setMatches(enrichedData);
-      } catch (err) {
-        console.error(err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [navigate]);
-
-  const token = JSON.parse(localStorage.getItem("token"));
-  const meId = token?._id;
-
-  // Get all unique interests
-  const allInterests = Array.from(
-    new Set(matches.flatMap((u) => u.interests || []))
-  );
-
-  // Filter matches by filter and selectedInterest
-  const filteredMatches = matches.filter((u) => {
-    if (filter === "online" && !u.isOnline) return false;
-    if (filter === "nearby" && !u.location.toLowerCase().includes("kathmandu")) return false;
-    if (selectedInterest && !(u.interests || []).includes(selectedInterest)) return false;
-    return true;
-  });
-
-  const SkeletonCard = () => (
-    <div className="flex flex-col p-4 rounded-xl shadow-sm animate-pulse bg-gray-50 space-y-3" aria-hidden="true">
-      <div className="w-16 h-16 mx-auto rounded-full bg-gray-200"></div>
-      <div className="h-4 bg-gray-300 rounded w-3/4 mx-auto"></div>
-      <div className="h-3 bg-gray-200 rounded w-1/2 mx-auto"></div>
-      <div className="h-3 bg-gray-200 rounded w-full"></div>
-    </div>
-  );
-
-  const containerClasses = "p-4 max-w-6xl mx-auto font-sans";
+    fetchMatches();
+  }, []);
 
   if (loading) {
-    return (
-      <div className={`${containerClasses} py-20`}>
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Loading Matches...</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {Array(6).fill(0).map((_, idx) => <SkeletonCard key={idx} />)}
-        </div>
-      </div>
-    );
+    return <div className="text-center italic mt-10">Loading matches...</div>;
   }
 
   if (error) {
     return (
-      <div className={`${containerClasses} py-20 text-center text-red-600 font-medium bg-red-50 rounded-xl p-6`} role="alert">
-        ⚠️ {error}
+      <div className="text-center text-red-500 mt-10">
+        Error: {error}
+        <button
+          onClick={() => {
+            setLoading(true);
+            setError(null);
+            fetchMatches();
+          }}
+          className="ml-3 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
   return (
-    <div className={`${containerClasses} py-20 bg-gradient-to-b from-red-50 to-white min-h-screen`}>
-      {/* Header */}
-      <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-8 text-center">Your Matches 💖</h1>
+    <div className="max-w-3xl mx-auto px-4 py-10">
+      <h1 className="text-3xl font-bold mb-6 text-center">Matches</h1>
 
-      {/* Status Message */}
-      {(status.pendingApproval || status.suspended) && (
-        <div
-          className={`mb-6 p-4 rounded-xl text-sm text-center ${
-            status.suspended
-              ? "bg-yellow-50 border border-yellow-300 text-yellow-800"
-              : "bg-blue-50 border border-blue-300 text-blue-800"
-          }`}
-          role="alert"
-        >
-          {status.suspended
-            ? "Your account is suspended. Please contact support."
-            : "Your profile is pending admin approval. You'll see matches once approved."}
-        </div>
-      )}
-
-      {/* Filter Bar */}
-      <div className="flex justify-center gap-4 mb-4 flex-wrap">
-        <button
-          onClick={() => setFilter("all")}
-          className={`px-4 py-2 rounded-full font-medium text-sm ${filter === "all" ? "bg-red-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} transition`}
-        >
-          All
-        </button>
-        <button
-          onClick={() => setFilter("online")}
-          className={`px-4 py-2 rounded-full font-medium text-sm ${filter === "online" ? "bg-red-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} transition`}
-        >
-          Online
-        </button>
-        <button
-          onClick={() => setFilter("nearby")}
-          className={`px-4 py-2 rounded-full font-medium text-sm ${filter === "nearby" ? "bg-red-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} transition`}
-        >
-          Nearby
-        </button>
-      </div>
-
-      {/* Interest Chips */}
-      {allInterests.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
-          {allInterests.map((interest) => (
-            <button
-              key={interest}
-              onClick={() => setSelectedInterest(selectedInterest === interest ? "" : interest)}
-              className={`px-3 py-1 text-sm rounded-full border transition ${
-                selectedInterest === interest
-                  ? "bg-red-600 text-white border-red-600"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-red-50"
-              }`}
-            >
-              {interest}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Matches Grid */}
-      {filteredMatches.length === 0 ? (
-        <div className="p-6 text-center text-gray-600 font-medium bg-white rounded-xl shadow">
-          No matches available for the selected filter
-        </div>
+      {matches.length === 0 ? (
+        <p className="text-center text-gray-500">No matches found</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {filteredMatches.map((u) => {
-            const isMe = String(u._id) === String(meId);
-            return (
-              <div
-                key={u._id}
-                className="flex flex-col justify-between p-4 rounded-xl shadow-md bg-white border border-gray-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && navigate(u.username ? `/@${u.username}` : `/profile/${u._id}`)}
-              >
-                <div className="space-y-2 text-center">
-                  <div className="relative w-16 h-16 mx-auto rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                    <span className="text-xl font-medium">{String(u.name || "?").charAt(0).toUpperCase()}</span>
-                    {u.isOnline && <span className="w-3 h-3 absolute right-1 bottom-1 bg-green-500 rounded-full" aria-label="User is online"/>}
-                  </div>
-                  <h3 className="font-semibold text-gray-800 text-base sm:text-lg">{u.name || "Unknown"}</h3>
-                  <p className="text-sm text-gray-500">{u.age ? `${u.age} yrs` : "Age N/A"}{u.location && ` • ${u.location}`}</p>
-                  {u.interests?.length > 0 && (
-                    <div className="flex flex-wrap gap-2 justify-center mt-2">
-                      {u.interests.map((interest, idx) => (
-                        <span key={idx} className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">{interest}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {!isMe ? (
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/messages/${u._id}`)}
-                      className="flex-1 text-center bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-red-500"
-                      aria-label={`Message ${u.name || "user"}`}
-                    >
-                      <MessageSquare className="w-4 h-4 inline-block mr-1" /> Message
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => navigate(u.username ? `/@${u.username}` : `/profile/${u._id}`)}
-                      className="flex-1 text-center bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium py-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-amber-400"
-                      aria-label={`View ${u.name || "user"}'s profile`}
-                    >
-                      <Heart className="w-4 h-4 inline-block mr-1" /> View Profile
-                    </button>
-                  </div>
-                ) : (
-                  <span className="mt-4 text-sm text-gray-400 text-center">This is you</span>
+        <ul className="space-y-4">
+          {matches.map((match) => (
+            <li
+              key={match._id}
+              className="p-4 border border-gray-200 rounded shadow-sm hover:shadow-md transition"
+            >
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-lg">{match.name}</span>
+                {match.date && (
+                  <span className="text-gray-500 text-sm">
+                    {new Date(match.date).toLocaleDateString()}
+                  </span>
                 )}
               </div>
-            );
-          })}
-        </div>
+              {match.description && (
+                <p className="text-gray-600 mt-2">{match.description}</p>
+              )}
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
