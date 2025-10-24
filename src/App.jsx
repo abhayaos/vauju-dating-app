@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { isTokenExpired, clearAuthData } from "./utils/auth";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
 
 // Components
 import Header from "./components/Header";
@@ -34,8 +34,8 @@ import HamNav from "./MobileLayouyt/HamNav";
 import Create from "./MobileLayouyt/Create";
 import TermAndCondition from "./pages/TermAndCondition";
 import PrivateSpeech from "./pages/PrivateSpeech";
-import Blogs from "./pages/Blogs"; // <-- FIXED import
-import NameChanging from "./Blogs/NameChanging"
+import Blogs from "./pages/Blogs";
+import NameChanging from "./Blogs/NameChanging";
 
 import "./App.css";
 
@@ -47,11 +47,11 @@ function App() {
   // Detect route change
   useEffect(() => {
     setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 800); // loader lasts for 0.8s
+    const timer = setTimeout(() => setLoading(false), 800);
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
-  // Check token expiry every 60 seconds and auto-logout if expired
+  // Auto logout on token expiry
   useEffect(() => {
     const checkTokenExpiry = () => {
       if (isTokenExpired()) {
@@ -63,9 +63,8 @@ function App() {
       }
     };
 
-    checkTokenExpiry(); // Check immediately on mount
-    const interval = setInterval(checkTokenExpiry, 60000); // Check every 60 seconds
-
+    checkTokenExpiry();
+    const interval = setInterval(checkTokenExpiry, 60000);
     return () => clearInterval(interval);
   }, [navigate, location.pathname]);
 
@@ -128,11 +127,8 @@ function App() {
           <Route path="/admin/users" element={<ManageUser />} />
           <Route path="/admin/manage-users" element={<ManageUser />} />
           <Route path="/hall-of-fame" element={<HallOfFame />} />
-          <Route path="/blogs" element={<Blogs />} /> {/* <-- FIXED */}
-          <Route
-            path="/hall-of-fame/bounty/user/mandip"
-            element={<MandipBlog />}
-          />
+          <Route path="/blogs" element={<Blogs />} />
+          <Route path="/hall-of-fame/bounty/user/mandip" element={<MandipBlog />} />
           <Route path="/community" element={<Community />} />
           <Route path="/working" element={<Working />} />
           <Route path="/explore" element={<Explore />} />
@@ -140,15 +136,14 @@ function App() {
           <Route path="/create" element={<Create />} />
           <Route path="/hamvav" element={<HamNav />} />
           <Route path="/blog/how-tp-update-profile-in-aura-meet" element={<NameChanging />} />
-          <Route
-            path="/term-and-conditions"
-            element={<TermAndCondition />}
-          />
+          <Route path="/term-and-conditions" element={<TermAndCondition />} />
           <Route path="/private-space" element={<PrivateSpeech />} />
           <Route path="*" element={<PageNotFound />} />
-          <Analytics />
         </Routes>
       </main>
+
+      {/* ✅ Analytics should be outside Routes */}
+      <Analytics />
     </div>
   );
 }
