@@ -241,7 +241,6 @@ function Profile() {
       <div className="flex flex-col justify-center items-center min-h-screen text-gray-500 animate-pulse bg-gray-50">
         <div className="text-center">
           <p className="text-lg mb-2">Loading profile...</p>
-          <p className="text-sm text-gray-400">Check the console for debug info</p>
         </div>
       </div>
     );
