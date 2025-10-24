@@ -4,6 +4,8 @@ import { MailPlus, Search, X, Send, UserCircle2, Circle, ArrowLeft } from "lucid
 import { io as ioClient } from "socket.io-client";
 import toast, { Toaster } from "react-hot-toast";
 import { jwtDecode } from "jwt-decode"; // Use named import
+import Navbar from "../components/Navbar";
+import MobileNavbar from "../components/MobileNavbar";
 
 const API_URL = "https://backend-vauju-1.onrender.com";
 const USERS_CACHE_KEY = "messages-users";
@@ -622,8 +624,13 @@ function Messages() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-white">
-    
+      <div className="hidden md:block">
+        <Navbar />
+      </div>
       <div className="flex-1 flex flex-col md:pl-[70px] w-full">
+        <div className="md:hidden sticky top-0 z-40 bg-white">
+          <MobileNavbar />
+        </div>
         {selectedUser && (
           <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
             <button
