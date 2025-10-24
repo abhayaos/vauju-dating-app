@@ -1,59 +1,249 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Logo2 from '../assets/logo2.png';
+import { Heart, MessageCircle } from 'lucide-react';
 import ProfileImage from '../assets/user-dp.png';
 import PostModel from '../Models/PostModel';
 
+const API_BASE = 'https://backend-vauju-1.onrender.com';
+
+const getSafeUser = (value) => {
+  if (!value) return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+};
+
+const getLikeId = (like) => {
+  if (!like) return null;
+  if (typeof like === 'string') return like;
+  if (typeof like === 'object' && like._id) return like._id;
+  if (typeof like === 'object' && like.id) return like.id;
+  return null;
+};
+
+const getCommentUserId = (comment) => {
+  if (!comment) return null;
+  const user = comment.user;
+  if (!user) return null;
+  if (typeof user === 'string') return user;
+  if (typeof user === 'object' && user._id) return user._id;
+  if (typeof user === 'object' && user.id) return user.id;
+  return null;
+};
+
 function Home() {
   const navigate = useNavigate();
-
-  const [Posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedPosts, setExpandedPosts] = useState([]);
+  const [error, setError] = useState('');
+  const [commentDrafts, setCommentDrafts] = useState({});
+  const [pendingLikes, setPendingLikes] = useState({});
+  const [pendingComments, setPendingComments] = useState({});
+  const [token, setToken] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('token');
+  });
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    return getSafeUser(localStorage.getItem('user'));
+  });
+  const commentInputRefs = useRef({});
 
-  // Simulate fetching posts
+  const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId;
+
   useEffect(() => {
-    setTimeout(() => {
-      setPosts([
-        {
-          id: 1,
-          author: 'Abhaya Bikram Shahi',
-          avatar: ProfileImage,
-          title: 'Introducing our new feature!',
-          content:
-            'I am the developer of AuraMeet and I am just 15 years old. I have added something cool feature in our app called changing profile picture. You can change your profile picture after 3 to 4 days. I have added in limited users first and then I will add in all users. Stay tuned for more updates!',
-          timestamp: '2025-10-24T14:15:00Z'
-        },
-        {
-          id: 2,
-          author: 'AuraMeet - Official',
-          avatar: Logo2,
-          title: 'Introducing our new app feature!',
-          content:
-            'Hello everyone! We are excited to announce a brand new feature in our AuraMeet app that will enhance your dating experience. Stay tuned for more updates!',
-          timestamp: '2025-10-23T18:30:00Z'
-        }
-      ]);
-      setLoading(false);
-    }, 2000); // simulate 2s loading
+    if (typeof window === 'undefined') return;
+    const syncAuth = () => {
+      setToken(localStorage.getItem('token'));
+      setCurrentUser(getSafeUser(localStorage.getItem('user')));
+    };
+    syncAuth();
+    window.addEventListener('authChange', syncAuth);
+    window.addEventListener('storage', syncAuth);
+    return () => {
+      window.removeEventListener('authChange', syncAuth);
+      window.removeEventListener('storage', syncAuth);
+    };
   }, []);
 
-  // Helper to truncate content to 30 words
+  const fetchPosts = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE}/api/posts?page=1&limit=20`, {
+        headers: token ? { 'x-user-id': token } : {}
+      });
+      if (!res.ok) {
+        const message = await res.text();
+        throw new Error(message || 'Failed to load posts');
+      }
+      const data = await res.json();
+      const list = Array.isArray(data?.posts) ? data.posts : [];
+      setPosts(
+        list.map((post) => ({
+          ...post,
+          likes: Array.isArray(post.likes) ? post.likes : [],
+          comments: Array.isArray(post.comments) ? post.comments : []
+        }))
+      );
+    } catch (err) {
+      setError(err.message);
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
   const truncateContent = (text, words = 30) => {
+    if (!text) return '';
     const split = text.split(' ');
     if (split.length <= words) return text;
-    return split.slice(0, words).join(' ') + '...';
+    return `${split.slice(0, words).join(' ')}...`;
   };
 
   const toggleReadMore = (id) => {
-    if (expandedPosts.includes(id)) {
-      setExpandedPosts(expandedPosts.filter((postId) => postId !== id));
-    } else {
-      setExpandedPosts([...expandedPosts, id]);
+    setExpandedPosts((prev) =>
+      prev.includes(id) ? prev.filter((postId) => postId !== id) : [...prev, id]
+    );
+  };
+
+  const handleCommentFocus = (postId) => {
+    const input = commentInputRefs.current[postId];
+    if (input && typeof input.focus === 'function') {
+      input.focus();
     }
   };
 
-  // Skeleton Loader Component
+  const handleLike = async (rawId) => {
+    const postId = String(rawId);
+    if (!token || !currentUserId) {
+      navigate('/login');
+      return;
+    }
+    const target = posts.find((post) => String(post._id || post.id) === postId);
+    if (!target) return;
+    const hasLiked =
+      Array.isArray(target.likes) &&
+      target.likes.some((like) => String(getLikeId(like)) === String(currentUserId));
+    if (hasLiked) return;
+    if (pendingLikes[postId]) return;
+    try {
+      setPendingLikes((prev) => ({ ...prev, [postId]: true }));
+      const res = await fetch(`${API_BASE}/api/posts/${postId}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': token
+        }
+      });
+      if (!res.ok) {
+        const message = await res.text();
+        throw new Error(message || 'Unable to like this post');
+      }
+      const data = await res.json();
+      const likesCount =
+        typeof data?.likesCount === 'number'
+          ? data.likesCount
+          : (target.likes ? target.likes.length : 0) + 1;
+      setPosts((prev) =>
+        prev.map((post) => {
+          if (String(post._id || post.id) !== postId) {
+            return post;
+          }
+          return {
+            ...post,
+            likes: [...post.likes, currentUserId],
+            likesCount
+          };
+        })
+      );
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setPendingLikes((prev) => {
+        const next = { ...prev };
+        delete next[postId];
+        return next;
+      });
+    }
+  };
+
+  const handleCommentDraftChange = (postId, value) => {
+    setCommentDrafts((prev) => ({ ...prev, [postId]: value }));
+  };
+
+  const handleCommentSubmit = async (rawId) => {
+    const postId = String(rawId);
+    if (!token || !currentUserId) {
+      navigate('/login');
+      return;
+    }
+    const draft = (commentDrafts[postId] || '').trim();
+    if (!draft) return;
+    const target = posts.find((post) => String(post._id || post.id) === postId);
+    if (!target) return;
+    const hasCommented =
+      Array.isArray(target.comments) &&
+      target.comments.some(
+        (comment) => String(getCommentUserId(comment)) === String(currentUserId)
+      );
+    if (hasCommented) return;
+    if (pendingComments[postId]) return;
+    try {
+      setPendingComments((prev) => ({ ...prev, [postId]: true }));
+      const res = await fetch(`${API_BASE}/api/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': token
+        },
+        body: JSON.stringify({ content: draft })
+      });
+      if (!res.ok) {
+        const message = await res.text();
+        throw new Error(message || 'Unable to add comment');
+      }
+      const data = await res.json();
+      const commentsCount =
+        typeof data?.commentsCount === 'number'
+          ? data.commentsCount
+          : (target.comments ? target.comments.length : 0) + 1;
+      setPosts((prev) =>
+        prev.map((post) => {
+          if (String(post._id || post.id) !== postId) {
+            return post;
+          }
+          const nextComments = data?.comment
+            ? [...post.comments, data.comment]
+            : [...post.comments];
+          return {
+            ...post,
+            comments: nextComments,
+            commentsCount
+          };
+        })
+      );
+      setCommentDrafts((prev) => ({ ...prev, [postId]: '' }));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setPendingComments((prev) => {
+        const next = { ...prev };
+        delete next[postId];
+        return next;
+      });
+    }
+  };
+
+  const hasContent = Array.isArray(posts) && posts.length > 0;
+
   const SkeletonCard = () => (
     <div className="bg-gray-200 animate-pulse rounded-lg p-4 flex flex-col gap-2">
       <div className="flex items-center gap-3">
@@ -69,103 +259,208 @@ function Home() {
     </div>
   );
 
+  const renderPostCard = (post) => {
+    const postId = String(post._id || post.id);
+    const isExpanded = expandedPosts.includes(postId);
+    const content = isExpanded ? post.content : truncateContent(post.content);
+    const likesCount =
+      typeof post.likesCount === 'number'
+        ? post.likesCount
+        : Array.isArray(post.likes)
+        ? post.likes.length
+        : 0;
+    const commentsCount =
+      typeof post.commentsCount === 'number'
+        ? post.commentsCount
+        : Array.isArray(post.comments)
+        ? post.comments.length
+        : 0;
+    const hasLiked =
+      currentUserId &&
+      Array.isArray(post.likes) &&
+      post.likes.some((like) => String(getLikeId(like)) === String(currentUserId));
+    const hasCommented =
+      currentUserId &&
+      Array.isArray(post.comments) &&
+      post.comments.some(
+        (comment) => String(getCommentUserId(comment)) === String(currentUserId)
+      );
+    const commentLocked = !token || !currentUserId || hasCommented;
+    const avatar = post.user?.profileImage || post.avatar || ProfileImage;
+    const authorName = post.user?.name || post.author || 'AuraMeet user';
+    const timestamp = post.createdAt || post.timestamp;
+    const formattedTimestamp = timestamp ? new Date(timestamp).toLocaleString() : '';
+    const commentDraft = commentDrafts[postId] || '';
+    const likeDisabled = !token || !currentUserId || hasLiked || pendingLikes[postId];
+
+    return (
+      <div
+        key={postId}
+        className="post-card rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+      >
+        <div className="flex items-center gap-3 mb-3">
+          <img
+            src={ProfileImage}
+            alt={authorName}
+            className="h-12 w-12 rounded-full object-cover border border-gray-200"
+          />
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">{authorName}</h3>
+            {formattedTimestamp && (
+              <p className="text-xs text-gray-500">{formattedTimestamp}</p>
+            )}
+          </div>
+        </div>
+        {post.title && (
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">{post.title}</h2>
+        )}
+        <p className="text-sm leading-relaxed text-gray-800 whitespace-pre-line">{content}</p>
+        {post.content && post.content.split(' ').length > 30 && (
+          <button
+            onClick={() => toggleReadMore(postId)}
+            className="mt-3 text-sm font-semibold text-blue-600"
+            type="button"
+          >
+            {isExpanded ? 'Read Less' : 'Read More'}
+          </button>
+        )}
+        <div className="mt-5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleLike(postId)}
+              disabled={likeDisabled}
+              className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${
+                likeDisabled
+                  ? 'cursor-not-allowed border-gray-200 bg-gray-100 text-gray-300'
+                  : hasLiked
+                  ? 'border-blue-200 bg-blue-50 text-blue-600'
+                  : 'border-gray-200 bg-white text-gray-500 hover:border-blue-300 hover:text-blue-700'
+              }`}
+              aria-label={hasLiked ? 'Liked' : 'Like this post'}
+              type="button"
+            >
+              <Heart
+                strokeWidth={1.6}
+                className="h-5 w-5"
+                fill={hasLiked ? '#2563eb' : 'none'}
+              />
+            </button>
+            <span className="text-sm font-semibold text-gray-600">{likesCount}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (!token || !currentUserId) {
+                  navigate('/login');
+                  return;
+                }
+                if (hasCommented) return;
+                handleCommentFocus(postId);
+              }}
+              disabled={hasCommented}
+              className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${
+                hasCommented
+                  ? 'cursor-not-allowed border-gray-200 bg-gray-100 text-gray-300'
+                  : 'border-gray-200 bg-white text-gray-500 hover:border-blue-200 hover:text-blue-600'
+              }`}
+              aria-label="Write a comment"
+              type="button"
+            >
+              <MessageCircle strokeWidth={1.6} className="h-5 w-5" />
+            </button>
+            <span className="text-sm font-semibold text-gray-600">{commentsCount}</span>
+          </div>
+        </div>
+        <div className="mt-5 flex items-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2 shadow-sm">
+          <input
+            ref={(el) => {
+              if (el) {
+                commentInputRefs.current[postId] = el;
+              } else {
+                delete commentInputRefs.current[postId];
+              }
+            }}
+            type="text"
+            value={commentDraft}
+            onChange={(e) => handleCommentDraftChange(postId, e.target.value)}
+            placeholder={
+              commentLocked
+                ? hasCommented
+                  ? 'You have already shared your thought'
+                  : 'Log in to join the conversation'
+                : 'Share something kind'
+            }
+            disabled={commentLocked || pendingComments[postId]}
+            className="flex-1 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
+          />
+          <button
+            onClick={() => handleCommentSubmit(postId)}
+            disabled={
+              commentLocked ||
+              pendingComments[postId] ||
+              !(commentDrafts[postId] || '').trim()
+            }
+            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            type="button"
+          >
+            {pendingComments[postId] ? 'Posting' : 'Send'}
+          </button>
+        </div>
+        <div className="mt-5 flex flex-col gap-2">
+          {Array.isArray(post.comments) && post.comments.length > 0 ? (
+            post.comments.slice(-3).map((comment, index) => {
+              const commentId = String(comment._id || comment.id || `${postId}-comment-${index}`);
+              const commentAuthor =
+                (comment.user && (comment.user.name || comment.user.username)) ||
+                'AuraMeet user';
+              return (
+                <div
+                  key={commentId}
+                  className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-left"
+                >
+                  <p className="text-sm font-semibold text-gray-800">{commentAuthor}</p>
+                  <p className="mt-1 text-sm text-gray-600">{comment.content}</p>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-sm text-gray-400">No comments yet</p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
-      {/* --- Desktop View --- */}
-      <div className="hidden md:flex flex-col min-h-screen bg-white justify-start items-center text-center px-4 pt-16 sm:pt-24">
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">
-          Welcome to <span className="text-pink-500">AuraMeet</span> Dating App
-        </h1>
-        <p className="text-gray-700 text-lg sm:text-xl mb-6 max-w-md">
-          Connect with amazing people around the world. Find love, friends, or just new conversations.
-        </p>
-        <button
-          onClick={() => navigate('/explore')}
-          className="bg-pink-500 text-white px-6 py-3 rounded-full font-semibold text-lg shadow-lg hover:bg-pink-600 transition transform hover:-translate-y-1 mb-12 sm:mb-16"
-        >
-          Explore Now
-        </button>
-
-        {/* Desktop Posts */}
-        <div className="md:hidden block flex flex-col gap-6 w-full max-w-3xl mb-16">
-          {loading
-            ? Array(2)
-                .fill(0)
-                .map((_, index) => <SkeletonCard key={index} />)
-            : Posts.map((post) => {
-                const isExpanded = expandedPosts.includes(post.id);
-                const displayedContent = isExpanded ? post.content : truncateContent(post.content);
-
-                return (
-                  <div key={post.id} className="post-card bg-white shadow-md rounded-lg p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <img
-                        src={post.avatar}
-                        alt={post.author}
-                        className="w-10 h-10 rounded-full"
-                      />
-                      <div>
-                        <h3 className="font-semibold">{post.author}</h3>
-                        <p className="text-xs text-gray-500">
-                          {new Date(post.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                    <h2 className="text-lg font-bold mb-2">{post.title}</h2>
-                    <p className="text-gray-700">{displayedContent}</p>
-                    {post.content.split(' ').length > 30 && (
-                      <button
-                        onClick={() => toggleReadMore(post.id)}
-                        className="text-pink-500 text-sm font-semibold mt-2"
-                      >
-                        {isExpanded ? 'Read Less' : 'Read More'}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
+      <div className="hidden md:flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-xl rounded-2xl border border-gray-200 bg-white p-10 shadow-lg">
+          <h1 className="text-3xl font-semibold text-gray-900">AuraMeet Feed</h1>
+          <p className="mt-4 text-base text-gray-600">
+            View and share posts directly from your mobile device.
+          </p>
+          <button
+            onClick={() => navigate('/explore')}
+            className="mt-8 inline-flex items-center justify-center rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+          >
+            Explore connections
+          </button>
         </div>
       </div>
 
-      {/* --- Mobile View --- */}
-      <PostModel />
+      <PostModel onPostCreated={fetchPosts} />
+
       <div className="md:hidden block posts-container flex flex-col gap-6 p-4">
+        {error && (
+          <p className="text-sm text-red-500">{error}</p>
+        )}
         {loading
           ? Array(2)
               .fill(0)
               .map((_, index) => <SkeletonCard key={index} />)
-          : Posts.map((post) => {
-              const isExpanded = expandedPosts.includes(post.id);
-              const displayedContent = isExpanded ? post.content : truncateContent(post.content);
-
-              return (
-                <div key={post.id} className="post-card bg-white shadow-md rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <img
-                      src={post.avatar}
-                      alt={post.author}
-                      className="w-10 h-10 rounded-full"
-                    />
-                    <div>
-                      <h3 className="font-semibold">{post.author}</h3>
-                      <p className="text-xs text-gray-500">
-                        {new Date(post.timestamp).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  <h2 className="text-lg font-bold mb-2">{post.title}</h2>
-                  <p className="text-gray-700">{displayedContent}</p>
-                  {post.content.split(' ').length > 30 && (
-                    <button
-                      onClick={() => toggleReadMore(post.id)}
-                      className="text-pink-500 text-sm font-semibold mt-2"
-                    >
-                      {isExpanded ? 'Read Less' : 'Read More'}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+          : hasContent
+          ? posts.map((post) => renderPostCard(post))
+          : <p className="text-gray-500 text-center">No posts yet</p>}
       </div>
     </>
   );

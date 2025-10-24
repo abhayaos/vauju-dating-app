@@ -1,37 +1,30 @@
-// src/Matches.js
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
+import DefaultAvatar from "../assets/user-dp.png";
 
 function Matches() {
-  const [matches, setMatches] = useState([]);
+  const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
-  const isValidDate = (dateString) => {
-    const date = new Date(dateString);
-    return date instanceof Date && !isNaN(date);
-  };
 
   const fetchMatches = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        toast.error("⚠️ Please log in to view matches.");
+        toast.error("⚠️ Please log in to view profiles.");
         setLoading(false);
         navigate("/login");
         return;
       }
 
-      const headers = { 
-        "Content-Type": "application/json",
-        "x-user-id": token 
-      };
-
       const response = await fetch("https://backend-vauju-1.onrender.com/api/matches", {
         method: "GET",
-        headers,
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": token,
+        },
       });
 
       if (!response.ok) {
@@ -41,36 +34,16 @@ function Matches() {
           navigate("/login");
           return;
         }
-        throw new Error(`Failed to fetch matches: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch profiles: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log("Matches API Response:", data);
+      const visibleProfiles = Array.isArray(data)
+        ? data.filter((item) => item && item._id && item.name)
+        : [];
 
-      let fetchedMatches = [];
-      if (Array.isArray(data)) {
-        fetchedMatches = data;
-      } else if (data && Array.isArray(data.matches)) {
-        fetchedMatches = data.matches;
-      } else if (data && Array.isArray(data.data)) {
-        fetchedMatches = data.data;
-      } else {
-        console.warn("Unexpected API response structure:", data);
-        setError("Invalid response from server. Please try again later.");
-        setLoading(false);
-        return;
-      }
-
-      fetchedMatches = fetchedMatches.filter(
-        (match) => match && match._id && typeof match._id === "string" && match.name
-      );
-
-      setMatches(fetchedMatches);
-      setLoading(false);
-
-      if (fetchedMatches.length === 0) {
-        console.log("No matches found. Database may be empty or user lacks visibility.");
-      }
+      setProfiles(visibleProfiles);
+      setError(null);
     } catch (err) {
       console.error("Fetch Error:", err);
       setError(err.message || "🚨 Server error! Try again later.");
@@ -89,7 +62,7 @@ function Matches() {
       <div className="text-center italic mt-10" aria-live="polite">
         <Toaster position="top-center" reverseOrder={false} />
         <svg
-          className="animate-spin h-5 w-5 mx-auto text-indigo-600"
+          className="animate-spin h-6 w-6 mx-auto text-pink-500"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -108,7 +81,7 @@ function Matches() {
             d="M4 12a8 8 0 018-8v8z"
           ></path>
         </svg>
-        <span>Loading matches...</span>
+        <span>Gathering curated profiles...</span>
       </div>
     );
   }
@@ -118,73 +91,111 @@ function Matches() {
       <div className="text-center text-red-500 mt-10" aria-live="assertive">
         <Toaster position="top-center" reverseOrder={false} />
         <p>{error}</p>
-        <button
-          onClick={() => {
-            setLoading(true);
-            setError(null);
-            fetchMatches();
-          }}
-          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 disabled:bg-indigo-300 transition"
-          disabled={loading}
-          aria-label="Retry fetching matches"
-        >
-          {loading ? "Retrying..." : "Retry"}
-        </button>
-        {error.includes("log in") && (
+        <div className="mt-6 flex justify-center gap-3">
           <button
-            onClick={() => navigate("/login")}
-            className="mt-4 ml-3 px-4 py-2 bg-gray-500 text-white rounded-md font-semibold hover:bg-gray-600 transition"
-            aria-label="Log in"
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              fetchMatches();
+            }}
+            className="px-5 py-2 bg-pink-500 text-white rounded-full font-semibold hover:bg-pink-600 transition"
+            disabled={loading}
+            aria-label="Retry fetching profiles"
           >
-            Log In
+            {loading ? "Retrying..." : "Retry"}
           </button>
-        )}
+          {error.includes("log in") && (
+            <button
+              onClick={() => navigate("/login")}
+              className="px-5 py-2 bg-gray-500 text-white rounded-full font-semibold hover:bg-gray-600 transition"
+              aria-label="Log in"
+            >
+              Log In
+            </button>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div className="max-w-5xl mx-auto px-4 py-10">
       <Toaster position="top-center" reverseOrder={false} />
-      <h1 className="text-3xl font-bold mb-6 text-center">Matches</h1>
-      {matches.length === 0 ? (
-        <div className="text-center py-8" aria-live="polite">
-          <p className="text-gray-500 mb-4">
-            {localStorage.getItem("token")
-              ? "No matches available. Create one to get started."
-              : "Please log in to view matches."}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Discover Aura Profiles</h1>
+        <p className="text-gray-600 mt-2">
+          Handpicked members who are visibility-approved and ready to connect.
+        </p>
+      </div>
+
+      {profiles.length === 0 ? (
+        <div className="text-center py-16 border border-dashed border-gray-300 rounded-3xl">
+          <p className="text-gray-500">
+            Fresh profiles will appear here as soon as members are approved.
           </p>
-         
         </div>
       ) : (
-        <ul className="space-y-4" aria-label="List of matches">
-          {matches.map((match) => (
-            <li
-              key={match._id}
-              className="p-4 border border-gray-200 rounded-md shadow-sm hover:shadow-md transition"
-            >
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-lg">{match.name}</span>
-                {match.createdAt && (
-                  <span className="text-gray-500 text-sm">
-                    {isValidDate(match.createdAt)
-                      ? new Date(match.createdAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })
-                      : "Date not available"}
-                  </span>
-                )}
-              </div>
-              {match.age && <p className="text-gray-600 mt-2">Age: {match.age}</p>}
-              {match.gender && <p className="text-gray-600 mt-1">Gender: {match.gender}</p>}
-              {match.interests && match.interests.length > 0 && (
-                <p className="text-gray-600 mt-1">Interests: {match.interests.join(", ")}</p>
-              )}
-            </li>
-          ))}
-        </ul>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {profiles.map((profile) => {
+            const avatar = profile.profileImage || DefaultAvatar;
+            const primaryTagline = profile.bio || "Aura member";
+            const interests = Array.isArray(profile.interests)
+              ? profile.interests.filter(Boolean)
+              : [];
+            return (
+              <article
+                key={profile._id}
+                className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all border border-pink-50"
+              >
+                <div className="p-6 flex flex-col items-center text-center">
+                  <img
+                    src={avatar}
+                    alt={profile.name}
+                    className="w-20 h-20 rounded-full object-cover border-4 border-pink-100"
+                  />
+                  <h2 className="mt-4 text-xl font-semibold text-gray-900">
+                    {profile.name}
+                  </h2>
+                  {profile.username && (
+                    <p className="text-sm text-pink-500 font-medium">@{profile.username}</p>
+                  )}
+                  <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+                    {primaryTagline}
+                  </p>
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    {profile.age && (
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold text-pink-600 bg-pink-100">
+                        {profile.age} yrs
+                      </span>
+                    )}
+                    {profile.gender && (
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold text-purple-600 bg-purple-100 capitalize">
+                        {profile.gender}
+                      </span>
+                    )}
+                  </div>
+                  {interests.length > 0 && (
+                    <div className="mt-5 w-full">
+                      <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">
+                        Interests
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {interests.slice(0, 6).map((interest, index) => (
+                          <span
+                            key={`${profile._id}-interest-${index}`}
+                            className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+                          >
+                            {interest}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
       )}
     </div>
   );

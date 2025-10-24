@@ -1,64 +1,139 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ProfileImage from "../assets/dp.png";
-import { FileImage, Video, Smile } from "lucide-react";
+import { SendHorizontal } from "lucide-react";
 
-function PostModel() {
-  const [showAlert, setShowAlert] = useState(false);
+const API_BASE = "https://backend-vauju-1.onrender.com";
 
-  const handleAlert = () => {
-    setShowAlert(true);
-    // auto hide after 2.5 seconds
-    setTimeout(() => setShowAlert(false), 2500);
+const getSafeUser = (value) => {
+  if (!value) return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+};
+
+function PostModel({ onPostCreated }) {
+  const navigate = useNavigate();
+  const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState(() => typeof window !== "undefined" ? localStorage.getItem("token") : null);
+  const [currentUser, setCurrentUser] = useState(() => typeof window !== "undefined" ? getSafeUser(localStorage.getItem("user")) : null);
+  const [feedback, setFeedback] = useState("");
+  const [feedbackTone, setFeedbackTone] = useState("info");
+
+  const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId;
+  const canPost = !!currentUser?.canPost;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncAuth = () => {
+      setToken(localStorage.getItem("token"));
+      setCurrentUser(getSafeUser(localStorage.getItem("user")));
+    };
+    syncAuth();
+    window.addEventListener("authChange", syncAuth);
+    window.addEventListener("storage", syncAuth);
+    return () => {
+      window.removeEventListener("authChange", syncAuth);
+      window.removeEventListener("storage", syncAuth);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = setTimeout(() => setFeedback(""), 2500);
+    return () => clearTimeout(timer);
+  }, [feedback]);
+
+  const toneClass = feedbackTone === "success" ? "bg-green-500" : feedbackTone === "error" ? "bg-red-500" : "bg-gray-800";
+
+  const handleFocus = () => {
+    if (!token || !currentUserId) return navigate("/login");
+    if (!canPost) {
+      setFeedbackTone("info");
+      setFeedback("Only limited users can create posts.");
+    }
+  };
+
+  const handleSubmit = async () => {
+    const trimmed = content.trim();
+    if (!trimmed || !token || !currentUserId || !canPost || loading) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/posts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": token
+        },
+        body: JSON.stringify({ content: trimmed })
+      });
+
+      if (!res.ok) throw new Error(await res.text() || "Failed to post");
+
+      await res.json();
+      setContent("");
+      setFeedbackTone("success");
+      setFeedback("Posted!");
+      onPostCreated?.();
+    } catch (err) {
+      setFeedbackTone("error");
+      setFeedback(err.message || "Failed to post");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
-  <main className="md:hidden block">
-
-        {/* Custom Alert */}
-      {showAlert && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-pink-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce">
-          Only limited users can create posts.🥀
+      {/* Feedback Toast */}
+      {feedback && (
+        <div className={`${toneClass} fixed top-3 left-1/2 -translate-x-1/2 text-white px-4 py-2 rounded-full text-xs font-medium shadow-md z-50 animate-pulse`}>
+          {feedback}
         </div>
       )}
 
-      {/* Post Input Section */}
-      <div
-        className="profile-img-sec flex items-center px-4 py-3 border-t border-b border-gray-200"
-        role="region"
-        aria-label="Create a post"
-      >
-        <img
-          src={ProfileImage}
-          className="w-10 h-10 rounded-full object-cover border border-gray-300"
-          alt="Profile"
-        />
+      {/* Compact Post Composer */}
+      <div className="md:hidden flex px-2 pb-2">
+        <div className="flex w-full bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
+          {/* Avatar */}
+          <div className="flex-shrink-0 p-2">
+            <img
+              src={ProfileImage}
+              alt="Profile"
+              className="w-9 h-9 rounded-full object-cover border border-gray-300"
+            />
+          </div>
 
-        <div className="flex-1 mx-3">
-          <input
-            onClick={handleAlert}
-            type="text"
-            placeholder="What's on your mind?"
-            className="w-full bg-white border border-gray-300 rounded-full px-4 py-2 text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-            aria-label="What's on your mind?"
-          />
-        </div>
+          {/* Input + Button */}
+          <div className="flex-1 flex items-center gap-2 p-1.5 pr-2">
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              onFocus={handleFocus}
+              placeholder={canPost ? "What's up?" : "Limited"}
+              readOnly={!canPost}
+              disabled={loading}
+              className="flex-1 border border-[#ccc] resize-none bg-gray-50 text-sm text-gray-800 placeholder:text-gray-400 px-3 py-1.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              rows={1}
+              style={{ minHeight: '36px' }}
+              aria-label="Create post"
+            />
 
-        <div className="flex items-center space-x-2">
-          <button className="p-2 rounded-full hover:bg-gray-200 transition duration-200" title="Add Photo" aria-label="Add Photo">
-            <FileImage size={20} className="text-gray-500" />
-          </button>
-          <button className="p-2 rounded-full hover:bg-gray-200 transition duration-200 hidden sm:block" title="Add Video" aria-label="Add Video">
-            <Video size={20} className="text-gray-500" />
-          </button>
-          <button className="p-2 rounded-full hover:bg-gray-200 transition duration-200 hidden sm:block" title="Add Feeling/Activity" aria-label="Add Feeling or Activity">
-            <Smile size={20} className="text-gray-500" />
-          </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !content.trim() || !canPost}
+              className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white text-xs font-medium rounded-full transition"
+            >
+              {loading ? "..." : "Post"}
+              <SendHorizontal size={13} />
+            </button>
+          </div>
         </div>
       </div>
-  </main>
-
-      
     </>
   );
 }

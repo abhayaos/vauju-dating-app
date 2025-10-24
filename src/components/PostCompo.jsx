@@ -1,47 +1,55 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'https://backend-vauju-1.onrender.com';
+
+const getSafeUser = () => {
+  if (typeof window === 'undefined') return null;
+  const stored = localStorage.getItem('user');
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return null;
+  }
+};
+
+const getToken = () => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('token');
+};
+
 function Post({ onNewPost }) {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handlePost = async () => {
-    const userInfoStr = localStorage.getItem('userInfo');
+    const token = getToken();
+    const user = getSafeUser();
 
-    if (!userInfoStr) {
-      console.error('No user info found, redirecting to login...');
-      navigate('/login'); // Redirect user to login
-      return;
-    }
-
-    let token;
-    try {
-      token = JSON.parse(userInfoStr).token;
-    } catch (err) {
-      console.error('Failed to parse user info:', err);
+    if (!token || !user?._id) {
       navigate('/login');
       return;
     }
 
-    if (!token) {
-      console.error('No token found, user is not authenticated');
-      navigate('/login');
+    if (!user.canPost) {
+      alert('Posting access is limited to selected users.');
       return;
     }
 
-    if (!content.trim()) return; // Don't post empty content
+    if (!content.trim()) return;
 
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/posts', {
+      const res = await fetch(`${API_BASE}/api/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'x-user-id': token
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content: content.trim() })
       });
 
       if (!res.ok) {
@@ -50,11 +58,11 @@ function Post({ onNewPost }) {
       }
 
       const newPost = await res.json();
-      if (onNewPost) onNewPost(newPost); // Notify parent
+      if (onNewPost) onNewPost(newPost);
       setContent('');
     } catch (err) {
       console.error('Error posting:', err);
-      alert('Failed to post. Make sure you are logged in.');
+      alert(err.message || 'Failed to post. Make sure you are logged in.');
     } finally {
       setLoading(false);
     }
