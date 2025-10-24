@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileImage from "../assets/dp.png";
 import { SendHorizontal } from "lucide-react";
@@ -22,10 +22,20 @@ function PostModel({ onPostCreated }) {
   const [currentUser, setCurrentUser] = useState(() => typeof window !== "undefined" ? getSafeUser(localStorage.getItem("user")) : null);
   const [feedback, setFeedback] = useState("");
   const [feedbackTone, setFeedbackTone] = useState("info");
+  const textareaRef = useRef(null);
 
   const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId;
   const canPost = !!currentUser?.canPost;
 
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [content]);
+
+  // Sync auth state
   useEffect(() => {
     if (typeof window === "undefined") return;
     const syncAuth = () => {
@@ -41,13 +51,18 @@ function PostModel({ onPostCreated }) {
     };
   }, []);
 
+  // Auto-hide feedback
   useEffect(() => {
     if (!feedback) return;
-    const timer = setTimeout(() => setFeedback(""), 2500);
+    const timer = setTimeout(() => setFeedback(""), 3000);
     return () => clearTimeout(timer);
   }, [feedback]);
 
-  const toneClass = feedbackTone === "success" ? "bg-green-500" : feedbackTone === "error" ? "bg-red-500" : "bg-gray-800";
+  const toneClass = {
+    success: "bg-green-600 text-white",
+    error: "bg-red-600 text-white",
+    info: "bg-blue-600 text-white",
+  }[feedbackTone];
 
   const handleFocus = () => {
     if (!token || !currentUserId) return navigate("/login");
@@ -67,23 +82,33 @@ function PostModel({ onPostCreated }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": token
+          "x-user-id": token,
         },
-        body: JSON.stringify({ content: trimmed })
+        body: JSON.stringify({ content: trimmed }),
       });
 
-      if (!res.ok) throw new Error(await res.text() || "Failed to post");
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error || "Failed to post");
+      }
 
       await res.json();
       setContent("");
       setFeedbackTone("success");
-      setFeedback("Posted!");
+      setFeedback("Posted successfully!");
       onPostCreated?.();
     } catch (err) {
       setFeedbackTone("error");
-      setFeedback(err.message || "Failed to post");
+      setFeedback(err.message || "Something went wrong");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
     }
   };
 
@@ -91,49 +116,91 @@ function PostModel({ onPostCreated }) {
     <>
       {/* Feedback Toast */}
       {feedback && (
-        <div className={`${toneClass} fixed top-3 left-1/2 -translate-x-1/2 text-white px-4 py-2 rounded-full text-xs font-medium shadow-md z-50 animate-pulse`}>
+        <div
+          className={`${toneClass} fixed top-4 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full text-sm font-semibold shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-300`}
+        >
           {feedback}
         </div>
       )}
 
-      {/* Compact Post Composer */}
-      <div className="md:hidden flex px-2 pb-2">
-        <div className="flex w-full bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
+      {/* MOBILE-ONLY POST COMPOSER (Hidden on PC) */}
+      <div className="px-3 pb-3 md:hidden mt-5">
+        <div className="flex w-full bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
           {/* Avatar */}
-          <div className="flex-shrink-0 p-2">
-            <img
-              src={ProfileImage}
-              alt="Profile"
-              className="w-9 h-9 rounded-full object-cover border border-gray-300"
-            />
+          <div className="flex-shrink-0 p-3">
+            <div className="relative">
+              <img
+                src={ProfileImage}
+                alt="Your profile"
+                className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
+              />
+              {!canPost && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm4-6a3 3 0 100 6 3 3 0 000-6z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Input + Button */}
-          <div className="flex-1 flex items-center gap-2 p-1.5 pr-2">
+          <div className="flex-1 flex flex-col min-w-0">
             <textarea
+              ref={textareaRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onFocus={handleFocus}
-              placeholder={canPost ? "What's up?" : "Limited"}
+              onKeyDown={handleKeyDown}
+              placeholder={canPost ? "What's on your mind?" : "Posting is limited"}
               readOnly={!canPost}
               disabled={loading}
-              className="flex-1 border border-[#ccc] resize-none bg-gray-50 text-sm text-gray-800 placeholder:text-gray-400 px-3 py-1.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="flex-1 w-full px-3 pt-3 pb-1 text-sm text-gray-800 placeholder:text-gray-400 bg-transparent resize-none focus:outline-none disabled:cursor-not-allowed disabled:text-gray-400"
               rows={1}
-              style={{ minHeight: '36px' }}
-              aria-label="Create post"
+              style={{ minHeight: "40px", maxHeight: "120px" }}
+              aria-label="Create a post"
             />
 
-            <button
-              onClick={handleSubmit}
-              disabled={loading || !content.trim() || !canPost}
-              className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white text-xs font-medium rounded-full transition"
-            >
-              {loading ? "..." : "Post"}
-              <SendHorizontal size={13} />
-            </button>
+            <div className="flex justify-end px-3 pb-2">
+              <button
+                onClick={handleSubmit}
+                disabled={loading || !content.trim() || !canPost}
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                  loading || !content.trim() || !canPost
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow"
+                }`}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-1">
+                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                    </svg>
+                    Posting...
+                  </span>
+                ) : (
+                  <>
+                    Post
+                    <SendHorizontal size={14} />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Character counter */}
+        {content.length > 0 && (
+          <div className="text-right mt-1 px-1">
+            <span className={`text-xs ${content.length > 280 ? "text-red-500" : "text-gray-400"}`}>
+              {content.length}/280
+            </span>
+          </div>
+        )}
       </div>
+
+      {/* DESKTOP VERSION IS REMOVED — HIDDEN ON PC */}
     </>
   );
 }
