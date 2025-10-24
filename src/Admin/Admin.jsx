@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
 
+const ADMIN_API = "https://backend-vauju-1.onrender.com";
+
 function ManageUsers() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
@@ -12,6 +14,7 @@ function ManageUsers() {
   const [selected, setSelected] = useState([]);
 
   const token = useMemo(() => localStorage.getItem("adminToken"), []);
+  const [error, setError] = useState("");
 
   // Load users
   useEffect(() => {
@@ -22,13 +25,28 @@ function ManageUsers() {
       setLoading(true);
       try {
         const res = await fetch(
-          `https://backend-vauju-1.onrender.com/admin/users${q ? `?q=${encodeURIComponent(q)}` : ""}`,
+          `${ADMIN_API}/admin/users${q ? `?q=${encodeURIComponent(q)}` : ""}`,
           { headers: { "x-admin-token": token }, signal: controller.signal }
         );
-        const data = await res.json();
-        if (Array.isArray(data)) setUsers(data);
+
+        const contentType = res.headers.get("content-type") || "";
+        const data = contentType.includes("application/json") ? await res.json().catch(() => null) : null;
+
+        if (!res.ok) {
+          const message = data && typeof data === "object" ? data.message : null;
+          throw new Error(message || `Server error (status ${res.status})`);
+        }
+
+        if (Array.isArray(data)) {
+          setUsers(data);
+        } else {
+          setUsers([]);
+          setError("No users found");
+        }
       } catch (err) {
         console.error(err);
+        setUsers([]);
+        setError(err.message || "Failed to load users");
       }
       setLoading(false);
     };
@@ -42,7 +60,7 @@ function ManageUsers() {
     if (!window.confirm("Delete this user?")) return;
     setBusy((x) => ({ ...x, [id]: true }));
     try {
-      const res = await fetch(`http://localhost:5000/admin/users/${id}`, {
+      const res = await fetch(`${ADMIN_API}/admin/users/${id}`, {
         method: "DELETE",
         headers: { "x-admin-token": token },
       });
@@ -66,7 +84,7 @@ function ManageUsers() {
     // Delete all selected users in parallel
     await Promise.all(
       selected.map((id) =>
-        fetch(`http://localhost:5000/admin/users/${id}`, {
+        fetch(`${ADMIN_API}/admin/users/${id}`, {
           method: "DELETE",
           headers: { "x-admin-token": token },
         })
@@ -83,7 +101,7 @@ function ManageUsers() {
   const toggleVerify = async (id, next) => {
     setBusy((x) => ({ ...x, [id]: true }));
     try {
-      const res = await fetch(`http://localhost:5000/admin/verify/${id}`, {
+      const res = await fetch(`${ADMIN_API}/admin/verify/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-token": token },
         body: JSON.stringify({ verified: next }),
@@ -99,7 +117,7 @@ function ManageUsers() {
   const toggleSuspend = async (id, next) => {
     setBusy((x) => ({ ...x, [id]: true }));
     try {
-      const res = await fetch(`http://localhost:5000/admin/suspend/${id}`, {
+      const res = await fetch(`${ADMIN_API}/admin/suspend/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-token": token },
         body: JSON.stringify({ suspended: next }),
@@ -125,6 +143,11 @@ function ManageUsers() {
   return (
     <AdminLayout>
       <div className="p-6 max-w-6xl mx-auto space-y-6">
+        {error && (
+          <div className="bg-red-100 text-red-700 px-4 py-2 rounded-md text-sm">
+            {error}
+          </div>
+        )}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <h1 className="text-3xl font-bold text-gray-800">Manage Users</h1>
           <div className="flex items-center gap-3">

@@ -1,7 +1,8 @@
 // src/App.jsx
 import React, { useEffect, useState } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { isTokenExpired, clearAuthData } from "./utils/auth";
 
 // Components
 import Header from "./components/Header";
@@ -39,6 +40,7 @@ import "./App.css";
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   // Detect route change
@@ -47,6 +49,24 @@ function App() {
     const timer = setTimeout(() => setLoading(false), 800); // loader lasts for 0.8s
     return () => clearTimeout(timer);
   }, [location.pathname]);
+
+  // Check token expiry every 60 seconds and auto-logout if expired
+  useEffect(() => {
+    const checkTokenExpiry = () => {
+      if (isTokenExpired()) {
+        clearAuthData();
+        window.dispatchEvent(new Event("authChange"));
+        if (location.pathname !== "/login" && location.pathname !== "/register") {
+          navigate("/login", { replace: true });
+        }
+      }
+    };
+
+    checkTokenExpiry(); // Check immediately on mount
+    const interval = setInterval(checkTokenExpiry, 60000); // Check every 60 seconds
+
+    return () => clearInterval(interval);
+  }, [navigate, location.pathname]);
 
   const hideLayout =
     [
@@ -104,6 +124,7 @@ function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/suspend" element={<SuspendUsers />} />
+          <Route path="/admin/users" element={<ManageUser />} />
           <Route path="/admin/manage-users" element={<ManageUser />} />
           <Route path="/hall-of-fame" element={<HallOfFame />} />
           <Route path="/blogs" element={<Blogs />} /> {/* <-- FIXED */}

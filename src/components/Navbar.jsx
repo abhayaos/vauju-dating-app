@@ -50,14 +50,27 @@ function XSidebar() {
   }, []);
 
   const handleLogout = () => {
+    // Clear all auth data
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("__auth_change_ts");
+    
     try {
+      // Notify all listeners about logout
       window.dispatchEvent(new Event("authChange"));
-      localStorage.setItem("__auth_change_ts", Date.now());
-    } catch {}
-    setIsLoggedIn(false);
-    navigate("/login");
-    setShowDropdown(false);
+      window.dispatchEvent(new Event("logout"));
+      
+      // Give listeners time to cleanup (e.g., disconnect Socket.IO)
+      setTimeout(() => {
+        setIsLoggedIn(false);
+        setShowDropdown(false);
+        navigate("/login", { replace: true });
+      }, 100);
+    } catch (err) {
+      console.error("Logout error:", err);
+      setIsLoggedIn(false);
+      navigate("/login", { replace: true });
+    }
   };
 
   const navItems = [

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+const ADMIN_API = 'https://backend-vauju-1.onrender.com'
+
 function SuspendUsers() {
   const navigate = useNavigate()
   const token = useMemo(() => localStorage.getItem('adminToken'), [])
@@ -12,7 +14,7 @@ function SuspendUsers() {
     const run = async () => {
       setLoading(true)
       try {
-        const res = await fetch('https://backend-vauju-1.onrender.com/admin/users', { headers: { 'x-admin-token': token } })
+        const res = await fetch(`${ADMIN_API}/admin/users`, { headers: { 'x-admin-token': token } })
         const data = await res.json()
         if (Array.isArray(data)) setUsers(data)
       } catch {}
@@ -23,7 +25,7 @@ function SuspendUsers() {
 
   const toggle = async (id, next) => {
     try {
-      const res = await fetch(`http://localhost:5000/admin/suspend/${id}`, {
+      const res = await fetch(`${ADMIN_API}/admin/suspend/${id}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
         body: JSON.stringify({ suspended: next })
       })

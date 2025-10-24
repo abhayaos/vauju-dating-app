@@ -19,6 +19,18 @@ function Profile() {
   const payload = token ? decodeJWT(token) : null;
   const currentUserId = payload?._id;
 
+  const safeDecode = (value) => {
+    if (typeof value !== "string") return value;
+    try {
+      return decodeURIComponent(value);
+    } catch (err) {
+      console.warn("Failed to decode value", value, err);
+      return value;
+    }
+  };
+
+  const decodedUsername = username ? safeDecode(username) : "";
+
   // Attempt to refresh token if expired
   const refreshToken = async () => {
     try {
@@ -47,18 +59,13 @@ function Profile() {
         let headers = {};
         let profileData = null;
 
-        console.log("URL Params:", { username, id });
-        console.log("Current URL:", window.location.pathname);
-
-        if (username) {
-          // Public profile view by username
-          console.log("Fetching profile for username:", username);
-          url = `${BASE_API}/users/username/${username}`; // Use a single, reliable endpoint
+        if (decodedUsername) {
+          url = `${BASE_API}/users/username/${encodeURIComponent(decodedUsername)}`;
           setIsOwnProfile(false);
         } else if (id) {
           // Public profile view by ID
           console.log("Fetching profile for ID:", id);
-          url = `${BASE_API}/users/${id}`; // Use a single, reliable endpoint
+          url = `${BASE_API}/users/${encodeURIComponent(id)}`;
           setIsOwnProfile(false);
         } else {
           // Own profile view

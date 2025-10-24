@@ -7,50 +7,58 @@ function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const API_URL = "https://backend-vauju-1.onrender.com";
 
-  // Check if already logged in
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (token) {
-      navigate("/admin"); // redirect if token exists
+      navigate("/admin");
     }
   }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+    if (!trimmedUsername || !trimmedPassword) {
+      toast.error("Username and password are required");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await fetch(
-        "http://localhost:5000/admin/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
-        }
-      );
+      const res = await fetch(`${API_URL}/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: trimmedUsername, password: trimmedPassword }),
+      });
 
-      let data;
-      try {
+      let data = null;
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
         data = await res.json();
-      } catch (jsonErr) {
-        console.error("Failed to parse JSON:", jsonErr);
-        toast.error("Invalid server response");
-        return;
       }
 
-      console.log("Server response:", data);
-
-      if (res.ok && data.token) {
-        localStorage.setItem("adminToken", data.token);
-        toast.success("Login successful 🎉");
-        setTimeout(() => navigate("/admin"), 1000); // small delay for toast
-      } else {
-        toast.error(data.message || `Login failed ❌ (status ${res.status})`);
+      if (!res.ok) {
+        const message = data?.message || `Login failed (status ${res.status})`;
+        throw new Error(message);
       }
+
+      if (!data?.token) {
+        throw new Error("Login failed: token missing");
+      }
+
+      localStorage.setItem("adminToken", data.token);
+      if (data.admin) {
+        localStorage.setItem("adminProfile", JSON.stringify(data.admin));
+      }
+      toast.success("Login successful 🎉");
+      window.dispatchEvent(new Event("adminLogin"));
+      setTimeout(() => navigate("/admin"), 500);
     } catch (err) {
       console.error("Login error:", err);
-      toast.error("Server error. Try again later.");
+      toast.error(err.message || "Server error. Try again later.");
     } finally {
       setLoading(false);
     }
