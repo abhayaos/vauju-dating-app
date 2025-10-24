@@ -13,7 +13,9 @@ function PostModel() {
 
   return (
     <>
-      {/* Custom Alert */}
+  <main className="md:hidden block">
+
+        {/* Custom Alert */}
       {showAlert && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-pink-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce">
           Only limited users can create posts.🥀
@@ -54,6 +56,9 @@ function PostModel() {
           </button>
         </div>
       </div>
+  </main>
+
+      
     </>
   );
 }

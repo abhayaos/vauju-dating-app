@@ -614,13 +614,18 @@ function Messages() {
   };
 
   // Filter users based on search query
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const cleanedQuery = normalizedQuery.replace(/^@+/, "");
   const filteredUsers = Array.isArray(users)
-    ? users.filter(
-        (u) =>
-          !searchQuery || 
-          (u.name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-          (u.username?.toLowerCase() || "").includes(searchQuery.toLowerCase())
-      )
+    ? users.filter((u) => {
+        if (!normalizedQuery) return true;
+        const name = (u.name || "").toLowerCase();
+        const username = (u.username || "").toLowerCase();
+        if (name.includes(normalizedQuery)) return true;
+        if (username.includes(normalizedQuery)) return true;
+        if (cleanedQuery && username.includes(cleanedQuery)) return true;
+        return false;
+      })
     : [];
 
   return (
