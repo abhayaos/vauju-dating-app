@@ -480,7 +480,7 @@ function Home() {
             <p className="text-gray-600 text-sm mb-4">
               "AuraMeet helped me find someone special! The app is super easy to use."
             </p>
-            <p className="font-semibold text-gray-900">—Roshani Tamang.</p>
+            <p className="font-semibold text-gray-900">—Roshni Tamang.</p>
           </div>
           
         </div>
