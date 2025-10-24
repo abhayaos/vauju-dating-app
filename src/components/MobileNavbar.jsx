@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation, } from "react-router-dom";
 import { Home, Users, MessageCircle, FileImage ,Video , Smile , Bell } from "lucide-react";
-import ProfileImage from "../assets/dp.png";
+
 
 function MobileNavbar() {
   const location = useLocation();
@@ -48,54 +48,7 @@ function MobileNavbar() {
         })}
       
       </div>
-         <div
-      className="profile-img-sec flex items-center px-4 py-3  border-t border-b border-gray-200"
-      role="region"
-      aria-label="Create a post"
-    >
-      {/* Profile Image */}
-      <img
-        src={ProfileImage}
-        className="w-10 h-10 rounded-full object-cover border border-gray-300"
-        alt="Profile"
-      />
-
-      {/* Text Input */}
-      <div className="flex-1 mx-3">
-        <input
-          onClick={handleAlert}
-          type="text"
-          placeholder="What's on your mind?"
-          className="w-full bg-white border border-gray-300 rounded-full px-4 py-2 text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-          aria-label="What's on your mind?"
-        />
-      </div>
-
-      {/* Action Icons */}
-      <div className="flex items-center space-x-2">
-        <button
-          className="p-2 rounded-full hover:bg-gray-200 transition duration-200"
-          title="Add Photo"
-          aria-label="Add Photo"
-        >
-          <FileImage size={20} className="text-gray-500" />
-        </button>
-        <button
-          className="p-2 rounded-full hover:bg-gray-200 transition duration-200 hidden sm:block"
-          title="Add Video"
-          aria-label="Add Video"
-        >
-          <Video size={20} className="text-gray-500" />
-        </button>
-        <button
-          className="p-2 rounded-full hover:bg-gray-200 transition duration-200 hidden sm:block"
-          title="Add Feeling/Activity"
-          aria-label="Add Feeling or Activity"
-        >
-          <Smile size={20} className="text-gray-500" />
-        </button>
-      </div>
-    </div>
+        
     </nav>
   );
 }

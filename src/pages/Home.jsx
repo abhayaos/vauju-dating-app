@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Logo2 from '../assets/logo2.png';
 import ProfileImage from '../assets/user-dp.png';
+import PostModel from '../Models/PostModel';
 
 function Home() {
   const navigate = useNavigate();
@@ -127,6 +128,7 @@ function Home() {
       </div>
 
       {/* --- Mobile View --- */}
+      <PostModel />
       <div className="md:hidden block posts-container flex flex-col gap-6 p-4">
         {loading
           ? Array(2)

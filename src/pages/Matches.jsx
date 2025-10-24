@@ -154,13 +154,7 @@ function Matches() {
               ? "No matches available. Create one to get started."
               : "Please log in to view matches."}
           </p>
-          <button
-            onClick={() => navigate("/create-match")}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-indigo-700 transition"
-            aria-label="Create a new match"
-          >
-            Create Your First Match
-          </button>
+         
         </div>
       ) : (
         <ul className="space-y-4" aria-label="List of matches">
