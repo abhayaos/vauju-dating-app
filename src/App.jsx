@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { isTokenExpired, clearAuthData } from "./utils/auth";
+import { Analytics } from "@vercel/analytics/react"
 
 // Components
 import Header from "./components/Header";
@@ -145,6 +146,7 @@ function App() {
           />
           <Route path="/private-space" element={<PrivateSpeech />} />
           <Route path="*" element={<PageNotFound />} />
+          <Analytics />
         </Routes>
       </main>
     </div>
