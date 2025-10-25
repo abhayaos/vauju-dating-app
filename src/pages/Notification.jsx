@@ -1,5 +1,5 @@
-import React from "react";
-import { BellRing } from "lucide-react";
+import React, { useState } from "react";
+import { BellRing, Check, CheckCheck, Trash2 } from "lucide-react";
 import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
 
 // Helper function to format relative time
@@ -18,7 +18,7 @@ function getRelativeTime(date) {
 }
 
 function Notification() {
-  const notifications = [
+  const [notifications, setNotifications] = useState([
     {
       id: 1,
       title: "App Updates! 🎉",
@@ -27,9 +27,17 @@ function Notification() {
       timeStamp: new Date(new Date().getTime() - 2 * 60 * 60 * 1000),
       unread: true,
     },
-  ];
+    // Example additional notification
+    {
+      id: 2,
+      title: "New Match! 😊",
+      message: "You've got a new match! Check out their profile and start a conversation.",
+      timeStamp: new Date(new Date().getTime() - 30 * 60 * 1000),
+      unread: true,
+    },
+  ]);
 
-  // Use Rive animation from a hosted URL
+  // Use Rive animation for bell
   const { RiveComponent } = useRive({
     src: "https://cdn.rive.app/animations/bell.riv",
     autoplay: true,
@@ -39,28 +47,63 @@ function Notification() {
     }),
   });
 
+  // Mark a single notification as read
+  const markAsRead = (id) => {
+    setNotifications((prev) =>
+      prev.map((notif) =>
+        notif.id === id ? { ...notif, unread: false } : notif
+      )
+    );
+  };
+
+  // Mark all notifications as read
+  const markAllAsRead = () => {
+    setNotifications((prev) =>
+      prev.map((notif) => ({ ...notif, unread: false }))
+    );
+  };
+
+  // Delete a notification
+  const deleteNotification = (id) => {
+    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex justify-center py-10">
-      <div className="w-full max-w-3xl px-6">
+      <div className="w-full max-w-3xl px-4 sm:px-6">
         {/* Animated Header */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-10 h-10">
-            <RiveComponent />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10">
+              <RiveComponent />
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Notifications</h2>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">Notifications</h2>
+          {notifications.length > 0 && (
+            <button
+              onClick={markAllAsRead}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-pink-500 hover:text-pink-600 font-semibold rounded-full hover:bg-pink-100 transition"
+              aria-label="Mark all notifications as read"
+            >
+              <CheckCheck size={18} />
+              <span>Mark All as Read</span>
+            </button>
+          )}
         </div>
 
         {notifications.length === 0 ? (
-          <p className="text-gray-500 text-center">No notifications yet.</p>
+          <p className="text-gray-500 text-center text-sm sm:text-base">
+            No notifications yet.
+          </p>
         ) : (
           <div className="flex flex-col gap-4">
             {notifications.map((notif) => (
               <div
                 key={notif.id}
-                className="bg-white/80 backdrop-blur-md p-5 md:p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center border border-gray-100"
+                className="bg-white/80 backdrop-blur-md p-4 sm:p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row sm:justify-between items-start gap-4 border border-gray-100"
               >
                 {/* Icon + Content */}
-                <div className="flex items-start sm:items-center gap-3">
+                <div className="flex items-start sm:items-center gap-3 flex-1">
                   <div className="relative">
                     {notif.unread ? (
                       <div className="w-8 h-8">
@@ -83,10 +126,32 @@ function Notification() {
                   </div>
                 </div>
 
-                {/* Timestamp */}
-                <span className="text-gray-400 text-xs sm:text-sm mt-2 sm:mt-0">
-                  {getRelativeTime(notif.timeStamp)}
-                </span>
+                {/* Actions + Timestamp */}
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="flex gap-2">
+                    {notif.unread && (
+                      <button
+                        onClick={() => markAsRead(notif.id)}
+                        className="text-gray-500 hover:text-pink-500 transition"
+                        aria-label={`Mark notification ${notif.title} as read`}
+                        title="Mark as Read"
+                      >
+                        <Check size={20} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => deleteNotification(notif.id)}
+                      className="text-gray-500 hover:text-red-500 transition"
+                      aria-label={`Delete notification ${notif.title}`}
+                      title="Delete"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                  <span className="text-gray-400 text-xs sm:text-sm whitespace-nowrap">
+                    {getRelativeTime(notif.timeStamp)}
+                  </span>
+                </div>
               </div>
             ))}
           </div>

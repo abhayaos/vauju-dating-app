@@ -145,7 +145,7 @@ function Matches() {
             return (
               <article
                 key={profile._id}
-                className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all border border-pink-50"
+                className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all border border-pink-50 relative"
               >
                 <div className="p-6 flex flex-col items-center text-center">
                   <img
@@ -192,6 +192,28 @@ function Matches() {
                     </div>
                   )}
                 </div>
+                {/* Messages Icon */}
+                <button
+                  onClick={() => navigate(`/messages/${profile._id}`)}
+                  className="absolute top-4 right-4 text-gray-500 hover:text-pink-500 transition"
+                  aria-label={`Message ${profile.name}`}
+                  title={`Message ${profile.name}`}
+                >
+                  <svg
+                    className="w-6 h-6"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                    />
+                  </svg>
+                </button>
               </article>
             );
           })}
