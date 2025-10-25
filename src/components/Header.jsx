@@ -12,7 +12,7 @@ function Header() {
         onClick={() => navigate("/")}
         className="text-xl font-bold text-black  cursor-pointer select-none"
       >
-        AuraMeet
+        YugalMeet
       </h1>
 
       {/* Icons on the right */}
