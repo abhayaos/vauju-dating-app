@@ -287,7 +287,7 @@ function Home() {
       );
     const commentLocked = !token || !currentUserId || hasCommented;
     const avatar = post.user?.profileImage || post.avatar || ProfileImage;
-    const authorName = post.user?.name || post.author || 'AuraMeet user';
+    const authorName = post.user?.name || post.author || 'YugalMeet user';
     const timestamp = post.createdAt || post.timestamp;
     const formattedTimestamp = timestamp ? new Date(timestamp).toLocaleString() : '';
     const commentDraft = commentDrafts[postId] || '';
@@ -412,7 +412,7 @@ function Home() {
               const commentId = String(comment._id || comment.id || `${postId}-comment-${index}`);
               const commentAuthor =
                 (comment.user && (comment.user.name || comment.user.username)) ||
-                'AuraMeet user';
+                'YugalMeet user';
               return (
                 <div
                   key={commentId}
@@ -433,78 +433,100 @@ function Home() {
 
   return (
     <>
-      <div className="hidden md:flex  flex-col items-center justify-center  px-4">
-            <div className="min-h-screen bg-white flex flex-col justify-start items-center text-center px-4 pt-16 sm:pt-24">
-      
-      {/* Hero Section */}
-      <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">
-        Welcome to <span className="text-pink-500">AuraMeet</span> Dating App
-      </h1>
-      <p className="text-gray-700 text-lg sm:text-xl mb-6 max-w-md">
-        Connect with amazing people around the world. Find love, friends, or just new conversations.
-      </p>
-      <button
-        onClick={() => navigate('/explore')}
-        className="bg-pink-500 text-white px-6 py-3 rounded-full font-semibold text-lg shadow-lg hover:bg-pink-600 transition transform hover:-translate-y-1 mb-12 sm:mb-16"
-      >
-        Explore Now
-      </button>
+ <div className="hidden md:flex flex-col items-center justify-center px-4">
+  <div className="min-h-screen bg-white flex flex-col justify-start items-center text-center px-4 pt-20 sm:pt-28">
+    
+    {/* Hero Section */}
+    <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">
+      Welcome to <span className="text-pink-500">YugalMeet</span>
+    </h1>
+    <p className="text-gray-700 text-lg sm:text-xl mb-8 max-w-2xl">
+      Discover genuine connections and meaningful conversations. Whether you're looking for love, friendship, or something new — YugalMeet brings people closer.
+    </p>
+    <button
+      onClick={() => navigate('/explore')}
+      className="bg-pink-500 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-lg hover:bg-pink-600 transition transform hover:-translate-y-1"
+    >
+      Explore Now
+    </button>
 
-      {/* Optional Features Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl w-full mb-16">
-        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h3 className="text-xl font-bold mb-2">Meet New People</h3>
-          <p className="text-gray-600 text-sm">
-            Browse profiles and chat with people who share your interests.
-          </p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h3 className="text-xl font-bold mb-2">Secure & Private</h3>
-          <p className="text-gray-600 text-sm">
-            Your privacy is our top priority. Chat safely and securely.
-          </p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h3 className="text-xl font-bold mb-2">Fun & Interactive</h3>
-          <p className="text-gray-600 text-sm">
-            Play icebreakers, send gifts, and make dating more fun.
-          </p>
-        </div>
+    {/* Features Section */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-5xl w-full mt-20">
+      <div className="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition">
+        <h3 className="text-xl font-bold mb-3">Meet New People</h3>
+        <p className="text-gray-600 text-base">
+          Connect with individuals who share your passions, values, and vibe. Start chatting instantly.
+        </p>
       </div>
 
-      {/* Testimonials Section */}
-      <div className="bg-pink-50 py-15 px-3 rounded-md shadow-md w-full">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">What Our Users Say</h2>
-        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <p className="text-gray-600 text-sm mb-4">
-              "AuraMeet helped me find someone special! The app is super easy to use."
-            </p>
-            <p className="font-semibold text-gray-900">—Roshni Tamang.</p>
-          </div>
-          
-        </div>
+      <div className="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition">
+        <h3 className="text-xl font-bold mb-3">Safe & Secure</h3>
+        <p className="text-gray-600 text-base">
+          Your privacy comes first. We use top-tier encryption and moderation to keep your data and chats safe.
+        </p>
       </div>
 
-      {/* Newsletter / Call to Action */}
-      <div className="py-12 w-full">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Stay Updated</h2>
-        <p className="text-gray-600 mb-6">Get the latest features and updates from AuraMeet directly to your inbox.</p>
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-md mx-auto">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500 flex-1"
-          />
-          <button className="bg-pink-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-pink-600 transition">
-            Subscribe
-          </button>
-        </div>
+      <div className="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition">
+        <h3 className="text-xl font-bold mb-3">Interactive Experience</h3>
+        <p className="text-gray-600 text-base">
+          Play icebreakers, send digital gifts, and make every interaction more exciting.
+        </p>
       </div>
-
-
     </div>
+
+    {/* Testimonials Section */}
+    <div className="bg-pink-50 py-16 px-6 rounded-xl shadow-inner w-full mt-20">
+      <h2 className="text-3xl font-bold text-gray-900 mb-10">
+        What Our Users Say
+      </h2>
+      <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <p className="text-gray-600 text-sm mb-4">
+            "YugalMeet" helped me meet someone amazing. The design is clean, and the experience feels real — not forced.”
+          </p>
+          <p className="font-semibold text-gray-900">— Roshni Tamang</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow">
+          <p className="text-gray-600 text-sm mb-4">
+            “Finally, a dating app that feels genuine. Love the interface and safety features!”
+          </p>
+          <p className="font-semibold text-gray-900">— Aarav Shrestha</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow">
+          <p className="text-gray-600 text-sm mb-4">
+            “Met some incredible people here. The community feels positive and welcoming.”
+          </p>
+          <p className="font-semibold text-gray-900">— Sneha Rai</p>
+        </div>
       </div>
+    </div>
+
+    {/* Newsletter / CTA Section */}
+    <div className="py-20 w-full">
+      <h2 className="text-3xl font-bold text-gray-900 mb-4">
+        Stay in the Loop
+      </h2>
+   <p className="text-gray-600 text-center mx-auto mb-8 max-w-lg">
+  Subscribe to get exclusive updates, upcoming features, and dating tips straight to your inbox.
+</p>
+
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-md mx-auto">
+        <input
+          type="email"
+          placeholder="Enter your email"
+          className="px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500 flex-1"
+        />
+        <button className="bg-pink-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-pink-600 transition">
+          Subscribe
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 
       <PostModel onPostCreated={fetchPosts} />
 
