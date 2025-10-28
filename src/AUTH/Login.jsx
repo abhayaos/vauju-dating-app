@@ -117,9 +117,9 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 px-4">
+    <div className="min-h-screen flex items-center justify-center  px-4">
       <Toaster position="top-center" reverseOrder={false} />
-      <div className="bg-white/90 backdrop-blur-md shadow-2xl rounded-3xl w-full max-w-md p-10 border border-gray-200">
+      <div className=" rounded-3xl w-full max-w-md p-10 border border-gray-200">
         <h2 className="text-4xl font-bold text-gray-800 mb-4 text-center tracking-tight">
           AuraMeet
         </h2>

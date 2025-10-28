@@ -72,7 +72,7 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center ">
       <Toaster />
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
@@ -82,7 +82,8 @@ function Register() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-          <div>
+         <div className="flex gap-3">
+            <div>
             <label className="block mb-1 font-medium">Username</label>
             <input
               type="text"
@@ -104,6 +105,7 @@ function Register() {
               required
               autoComplete="off"
             />
+          </div>
           </div>
 
           <div>
