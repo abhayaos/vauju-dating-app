@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, CheckCircle2, X } from 'lucide-react';
-import ProfileImage from '../assets/user-dp.png';
+import { Heart, MessageCircle, CheckCircle2, X, Send, Sparkles, Users, Bell } from 'lucide-react';
+import ProfileImage from '../assets/dp.png';
 import PostModel from '../Models/PostModel';
 
 const API_BASE = 'https://backend-vauju-1.onrender.com';
@@ -282,7 +282,6 @@ function Home() {
       );
     const commentLocked = !token || !currentUserId || hasCommented;
 
-    // Auto-focus comment input when popup opens (if not locked)
     useEffect(() => {
       if (!commentLocked && commentInputRefs.current[postId]) {
         commentInputRefs.current[postId].focus();
@@ -334,7 +333,9 @@ function Home() {
                   </div>
                 );
               })
-            ) : null}
+            ) : (
+              <p className="text-sm text-gray-500 text-center py-4">No comments yet.</p>
+            )}
           </div>
           <div className="p-4 border-t border-gray-200">
             <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
@@ -371,7 +372,7 @@ function Home() {
                 type="button"
                 aria-label="Submit comment"
               >
-                {pendingComments[postId] ? 'Posting' : 'Send'}
+                {pendingComments[postId] ? 'Sending...' : <Send className="h-4 w-4" />}
               </button>
             </div>
           </div>
@@ -412,9 +413,9 @@ function Home() {
       <>
         <div
           key={postId}
-          className="post-card bg-white rounded-2xl p-4 shadow-md transition-shadow hover:shadow-lg mb-4"
+          className="post-card bg-white rounded-2xl p-6 shadow-sm border border-gray-200 transition-shadow hover:shadow-md"
         >
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-4">
             <img
               src={post.user?.profileImage || post.avatar || ProfileImage}
               alt={post.user?.name || post.author || 'YugalMeet User'}
@@ -447,54 +448,53 @@ function Home() {
             </div>
           </div>
           {post.title && (
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">{post.title}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">{post.title}</h2>
           )}
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-4">
             {renderContentWithHashtags(content)}
           </p>
           {post.content && post.content.split(' ').length > 30 && (
             <button
               onClick={() => toggleReadMore(postId)}
-              className="mt-2 text-sm font-medium text-pink-500 hover:text-pink-600 transition"
+              className="mt-2 text-sm font-medium text-pink-600 hover:text-pink-700 transition"
               type="button"
-              aria-label={isExpanded ? 'Show less content' : 'Show more content'}
             >
-              {isExpanded ? 'Read Less' : 'Read More'}
+              {isExpanded ? 'Show Less' : 'Read More'}
             </button>
           )}
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleLike(postId)}
                 disabled={likeDisabled}
-                className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${
+                className={`flex h-10 w-10 items-center justify-center rounded-full border transition ${
                   likeDisabled
-                    ? 'cursor-not-allowed border-gray-200 bg-gray-100 text-gray-300'
+                    ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300'
                     : hasLiked
-                    ? 'border-pink-200 bg-pink-50 text-pink-500'
+                    ? 'border-pink-200 bg-pink-50 text-pink-600'
                     : 'border-gray-200 bg-white text-gray-500 hover:border-pink-300 hover:text-pink-600'
                 }`}
                 aria-label={hasLiked ? 'Liked' : 'Like this post'}
                 type="button"
               >
                 <Heart
-                  strokeWidth={1.5}
+                  strokeWidth={1.8}
                   className="h-5 w-5"
                   fill={hasLiked ? '#ec4899' : 'none'}
                 />
               </button>
-              <span className="text-sm text-gray-600">{likesCount}</span>
+              <span className="text-sm font-medium text-gray-700">{likesCount}</span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setOpenCommentPopup(postId)}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:border-pink-200 hover:text-pink-500 transition"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:border-pink-200 hover:text-pink-600 transition"
                 aria-label="View comments"
                 type="button"
               >
-                <MessageCircle strokeWidth={1.5} className="h-5 w-5" />
+                <MessageCircle strokeWidth={1.8} className="h-5 w-5" />
               </button>
-              <span className="text-sm text-gray-600">{commentsCount}</span>
+              <span className="text-sm font-medium text-gray-700">{commentsCount}</span>
             </div>
           </div>
         </div>
@@ -509,10 +509,145 @@ function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gray-50">
+      {/* Desktop Layout - Professional Feed */}
+      <div className="hidden md:block">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+          <div className="max-w-6xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-7 w-7 text-pink-600" />
+                <h1 className="text-2xl font-bold text-gray-900">
+                  <span className="text-pink-600">Yugal</span>Meet
+                </h1>
+              </div>
+              <div className="flex items-center gap-4">
+                <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-xl hover:bg-gray-100 transition">
+                  <Bell className="h-4 w-4" />
+                  <span className="text-sm font-medium">Notifications</span>
+                </button>
+                <PostModel onPostCreated={fetchPosts} />
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Feed Column */}
+            <div className="lg:col-span-2 space-y-6">
+              {loading ? (
+                Array(5)
+                  .fill(0)
+                  .map((_, index) => <SkeletonCard key={index} />)
+              ) : hasContent ? (
+                posts.map((post) => renderPostCard(post))
+              ) : (
+                <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-200">
+                  <p className="text-gray-500 text-lg mb-6">
+                    No posts yet. Be the first to share!
+                  </p>
+                  <PostModel onPostCreated={fetchPosts} />
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* User Profile Card */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-pink-600" />
+                  Your Profile
+                </h3>
+                {currentUser ? (
+                  <div className="flex items-center gap-3 mb-4">
+                    <img
+                      src={currentUser.profileImage || ProfileImage}
+                      alt={currentUser.name}
+                      className="h-14 w-14 rounded-full object-cover border-2 border-pink-200"
+                      onError={(e) => (e.target.src = ProfileImage)}
+                    />
+                    <div>
+                      <p className="font-semibold text-gray-900">{currentUser.name}</p>
+                      <p className="text-sm text-gray-500">{currentUser.email}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl hover:from-pink-600 hover:to-purple-700 transition font-medium"
+                  >
+                    Sign In to Connect
+                  </button>
+                )}
+              </div>
+
+              {/* Quick Actions */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => navigate('/matches')}
+                    className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition"
+                  >
+                    <Sparkles className="h-5 w-5 text-pink-600" />
+                    <span className="font-medium text-gray-800">Explore Matches</span>
+                  </button>
+                  <button
+                    onClick={() => navigate('/messages')}
+                    className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition"
+                  >
+                    <MessageCircle className="h-5 w-5 text-pink-600" />
+                    <span className="font-medium text-gray-800">Messages</span>
+                  </button>
+                  <button
+                    onClick={() => navigate('/editprofile')}
+                    className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition"
+                  >
+                    <Users className="h-5 w-5 text-pink-600" />
+                    <span className="font-medium text-gray-800">Edit Profile</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Yugal Coins Section */}
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 shadow-sm border border-yellow-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                    <div className="w-7 h-7 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                      YC
+                    </div>
+                    Yugal Coins
+                  </h3>
+                  <span className="text-2xl font-bold text-yellow-600">250</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Use coins to boost posts, send gifts, or unlock premium features.
+                </p>
+                <button className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-2 rounded-xl hover:from-yellow-600 hover:to-orange-600 transition font-medium flex items-center justify-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Get More Coins
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Mobile Feed Section */}
-      <div className="md:hidden flex-1 p-4">
-        <PostModel onPostCreated={fetchPosts} />
+      <div className="md:hidden flex-1 p-4 bg-gray-50">
+        <div className="mb-4">
+          <PostModel onPostCreated={fetchPosts} />
+        </div>
         {error && (
           <div className="mb-4 p-3 bg-red-100 text-red-600 text-sm rounded-xl text-center">
             {error}
@@ -530,87 +665,6 @@ function Home() {
               No posts available. Create one to get started!
             </p>
           )}
-        </div>
-      </div>
-
-      {/* Desktop Layout (Unchanged) */}
-      <div className="hidden md:flex flex-col items-center justify-center px-4">
-        <div className="min-h-screen bg-white flex flex-col justify-start items-center text-center px-4 pt-20 sm:pt-28">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">
-            Welcome to <span className="text-pink-500">YugalMeet</span>
-          </h1>
-          <p className="text-gray-700 text-lg sm:text-xl mb-8 max-w-2xl">
-            Discover genuine connections and meaningful conversations. Whether you're looking for love, friendship, or something new — YugalMeet brings people closer.
-          </p>
-          <button
-            onClick={() => navigate('/explore')}
-            className="bg-pink-500 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-lg hover:bg-pink-600 transition transform hover:-translate-y-1"
-          >
-            Explore Now
-          </button>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-5xl w-full mt-20">
-            <div className="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition">
-              <h3 className="text-xl font-bold mb-3">Meet New People</h3>
-              <p className="text-gray-600 text-base">
-                Connect with individuals who share your passions, values, and vibe. Start chatting instantly.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition">
-              <h3 className="text-xl font-bold mb-3">Safe & Secure</h3>
-              <p className="text-gray-600 text-base">
-                Your privacy comes first. We use top-tier encryption and moderation to keep your data and chats safe.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition">
-              <h3 className="text-xl font-bold mb-3">Interactive Experience</h3>
-              <p className="text-gray-600 text-base">
-                Play icebreakers, send digital gifts, and make every interaction more exciting.
-              </p>
-            </div>
-          </div>
-          <div className="bg-pink-50 py-16 px-6 rounded-xl shadow-inner w-full mt-20">
-            <h2 className="text-3xl font-bold text-gray-900 mb-10">
-              What Our Users Say
-            </h2>
-            <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8">
-              <div className="bg-white p-6 rounded-lg shadow">
-                <p className="text-gray-600 text-sm mb-4">
-                  "YugalMeet helped me meet someone amazing. The design is clean, and the experience feels real — not forced.”
-                </p>
-                <p className="font-semibold text-gray-900">— Roshni Tamang</p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow">
-                <p className="text-gray-600 text-sm mb-4">
-                  “Finally, a dating app that feels genuine. Love the interface and safety features!”
-                </p>
-                <p className="font-semibold text-gray-900">— Aarav Shrestha</p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow">
-                <p className="text-gray-600 text-sm mb-4">
-                  “Met some incredible people here. The community feels positive and welcoming.”
-                </p>
-                <p className="font-semibold text-gray-900">— Sneha Rai</p>
-              </div>
-            </div>
-          </div>
-          <div className="py-20 w-full">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Stay in the Loop
-            </h2>
-            <p className="text-gray-600 text-center mx-auto mb-8 max-w-lg">
-              Subscribe to get exclusive updates, upcoming features, and dating tips straight to your inbox.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500 flex-1"
-              />
-              <button className="bg-pink-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-pink-600 transition">
-                Subscribe
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

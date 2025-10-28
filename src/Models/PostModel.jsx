@@ -12,7 +12,7 @@ const getSafeUser = (value) => {
   } catch {
     return null;
   }
-};
+}; 
 
 function PostModel({ onPostCreated }) {
   const navigate = useNavigate();

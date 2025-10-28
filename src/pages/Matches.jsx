@@ -1,40 +1,64 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import DefaultAvatar from "../assets/user-dp.png";
+import DefaultAvatar from "../assets/dp.png";
+
+/* -------------------------------------------------
+   Blue-Tick SVG – tiny, reusable component
+   ------------------------------------------------- */
+const BlueTick = () => (
+  <svg
+    className="w-4 h-4 text-blue-600"
+    fill="currentColor"
+    viewBox="0 0 20 20"
+  >
+    <path
+      fillRule="evenodd"
+      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+      clipRule="evenodd"
+    />
+  </svg>
+);
 
 function Matches() {
   const [profiles, setProfiles] = useState([]);
+  const [filteredProfiles, setFilteredProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [genderFilter, setGenderFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
+  /* ----------------------- FETCH ----------------------- */
   const fetchMatches = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        toast.error("⚠️ Please log in to view profiles.");
+        toast.error("Please log in to view profiles.");
         setLoading(false);
         navigate("/login");
         return;
       }
 
-      const response = await fetch("https://backend-vauju-1.onrender.com/api/matches", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": token,
-        },
-      });
+      const response = await fetch(
+        "https://backend-vauju-1.onrender.com/api/matches",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "x-user-id": token,
+          },
+        }
+      );
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           localStorage.removeItem("token");
-          toast.error("🚨 Session expired. Please log in again.");
+          toast.error("Session expired. Please log in again.");
           navigate("/login");
           return;
         }
-        throw new Error(`Failed to fetch profiles: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch profiles: ${response.status}`);
       }
 
       const data = await response.json();
@@ -43,11 +67,12 @@ function Matches() {
         : [];
 
       setProfiles(visibleProfiles);
+      setFilteredProfiles(visibleProfiles);
       setError(null);
     } catch (err) {
       console.error("Fetch Error:", err);
-      setError(err.message || "🚨 Server error! Try again later.");
-      toast.error(err.message || "🚨 Server error! Try again later.");
+      setError(err.message || "Server error. Please try again later.");
+      toast.error(err.message || "Server error. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -57,58 +82,86 @@ function Matches() {
     fetchMatches();
   }, []);
 
+  /* ----------------------- FILTER ----------------------- */
+  useMemo(() => {
+    let filtered = profiles;
+
+    // Gender filter
+    if (genderFilter !== "all") {
+      filtered = filtered.filter(
+        (p) => p.gender?.toLowerCase() === genderFilter
+      );
+    }
+
+    // Interest search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((p) =>
+        p.interests?.some((i) => i.toLowerCase().includes(query))
+      );
+    }
+
+    setFilteredProfiles(filtered);
+  }, [profiles, genderFilter, searchQuery]);
+
+  /* ----------------------- UI ----------------------- */
   if (loading) {
     return (
-      <div className="text-center italic mt-10" aria-live="polite">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
         <Toaster position="top-center" reverseOrder={false} />
-        <svg
-          className="animate-spin h-6 w-6 mx-auto text-pink-500"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v8z"
-          ></path>
-        </svg>
-        <span>Gathering curated profiles...</span>
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-pink-200 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 w-16 h-16 border-4 border-t-pink-600 rounded-full animate-spin animation-delay-200"></div>
+        </div>
+        <p className="mt-6 text-lg font-medium text-gray-700">
+          Curating your matches...
+        </p>
+        <p className="text-sm text-gray-500 mt-1">
+          Only the best, vetted profiles.
+        </p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center text-red-500 mt-10" aria-live="assertive">
+      <div className="flex md:ml-12 flex-col items-center justify-center min-h-[60vh] text-center px-6">
         <Toaster position="top-center" reverseOrder={false} />
-        <p>{error}</p>
-        <div className="mt-6 flex justify-center gap-3">
+        <div className="bg-red-50 border border-red-200 rounded-full p-4 mb-6">
+          <svg
+            className="w-10 h-10 text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+            />
+          </svg>
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          Oops! Something went wrong.
+        </h2>
+        <p className="text-gray-600 mb-6 max-w-md">{error}</p>
+        <div className="flex gap-3">
           <button
             onClick={() => {
               setLoading(true);
               setError(null);
               fetchMatches();
             }}
-            className="px-5 py-2 bg-pink-500 text-white rounded-full font-semibold hover:bg-pink-600 transition"
             disabled={loading}
-            aria-label="Retry fetching profiles"
+            className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:from-pink-600 hover:to-pink-700 transition-all duration-200 disabled:opacity-60"
           >
-            {loading ? "Retrying..." : "Retry"}
+            {loading ? "Retrying..." : "Try Again"}
           </button>
           {error.includes("log in") && (
             <button
               onClick={() => navigate("/login")}
-              className="px-5 py-2 bg-gray-500 text-white rounded-full font-semibold hover:bg-gray-600 transition"
-              aria-label="Log in"
+              className="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition"
             >
               Log In
             </button>
@@ -119,101 +172,218 @@ function Matches() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
+    <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 md:ml-12">
       <Toaster position="top-center" reverseOrder={false} />
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Discover Aura Profiles</h1>
-        <p className="text-gray-600 mt-2">
-          Handpicked members who are visibility-approved and ready to connect.
+
+      {/* Header */}
+      <div className="text-center mb-10">
+        <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
+          Meet Your{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+            Aura Matches
+          </span>
+        </h1>
+        <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
+          Discover handpicked, visibility-approved members ready to connect
+          meaningfully.
         </p>
       </div>
 
-      {profiles.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-gray-300 rounded-3xl">
-          <p className="text-gray-500">
-            Fresh profiles will appear here as soon as members are approved.
+      {/* Filters & Search */}
+      <div className="mb-10 space-y-4">
+        {/* Gender Buttons */}
+        <div className="flex justify-center gap-3 flex-wrap">
+          {["all", "female", "male"].map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setGenderFilter(filter)}
+              className={`px-6 py-2.5 rounded-full font-medium text-sm capitalize transition-all duration-200 ${
+                genderFilter === filter
+                  ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {filter === "all" ? "All" : filter}
+            </button>
+          ))}
+        </div>
+
+        {/* Interest Search */}
+        <div className="max-w-md mx-auto">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search interests (e.g., hiking, music)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all duration-200 outline-none text-gray-800 placeholder-gray-400"
+            />
+            <svg
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Empty State */}
+      {filteredProfiles.length === 0 ? (
+        <div className="bg-gradient-to-br from-pink-50 to-purple-50 border-2 border-dashed border-pink-200 rounded-3xl p-16 text-center">
+          <div className="bg-white bg-opacity-80 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-sm">
+            <svg
+              className="w-12 h-12 text-pink-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-semibold text-gray-800 mb-3">
+            No matches found
+          </h3>
+          <p className="text-gray-600 max-w-md mx-auto">
+            {searchQuery || genderFilter !== "all"
+              ? "Try adjusting your filters or search for something else."
+              : "New profiles are being reviewed. Check back soon!"}
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {profiles.map((profile) => {
-            const avatar = profile.profileImage || DefaultAvatar;
-            const primaryTagline = profile.bio || "Aura member";
+        /* Profiles Grid */
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredProfiles.map((profile) => {
+            const avatar = DefaultAvatar;
+            const tagline = profile.bio || "Aura member";
             const interests = Array.isArray(profile.interests)
-              ? profile.interests.filter(Boolean)
+              ? profile.interests.filter(Boolean).slice(0, 5)
               : [];
+
             return (
               <article
                 key={profile._id}
-                className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all border border-pink-50 relative"
+                className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 transform hover:-translate-y-2 cursor-pointer"
+                onClick={() => navigate(`/messages/${profile._id}`)}
               >
-                <div className="p-6 flex flex-col items-center text-center">
+                {/* Avatar + optional badge */}
+                <div className="relative h-56 bg-gradient-to-br from-pink-50 to-purple-50 overflow-hidden">
                   <img
                     src={avatar}
                     alt={profile.name}
-                    className="w-20 h-20 rounded-full object-cover border-4 border-pink-100"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
-                  <h2 className="mt-4 text-xl font-semibold text-gray-900">
-                    {profile.name}
-                  </h2>
-                  {profile.username && (
-                    <p className="text-sm text-pink-500 font-medium">@{profile.username}</p>
+                  <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+
+                  {/* Chat-now pill */}
+                  <div className="absolute bottom-3 right-3 bg-white bg-opacity-90 px-3 py-1 rounded-full text-xs font-medium text-pink-600 shadow-sm">
+                    Chat Now
+                  </div>
+
+                  {/* Blue tick on avatar (top-right) */}
+                  {profile.isVerified && (
+                    <div className="absolute top-3 right-3 bg-blue-100 rounded-full p-1.5 shadow-md">
+                      <BlueTick />
+                    </div>
                   )}
-                  <p className="mt-2 text-sm text-gray-600 leading-relaxed">
-                    {primaryTagline}
+                </div>
+
+                {/* Card body */}
+                <div className="p-5 space-y-3">
+                  {/* Name + badge next to name */}
+                  <div className="flex items-center space-x-2">
+                    <h2 className="text-xl font-bold text-gray-900">
+                      {profile.name}
+                    </h2>
+                    {profile.isVerified && (
+                      <div className="bg-blue-50 rounded-full p-1 flex items-center">
+                        <BlueTick />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Username */}
+                  {profile.username && (
+                    <p className="text-sm text-pink-600 font-medium">
+                      @{profile.username}
+                    </p>
+                  )}
+
+                  {/* Bio */}
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {tagline}
                   </p>
-                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+
+                  {/* Age / Gender tags */}
+                  <div className="flex flex-wrap gap-2">
                     {profile.age && (
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold text-pink-600 bg-pink-100">
+                      <span className="px-3 py-1 text-xs font-medium text-pink-700 bg-pink-100 rounded-full">
                         {profile.age} yrs
                       </span>
                     )}
                     {profile.gender && (
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold text-purple-600 bg-purple-100 capitalize">
+                      <span className="px-3 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full capitalize">
                         {profile.gender}
                       </span>
                     )}
                   </div>
+
+                  {/* Interests */}
                   {interests.length > 0 && (
-                    <div className="mt-5 w-full">
-                      <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                         Interests
                       </p>
-                      <div className="flex flex-wrap justify-center gap-2">
-                        {interests.slice(0, 6).map((interest, index) => (
+                      <div className="flex flex-wrap gap-1.5">
+                        {interests.map((interest, idx) => (
                           <span
-                            key={`${profile._id}-interest-${index}`}
-                            className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+                            key={`${profile._id}-int-${idx}`}
+                            className="px-2.5 py-1 bg-gray-50 text-gray-700 text-xs rounded-full"
                           >
                             {interest}
                           </span>
                         ))}
+                        {profile.interests?.length > 5 && (
+                          <span className="px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">
+                            +{profile.interests.length - 5}
+                          </span>
+                        )}
                       </div>
                     </div>
                   )}
                 </div>
-                {/* Messages Icon */}
-                <button
-                  onClick={() => navigate(`/messages/${profile._id}`)}
-                  className="absolute top-4 right-4 text-gray-500 hover:text-pink-500 transition"
-                  aria-label={`Message ${profile.name}`}
-                  title={`Message ${profile.name}`}
-                >
-                  <svg
-                    className="w-6 h-6"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-                    />
-                  </svg>
-                </button>
               </article>
             );
           })}
