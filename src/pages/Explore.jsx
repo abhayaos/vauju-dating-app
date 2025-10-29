@@ -1,18 +1,21 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
-import Dp from "../assets/dp.png"
+import { Loader2, MessageSquare } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import Dp from "../assets/dp.png";
 
 function RandomGirl() {
   const [girl, setGirl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [male, setMale] = useState(false);
-  const [GenderReload , setGenderReload] = useState(false);
+  const [GenderReload, setGenderReload] = useState(false);
+
+  const navigate = useNavigate();
 
   const fetchRandomGirl = async () => {
     setLoading(true);
     try {
-     const res = await axios.get("https://backend-vauju-1.onrender.com/api/random-girl");
+      const res = await axios.get("https://backend-vauju-1.onrender.com/api/random-girl");
       setGirl(res.data);
     } catch (err) {
       console.error(err);
@@ -36,7 +39,7 @@ function RandomGirl() {
       ) : girl ? (
         <div className="flex flex-col items-center">
           <img
-            src={girl.profilePic}
+            src={girl.image || Dp}
             alt={girl.name}
             className="w-24 h-24 rounded-full object-cover border-2 border-pink-400"
           />
@@ -44,12 +47,15 @@ function RandomGirl() {
           <p className="text-sm text-gray-500">
             {girl.age} · {girl.location}
           </p>
-          <button
-            onClick={() => window.location.href = `/user/${girl.username}`}
-            className="mt-4 bg-gradient-to-r from-pink-500 to-red-500 text-white py-2 px-6 rounded-lg font-medium hover:opacity-90 active:scale-95 transition-all"
-          >
-            View Profile
-          </button>
+
+          <div className="flex items-center gap-3 mt-4">
+            <button
+              onClick={() => navigate(`/messages/${girl._id}`)}
+              className="flex items-center gap-2 border border-pink-500 text-pink-600 py-2 px-4 rounded-lg font-medium hover:bg-pink-50 active:scale-95 transition-all"
+            >
+              <MessageSquare size={18} /> Message
+            </button>
+          </div>
         </div>
       ) : (
         <button
