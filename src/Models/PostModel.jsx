@@ -124,7 +124,7 @@ function PostModel({ onPostCreated }) {
       )}
 
       {/* MOBILE-ONLY POST COMPOSER (Hidden on PC) */}
-      <div className="px-3 pb-3 md:hidden mt-5">
+      <div className="px-3 pb-3  mt-5">
         <div className="flex w-full bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
           {/* Avatar */}
           <div className="flex-shrink-0 p-3">

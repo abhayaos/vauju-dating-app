@@ -527,7 +527,7 @@ function Home() {
                   <Bell className="h-4 w-4" />
                   <span className="text-sm font-medium">Notifications</span>
                 </button>
-                <PostModel onPostCreated={fetchPosts} />
+           
               </div>
             </div>
           </div>
@@ -535,6 +535,7 @@ function Home() {
 
         {/* Main Content */}
         <div className="max-w-6xl mx-auto px-6 py-8">
+               <PostModel onPostCreated={fetchPosts} />
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
               {error}
