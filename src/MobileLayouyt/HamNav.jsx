@@ -15,6 +15,8 @@ import {
   ScrollText,
   Star,
   BookOpen,
+  Coins,
+  Plus,
 } from "lucide-react";
 
 function HamNav() {
@@ -23,6 +25,7 @@ function HamNav() {
   const isLoggedIn = !!localStorage.getItem("token");
   const [loading, setLoading] = useState(true);
   const [dots, setDots] = useState(".");
+  const [yugalCurrency, setYugalCurrency] = useState(250); // mock balance
 
   // Fake loading animation
   useEffect(() => {
@@ -82,6 +85,27 @@ function HamNav() {
             <p className="font-semibold text-gray-800 text-sm">{user.name}</p>
             <p className="text-gray-500 text-xs">{user.email}</p>
           </div>
+        </div>
+      )}
+
+      {/* Yugal Currency Card */}
+      {isLoggedIn && (
+        <div className="bg-white mx-4 mt-3 rounded-xl shadow-sm border border-gray-200 p-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="bg-yellow-100 text-yellow-600 p-2 rounded-lg">
+              <Coins size={20} />
+            </div>
+            <div>
+              <p className="text-gray-800 text-sm font-semibold">Yugal Currency</p>
+              <p className="text-gray-500 text-xs">{yugalCurrency.toLocaleString()} YC</p>
+            </div>
+          </div>
+          <button
+            onClick={() => alert("Top Up feature coming soon 🔥")}
+            className="flex items-center gap-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold active:scale-95 transition-all"
+          >
+            <Plus size={14} /> Top Up
+          </button>
         </div>
       )}
 

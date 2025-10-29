@@ -1,37 +1,66 @@
-// src/pages/Explore.jsx
-import React from 'react'
-import Baddie from '../explore-imgs/baddie.png'
-import Ghosts from '../explore-imgs/ghosts.png'
-import PP from '../explore-imgs/pp.png'
-import Readers from '../explore-imgs/readers.png'
-import Sigma from '../explore-imgs/sigma.png'
+import React, { useState } from "react";
+import axios from "axios";
+import { Loader2 } from "lucide-react";
+import Dp from "../assets/dp.png"
 
-function Explore() {
-  const images = [Baddie, Ghosts, PP, Readers, Sigma]
+function RandomGirl() {
+  const [girl, setGirl] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [male, setMale] = useState(false);
+  const [GenderReload , setGenderReload] = useState(false);
+
+  const fetchRandomGirl = async () => {
+    setLoading(true);
+    try {
+     const res = await axios.get("https://backend-vauju-1.onrender.com/api/random-girl");
+      setGirl(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 md:p-8 flex flex-col items-center">
-      
-      {/* Flex + Grid layout */}
-      <div className="flex flex-wrap justify-center gap-4 w-full">
-        {images.map((src, index) => (
-          <div
-            key={index}
-            className={`overflow-hidden rounded-lg cursor-pointer transition-transform duration-300 transform hover:scale-105 ${
-              index % 3 === 0 ? 'w-full sm:w-1/2 md:w-1/3' : 'w-1/2 sm:w-1/3 md:w-1/4'
-            }`}
+    <div className="bg-white mx-4 mt-5 rounded-2xl shadow-sm border border-gray-200 p-5 text-center">
+      <h2 className="font-bold text-lg text-gray-800 mb-3">🎯 Random Girl Finder</h2>
+      <p className="text-gray-500 text-sm mb-4">
+        Discover someone new instantly 💖
+      </p>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-10">
+          <Loader2 className="animate-spin text-pink-600" size={28} />
+          <p className="mt-2 text-gray-500 text-sm">Finding your match...</p>
+        </div>
+      ) : girl ? (
+        <div className="flex flex-col items-center">
+          <img
+            src={girl.profilePic}
+            alt={girl.name}
+            className="w-24 h-24 rounded-full object-cover border-2 border-pink-400"
+          />
+          <h3 className="mt-3 text-lg font-semibold text-gray-800">{girl.name}</h3>
+          <p className="text-sm text-gray-500">
+            {girl.age} · {girl.location}
+          </p>
+          <button
+            onClick={() => window.location.href = `/user/${girl.username}`}
+            className="mt-4 bg-gradient-to-r from-pink-500 to-red-500 text-white py-2 px-6 rounded-lg font-medium hover:opacity-90 active:scale-95 transition-all"
           >
-            <img
-              src={src}
-              alt={`Explore ${index}`}
-              className="w-full h-48 object-cover"
-            />
-          </div>
-        ))}
-      </div>
-      
+            View Profile
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={fetchRandomGirl}
+          className="bg-gradient-to-r from-pink-600 to-red-500 text-white py-3 px-8 rounded-xl font-semibold hover:opacity-90 active:scale-95 transition-all"
+        >
+          Get Random Girl 💃
+        </button>
+      )}
     </div>
-  )
+  );
 }
 
-export default Explore
+export default RandomGirl;
