@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
@@ -15,20 +15,25 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Regex for allowed emails
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/"); // redirect to home if logged in
+    }
+  }, [navigate]);
+
   const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com|outlook\.com)$/;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
 
-    // 1️⃣ Check email first
     if (!emailRegex.test(email)) {
       toast.error("Invalid email! Only Gmail, Hotmail, Outlook allowed.");
       return;
     }
 
-    // 2️⃣ Check password confirmation
     if (password !== confirmPassword) {
       setErrors({ confirmPassword: "Passwords do not match" });
       return;
@@ -36,30 +41,18 @@ function Register() {
 
     try {
       setLoading(true);
-
-      // ✅ Register user
       const { data } = await axios.post(
         "https://backend-vauju-1.onrender.com/api/auth/register",
         { username, name, email, password }
       );
 
-      // ✅ Save JWT (make sure backend sends it)
       localStorage.setItem("token", data.token);
 
-      // ✅ Connect to Socket.IO
       const socket = io("http://localhost:5000");
-
-      // Send JWT for authentication
       socket.emit("authenticate", data.token);
 
-      // Listen for auth success / error
-      socket.on("authSuccess", (msg) => {
-        toast.success(msg.message); // 🎉 JWT verified!
-      });
-
-      socket.on("authError", (msg) => {
-        toast.error(msg.message); // ❌ Invalid token
-      });
+      socket.on("authSuccess", (msg) => toast.success(msg.message));
+      socket.on("authError", (msg) => toast.error(msg.message));
 
       toast.success("🎉 Registration successful!");
       setTimeout(() => navigate("/profile"), 1500);
@@ -82,30 +75,30 @@ function Register() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-         <div className="flex gap-3">
+          <div className="flex gap-3">
             <div>
-            <label className="block mb-1 font-medium">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              required
-              autoComplete="off"
-            />
-          </div>
+              <label className="block mb-1 font-medium">Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                required
+                autoComplete="off"
+              />
+            </div>
 
-          <div>
-            <label className="block mb-1 font-medium">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              required
-              autoComplete="off"
-            />
-          </div>
+            <div>
+              <label className="block mb-1 font-medium">Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                required
+                autoComplete="off"
+              />
+            </div>
           </div>
 
           <div>

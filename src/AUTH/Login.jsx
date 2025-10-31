@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
@@ -11,17 +11,19 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Validate email format
-  const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  // 🔑 Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && validateToken(token)) {
+      navigate("/"); // redirect to home if user is logged in
+    }
+  }, [navigate]);
 
-  // Basic JWT format validation
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const isValidJWT = (token) => {
     if (!token || typeof token !== "string") return false;
-    const parts = token.split(".");
-    return parts.length === 3; // JWT should have header, payload, signature
+    return token.split(".").length === 3;
   };
 
   const handleSubmit = async (e) => {
@@ -47,67 +49,29 @@ function Login() {
 
     setLoading(true);
     try {
-      const payload = { email: trimmedEmail, password: trimmedPassword };
-      console.log("Sending login request with payload:", payload); // Debug payload
-
-      const res = await fetch("https://backend-vauju-1.onrender.com/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        "https://backend-vauju-1.onrender.com/api/auth/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
+        }
+      );
 
       const data = await res.json();
-      console.log("Login response:", { status: res.status, data }); // Debug response
 
-      if (!res.ok) {
-        toast.error(data.message || "Invalid credentials 😔");
-        throw new Error(`Login failed: ${data.message || "Unknown error"}`);
-      }
-
-      if (!data.token) {
-        toast.error("🚨 Login failed: No token received!");
-        throw new Error("No token in response");
-      }
-
-      if (!isValidJWT(data.token)) {
-        toast.error("🚨 Invalid token format received!");
-        throw new Error("Invalid JWT format");
-      }
-
-      // Validate token before storing
-      if (!validateToken(data.token)) {
-        toast.error("🚨 Received invalid or expired token!");
-        throw new Error("Invalid token from server");
-      }
-
-      // Try to decode and log token details
-      const tokenPayload = decodeJWT(data.token);
-      if (!tokenPayload) {
-        toast.error("🚨 Could not decode token!");
-        throw new Error("Token decode failed");
+      if (!res.ok || !data.token || !isValidJWT(data.token) || !validateToken(data.token)) {
+        toast.error(data.message || "🚨 Login failed!");
+        return;
       }
 
       localStorage.setItem("token", data.token);
-      console.log("Token stored successfully:", {
-        token: data.token.substring(0, 50) + "...",
-        payload: tokenPayload,
-        expires: tokenPayload.exp ? new Date(tokenPayload.exp * 1000) : "No expiration"
-      });
-      
-      // Store user data if available
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-        console.log("User data stored:", data.user);
-      }
+      if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
 
       toast.success("🎉 Login successful!");
       window.dispatchEvent(new Event("authChange"));
-      
-      // Navigate after short delay
-      setTimeout(() => {
-        console.log("Navigating to profile...");
-        navigate("/profile", { replace: true });
-      }, 800);
+
+      setTimeout(() => navigate("/profile", { replace: true }), 800);
     } catch (err) {
       console.error("Login error:", err);
       toast.error(err.message || "🚨 Server error! Try again later.");
@@ -117,9 +81,9 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center  px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <Toaster position="top-center" reverseOrder={false} />
-      <div className=" rounded-3xl w-full max-w-md p-10 border border-gray-200">
+      <div className="rounded-3xl w-full max-w-md p-10 border border-gray-200">
         <h2 className="text-4xl font-bold text-gray-800 mb-4 text-center tracking-tight">
           AuraMeet
         </h2>
