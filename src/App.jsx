@@ -9,6 +9,8 @@ import { Analytics } from "@vercel/analytics/react"
 import Header from "./components/Header";
 import Navbar from "./components/Navbar";
 import MobileNavbar from "./components/MobileNavbar";
+import WebsitePopup from "./components/WebsitePopup"; // Added popup component
+import ScrollToTop from "./components/ScrollToTop"; // Import ScrollToTop component
 
 // Pages
 import Home from "./pages/Home";
@@ -22,7 +24,7 @@ import Admin from "./Admin/Admin";
 import AdminLogin from "./Admin/Auth/Login";
 import SuspendUsers from "./Admin/SuspendUsers";
 import ManageUser from "./Admin/ManageUsers";
-import Support from "./pages/Support";
+import Support from "./pages/SupportNew";
 import HallOfFame from "./pages/HallOfFame";
 import PageNotFound from "./pages/PageNotFound";
 import Community from "./pages/Community";
@@ -34,8 +36,9 @@ import HamNav from "./MobileLayouyt/HamNav";
 import Create from "./MobileLayouyt/Create";
 import TermAndCondition from "./pages/TermAndCondition";
 import PrivateSpeech from "./pages/PrivateSpeech";
-import Blogs from "./pages/Blogs"; // <-- FIXED import
+import Blogs from "./pages/Blogs";
 import NameChanging from "./Blogs/NameChanging"
+import BuyCoins from "./pages/BuyCoins";
 
 import "./App.css";
 
@@ -81,6 +84,12 @@ function App() {
 
   return (
     <div className="App flex flex-col min-h-screen relative text-black bg-white">
+      {/* ScrollToTop component */}
+      <ScrollToTop />
+      
+      {/* Website Popup */}
+      <WebsitePopup />
+      
       {/* 🔥 Top Loading Bar */}
       <AnimatePresence>
         {loading && (
@@ -109,7 +118,8 @@ function App() {
         </>
       )}
 
-      <main className="flex-1">
+      {/* Main content with explicit overflow handling */}
+      <main className="flex-1 overflow-y-auto">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/register" element={<Register />} />
@@ -128,7 +138,7 @@ function App() {
           <Route path="/admin/users" element={<ManageUser />} />
           <Route path="/admin/manage-users" element={<ManageUser />} />
           <Route path="/hall-of-fame" element={<HallOfFame />} />
-          <Route path="/blogs" element={<Blogs />} /> {/* <-- FIXED */}
+          <Route path="/blogs" element={<Blogs />} />
           <Route
             path="/hall-of-fame/bounty/user/mandip"
             element={<MandipBlog />}
@@ -145,6 +155,7 @@ function App() {
             element={<TermAndCondition />}
           />
           <Route path="/private-space" element={<PrivateSpeech />} />
+          <Route path="/buy-coins" element={<BuyCoins />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
         <Analytics/>

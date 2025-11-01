@@ -17,6 +17,7 @@ import {
   BookOpen,
   Coins,
   Plus,
+  ShoppingBag,
 } from "lucide-react";
 
 function HamNav() {
@@ -52,6 +53,7 @@ function HamNav() {
     { icon: <Globe size={28} />, label: "Community", path: "/community" },
     { icon: <Star size={28} />, label: "Hall of Fame", path: "/hall-of-fame" },
     { icon: <BookOpen size={28} />, label: "Blogs", path: "/blogs" },
+    { icon: <Coins size={28} />, label: "Buy Coins - रु 250", path: "/buy-coins" },
     { icon: <HelpCircle size={28} />, label: "Support", path: "/support" },
   ];
 
@@ -101,10 +103,10 @@ function HamNav() {
             </div>
           </div>
           <button
-            onClick={() => alert("Top Up feature coming soon 🔥")}
+            onClick={() => navigate('/buy-coins')}
             className="flex items-center gap-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-xs px-3 py-1.5 rounded-lg font-semibold active:scale-95 transition-all"
           >
-            <Plus size={14} /> Top Up
+            <Plus size={14} /> Top Up - रु 250
           </button>
         </div>
       )}
