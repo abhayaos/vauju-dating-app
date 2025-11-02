@@ -664,9 +664,7 @@ function Home() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-blue-500" />
-                  <span className="text-sm font-medium text-gray-600">Posts</span>
-                  <span className="text-sm font-bold text-gray-900">{stats.posts}</span>
+               
                 </div>
                 <div className="flex items-center gap-2">
                   <Heart className="h-5 w-5 text-pink-500" />
