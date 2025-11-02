@@ -20,6 +20,28 @@ const BlueTick = () => (
   </svg>
 );
 
+/* -------------------------------------------------
+   Skeleton Loading Component
+   ------------------------------------------------- */
+const SkeletonCard = () => (
+  <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 animate-pulse">
+    <div className="h-56 bg-gradient-to-br from-gray-100 to-gray-200"></div>
+    <div className="p-5 space-y-3">
+      <div className="flex items-center space-x-2">
+        <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+        <div className="h-5 w-5 bg-gray-200 rounded-full"></div>
+      </div>
+      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div className="h-4 bg-gray-200 rounded w-full"></div>
+      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+      <div className="flex flex-wrap gap-2 pt-2">
+        <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+        <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+      </div>
+    </div>
+  </div>
+);
+
 function Matches() {
   const [profiles, setProfiles] = useState([]);
   const [filteredProfiles, setFilteredProfiles] = useState([]);
@@ -27,6 +49,8 @@ function Matches() {
   const [error, setError] = useState(null);
   const [genderFilter, setGenderFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const profilesPerPage = 6; // Number of profiles per page
   const navigate = useNavigate();
 
   /* ----------------------- FETCH ----------------------- */
@@ -41,12 +65,12 @@ function Matches() {
       }
 
       const response = await fetch(
-        "https://backend-vauju-1.onrender.com/api/matches",
+        "/api/matches",
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "x-user-id": token,
+            "Authorization": `Bearer ${token}`,
           },
         }
       );
@@ -107,18 +131,32 @@ function Matches() {
   /* ----------------------- UI ----------------------- */
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 md:ml-12">
         <Toaster position="top-center" reverseOrder={false} />
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-pink-200 rounded-full animate-spin"></div>
-          <div className="absolute inset-0 w-16 h-16 border-4 border-t-pink-600 rounded-full animate-spin animation-delay-200"></div>
+        {/* Header */}
+        <div className="text-center mb-10">
+          <div className="h-10 bg-gray-200 rounded w-1/3 mx-auto mb-4 animate-pulse"></div>
+          <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto animate-pulse"></div>
         </div>
-        <p className="mt-6 text-lg font-medium text-gray-700">
-          Curating your matches...
-        </p>
-        <p className="text-sm text-gray-500 mt-1">
-          Only the best, vetted profiles.
-        </p>
+
+        {/* Filters */}
+        <div className="mb-10 space-y-4">
+          <div className="flex justify-center gap-3 flex-wrap">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-10 w-20 bg-gray-200 rounded-full animate-pulse"></div>
+            ))}
+          </div>
+          <div className="max-w-md mx-auto">
+            <div className="h-12 bg-gray-200 rounded-xl animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Skeleton Grid */}
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -170,6 +208,25 @@ function Matches() {
       </div>
     );
   }
+
+  // Pagination logic
+  const indexOfLastProfile = currentPage * profilesPerPage;
+  const indexOfFirstProfile = indexOfLastProfile - profilesPerPage;
+  const currentProfiles = filteredProfiles.slice(indexOfFirstProfile, indexOfLastProfile);
+  const totalPages = Math.ceil(filteredProfiles.length / profilesPerPage);
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Previous page
+  const prevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  // Next page
+  const nextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 md:ml-12">
@@ -283,111 +340,181 @@ function Matches() {
           </p>
         </div>
       ) : (
-        /* Profiles Grid */
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredProfiles.map((profile) => {
-            const avatar = DefaultAvatar;
-            const tagline = profile.bio || "Aura member";
-            const interests = Array.isArray(profile.interests)
-              ? profile.interests.filter(Boolean).slice(0, 5)
-              : [];
+        <>
+          {/* Profiles Grid */}
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {currentProfiles.map((profile) => {
+              const avatar = DefaultAvatar;
+              const tagline = profile.bio || "Aura member";
+              const interests = Array.isArray(profile.interests)
+                ? profile.interests.filter(Boolean).slice(0, 5)
+                : [];
 
-            return (
-              <article
-                key={profile._id}
-                className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 transform hover:-translate-y-2 cursor-pointer"
-                onClick={() => navigate(`/messages/${profile._id}`)}
-              >
-                {/* Avatar + optional badge */}
-                <div className="relative h-56 bg-gradient-to-br from-pink-50 to-purple-50 overflow-hidden">
-                  <img
-                    src={avatar}
-                    alt={profile.name}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              return (
+                <article
+                  key={profile._id}
+                  className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 transform hover:-translate-y-2 cursor-pointer"
+                  onClick={() => navigate(`/messages/${profile._id}`)}
+                >
+                  {/* Avatar + optional badge */}
+                  <div className="relative h-56 bg-gradient-to-br from-pink-50 to-purple-50 overflow-hidden">
+                    <img
+                      src={avatar}
+                      alt={profile.name}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
 
-                  {/* Chat-now pill */}
-                  <div className="absolute bottom-3 right-3 bg-white bg-opacity-90 px-3 py-1 rounded-full text-xs font-medium text-pink-600 shadow-sm">
-                    Chat Now
-                  </div>
-
-                  {/* Blue tick on avatar (top-right) */}
-                  {profile.isVerified && (
-                    <div className="absolute top-3 right-3 bg-blue-100 rounded-full p-1.5 shadow-md">
-                      <BlueTick />
+                    {/* Chat-now pill */}
+                    <div className="absolute bottom-3 right-3 bg-white bg-opacity-90 px-3 py-1 rounded-full text-xs font-medium text-pink-600 shadow-sm">
+                      Chat Now
                     </div>
-                  )}
-                </div>
 
-                {/* Card body */}
-                <div className="p-5 space-y-3">
-                  {/* Name + badge next to name */}
-                  <div className="flex items-center space-x-2">
-                    <h2 className="text-xl font-bold text-gray-900">
-                      {profile.name}
-                    </h2>
+                    {/* Blue tick on avatar (top-right) */}
                     {profile.isVerified && (
-                      <div className="bg-blue-50 rounded-full p-1 flex items-center">
+                      <div className="absolute top-3 right-3 bg-blue-100 rounded-full p-1.5 shadow-md">
                         <BlueTick />
                       </div>
                     )}
                   </div>
 
-                  {/* Username */}
-                  {profile.username && (
-                    <p className="text-sm text-pink-600 font-medium">
-                      @{profile.username}
-                    </p>
-                  )}
+                  {/* Card body */}
+                  <div className="p-5 space-y-3">
+                    {/* Name + badge next to name */}
+                    <div className="flex items-center space-x-2">
+                      <h2 className="text-xl font-bold text-gray-900">
+                        {profile.name}
+                      </h2>
+                      {profile.isVerified && (
+                        <div className="bg-blue-50 rounded-full p-1 flex items-center">
+                          <BlueTick />
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Bio */}
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {tagline}
-                  </p>
-
-                  {/* Age / Gender tags */}
-                  <div className="flex flex-wrap gap-2">
-                    {profile.age && (
-                      <span className="px-3 py-1 text-xs font-medium text-pink-700 bg-pink-100 rounded-full">
-                        {profile.age} yrs
-                      </span>
+                    {/* Username */}
+                    {profile.username && (
+                      <p className="text-sm text-pink-600 font-medium">
+                        @{profile.username}
+                      </p>
                     )}
-                    {profile.gender && (
-                      <span className="px-3 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full capitalize">
-                        {profile.gender}
-                      </span>
+
+                    {/* Bio */}
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {tagline}
+                    </p>
+
+                    {/* Age / Gender tags */}
+                    <div className="flex flex-wrap gap-2">
+                      {profile.age && (
+                        <span className="px-3 py-1 text-xs font-medium text-pink-700 bg-pink-100 rounded-full">
+                          {profile.age} yrs
+                        </span>
+                      )}
+                      {profile.gender && (
+                        <span className="px-3 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full capitalize">
+                          {profile.gender}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Interests */}
+                    {interests.length > 0 && (
+                      <div className="pt-2 border-t border-gray-100">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                          Interests
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {interests.map((interest, idx) => (
+                            <span
+                              key={`${profile._id}-int-${idx}`}
+                              className="px-2.5 py-1 bg-gray-50 text-gray-700 text-xs rounded-full"
+                            >
+                              {interest}
+                            </span>
+                          ))}
+                          {profile.interests?.length > 5 && (
+                            <span className="px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">
+                              +{profile.interests.length - 5}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
+                </article>
+              );
+            })}
+          </div>
 
-                  {/* Interests */}
-                  {interests.length > 0 && (
-                    <div className="pt-2 border-t border-gray-100">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                        Interests
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {interests.map((interest, idx) => (
-                          <span
-                            key={`${profile._id}-int-${idx}`}
-                            className="px-2.5 py-1 bg-gray-50 text-gray-700 text-xs rounded-full"
-                          >
-                            {interest}
-                          </span>
-                        ))}
-                        {profile.interests?.length > 5 && (
-                          <span className="px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">
-                            +{profile.interests.length - 5}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </article>
-            );
-          })}
-        </div>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-12 flex justify-center">
+              <nav className="flex items-center gap-2">
+                <button
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-lg ${
+                    currentPage === 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                  }`}
+                >
+                  Previous
+                </button>
+
+                {/* Page numbers */}
+                {[...Array(totalPages)].map((_, index) => {
+                  const pageNumber = index + 1;
+                  // Show first, last, current, and nearby pages
+                  if (
+                    pageNumber === 1 ||
+                    pageNumber === totalPages ||
+                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => paginate(pageNumber)}
+                        className={`px-4 py-2 rounded-lg ${
+                          currentPage === pageNumber
+                            ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  }
+                  // Show ellipsis for skipped pages
+                  else if (
+                    (pageNumber === currentPage - 2 && currentPage > 3) ||
+                    (pageNumber === currentPage + 2 && currentPage < totalPages - 2)
+                  ) {
+                    return (
+                      <span key={pageNumber} className="px-2 py-2 text-gray-500">
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                })}
+
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-lg ${
+                    currentPage === totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                  }`}
+                >
+                  Next
+                </button>
+              </nav>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
