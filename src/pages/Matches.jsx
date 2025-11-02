@@ -20,28 +20,6 @@ const BlueTick = () => (
   </svg>
 );
 
-/* -------------------------------------------------
-   Skeleton Loading Component
-   ------------------------------------------------- */
-const SkeletonCard = () => (
-  <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 animate-pulse">
-    <div className="h-56 bg-gradient-to-br from-gray-100 to-gray-200"></div>
-    <div className="p-5 space-y-3">
-      <div className="flex items-center space-x-2">
-        <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-        <div className="h-5 w-5 bg-gray-200 rounded-full"></div>
-      </div>
-      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-      <div className="h-4 bg-gray-200 rounded w-full"></div>
-      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-      <div className="flex flex-wrap gap-2 pt-2">
-        <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-        <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-      </div>
-    </div>
-  </div>
-);
-
 function Matches() {
   const [profiles, setProfiles] = useState([]);
   const [filteredProfiles, setFilteredProfiles] = useState([]);
@@ -131,32 +109,18 @@ function Matches() {
   /* ----------------------- UI ----------------------- */
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 md:ml-12">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
         <Toaster position="top-center" reverseOrder={false} />
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="h-10 bg-gray-200 rounded w-1/3 mx-auto mb-4 animate-pulse"></div>
-          <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto animate-pulse"></div>
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-pink-200 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 w-16 h-16 border-4 border-t-pink-600 rounded-full animate-spin animation-delay-200"></div>
         </div>
-
-        {/* Filters */}
-        <div className="mb-10 space-y-4">
-          <div className="flex justify-center gap-3 flex-wrap">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-10 w-20 bg-gray-200 rounded-full animate-pulse"></div>
-            ))}
-          </div>
-          <div className="max-w-md mx-auto">
-            <div className="h-12 bg-gray-200 rounded-xl animate-pulse"></div>
-          </div>
-        </div>
-
-        {/* Skeleton Grid */}
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, index) => (
-            <SkeletonCard key={index} />
-          ))}
-        </div>
+        <p className="mt-6 text-lg font-medium text-gray-700">
+          Curating your matches...
+        </p>
+        <p className="text-sm text-gray-500 mt-1">
+          Only the best, vetted profiles.
+        </p>
       </div>
     );
   }

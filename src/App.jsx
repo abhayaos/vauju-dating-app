@@ -23,7 +23,7 @@ import Matches from "./pages/Matches";
 import Admin from "./Admin/Admin";
 import AdminLogin from "./Admin/Auth/Login";
 import SuspendUsers from "./Admin/SuspendUsers";
-// import ManageUser from "./Admin/ManageUsers";
+import ManageUser from "./Admin/ManageUsers";
 import Support from "./pages/SupportNew";
 import HallOfFame from "./pages/HallOfFame";
 import PageNotFound from "./pages/PageNotFound";
@@ -80,9 +80,6 @@ function App() {
       "/working",
       "/hall-of-fame/bounty/user/mandip",
       "/hall-of-fame",
-      "/admin",
-      "/admin/users",
-      "/admin/suspend",
     ].includes(location.pathname) || location.pathname.startsWith("/messages/");
 
   return (
@@ -138,8 +135,8 @@ function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/suspend" element={<SuspendUsers />} />
-          <Route path="/admin/users" element={<Admin />} />
-          <Route path="/admin/manage-users" element={<Admin />} />
+          <Route path="/admin/users" element={<ManageUser />} />
+          <Route path="/admin/manage-users" element={<ManageUser />} />
           <Route path="/hall-of-fame" element={<HallOfFame />} />
           <Route path="/blogs" element={<Blogs />} />
           <Route

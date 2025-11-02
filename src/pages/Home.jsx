@@ -663,9 +663,8 @@ function Home() {
           <div className="max-w-6xl mx-auto px-6 py-3 md:ml-20 ml-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-               
-                </div>
+              
+                
                 <div className="flex items-center gap-2">
                   <Heart className="h-5 w-5 text-pink-500" />
                   <span className="text-sm font-medium text-gray-600">Matches</span>
