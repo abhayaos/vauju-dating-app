@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import DefaultAvatar from "../assets/dp.png";
 
+// Base URL for API calls
+const BASE_URL = "https://backend-vauju-1.onrender.com/api";
+
 /* -------------------------------------------------
    Blue-Tick SVG – tiny, reusable component
    ------------------------------------------------- */
@@ -43,7 +46,7 @@ function Matches() {
       }
 
       const response = await fetch(
-        "/api/matches",
+        `${BASE_URL}/matches`,
         {
           method: "GET",
           headers: {
