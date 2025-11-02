@@ -40,12 +40,27 @@ function ManageUsers() {
           signal: controller.signal,
         })
 
-        const contentType = res.headers.get('content-type') || ''
-        const data = contentType.includes('application/json') ? await res.json().catch(() => null) : null
-
+        // Check if response is OK
         if (!res.ok) {
-          const message = data && typeof data === 'object' ? data.message : null
-          throw new Error(message || `Server error (status ${res.status})`)
+          let errorMessage = `Server error (status ${res.status})`
+          try {
+            const contentType = res.headers.get('content-type')
+            if (contentType && contentType.includes('application/json')) {
+              const data = await res.json()
+              errorMessage = data.message || errorMessage
+            }
+          } catch (e) {
+            // Ignore JSON parsing errors
+          }
+          throw new Error(errorMessage)
+        }
+
+        // Parse JSON response
+        let data
+        try {
+          data = await res.json()
+        } catch (e) {
+          throw new Error('Invalid response format from server')
         }
 
         if (Array.isArray(data)) {
@@ -57,7 +72,12 @@ function ManageUsers() {
       } catch (err) {
         if (err.name === 'AbortError') return
         setUsers([])
-        setError(err.message || 'Failed to load users')
+        // More descriptive error messages
+        if (err.message.includes('Failed to fetch')) {
+          setError('Unable to connect to the server. Please check your internet connection and try again.')
+        } else {
+          setError(err.message || 'Failed to load users')
+        }
       } finally {
         setLoading(false)
       }
@@ -86,6 +106,9 @@ function ManageUsers() {
       })
       if (res.ok) setUsers((list) => list.filter((u) => String(u._id) !== String(id)))
       else setError('Failed to delete user')
+    } catch (err) {
+      console.error('Delete error:', err)
+      setError('Failed to delete user. Please try again.')
     } finally {
       setBusy((x) => ({ ...x, [id]: false }))
     }
@@ -100,9 +123,17 @@ function ManageUsers() {
         headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
         body: JSON.stringify({ verified: next }),
       })
+      
+      if (!res.ok) {
+        throw new Error(`Verification failed (status ${res.status})`)
+      }
+      
       const data = await res.json().catch(() => null)
-      if (res.ok && data && data._id) setUsers((list) => list.map((u) => (u._id === id ? data : u)))
+      if (data && data._id) setUsers((list) => list.map((u) => (u._id === id ? data : u)))
       else setError('Failed to update verification status')
+    } catch (err) {
+      console.error('Verify error:', err)
+      setError('Failed to update verification status. Please try again.')
     } finally {
       setBusy((x) => ({ ...x, [id]: false }))
     }
@@ -117,9 +148,17 @@ function ManageUsers() {
         headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
         body: JSON.stringify({ suspended: next }),
       })
+      
+      if (!res.ok) {
+        throw new Error(`Suspend failed (status ${res.status})`)
+      }
+      
       const data = await res.json().catch(() => null)
-      if (res.ok && data && data._id) setUsers((list) => list.map((u) => (u._id === id ? data : u)))
+      if (data && data._id) setUsers((list) => list.map((u) => (u._id === id ? data : u)))
       else setError('Failed to update suspension status')
+    } catch (err) {
+      console.error('Suspend error:', err)
+      setError('Failed to update suspension status. Please try again.')
     } finally {
       setBusy((x) => ({ ...x, [id]: false }))
     }

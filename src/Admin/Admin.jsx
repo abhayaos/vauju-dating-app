@@ -1,11 +1,11 @@
-// src/pages/admin/ManageUsers.jsx
+// src/Admin/Admin.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
 
 const ADMIN_API = "https://backend-vauju-1.onrender.com";
 
-function ManageUsers() {
+function Admin() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [q, setQ] = useState("");
@@ -26,7 +26,7 @@ function ManageUsers() {
       try {
         const res = await fetch(
           `${ADMIN_API}/admin/users${q ? `?q=${encodeURIComponent(q)}` : ""}`,
-          { headers: { "x-admin-token": token }, signal: controller.signal }
+          { headers: { "Authorization": `Bearer ${token}` }, signal: controller.signal }
         );
 
         const contentType = res.headers.get("content-type") || "";
@@ -62,7 +62,7 @@ function ManageUsers() {
     try {
       const res = await fetch(`${ADMIN_API}/admin/users/${id}`, {
         method: "DELETE",
-        headers: { "x-admin-token": token },
+        headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) setUsers((list) => list.filter((u) => u._id !== id));
     } finally {
@@ -86,7 +86,7 @@ function ManageUsers() {
       selected.map((id) =>
         fetch(`${ADMIN_API}/admin/users/${id}`, {
           method: "DELETE",
-          headers: { "x-admin-token": token },
+          headers: { "Authorization": `Bearer ${token}` }
         })
       )
     );
@@ -103,7 +103,7 @@ function ManageUsers() {
     try {
       const res = await fetch(`${ADMIN_API}/admin/verify/${id}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ verified: next }),
       });
       const data = await res.json();
@@ -119,7 +119,7 @@ function ManageUsers() {
     try {
       const res = await fetch(`${ADMIN_API}/admin/suspend/${id}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ suspended: next }),
       });
       const data = await res.json();
@@ -252,4 +252,4 @@ function ManageUsers() {
   );
 }
 
-export default ManageUsers;
+export default Admin;

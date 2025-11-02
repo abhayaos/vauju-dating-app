@@ -9,11 +9,12 @@ function AdminLayout({ children }) {
   const links = [
     { to: "/admin", label: "Dashboard", icon: <Home size={20} /> },
     { to: "/admin/users", label: "Manage Users", icon: <Users size={20} /> },
-    { to: "/admin/reports", label: "Reports", icon: <ShieldCheck size={20} /> },
+    { to: "/admin/suspend", label: "Suspend Users", icon: <ShieldCheck size={20} /> },
   ];
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
+    window.dispatchEvent(new Event("adminLogout"));
     window.location.href = "/admin/login";
   };
 
