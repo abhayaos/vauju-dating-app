@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
 
-const ADMIN_API = "/api";
+const ADMIN_API = "https://backend-vauju-1.onrender.com";
 
 function Admin() {
   const navigate = useNavigate();

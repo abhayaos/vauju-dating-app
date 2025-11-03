@@ -81,6 +81,7 @@ function App() {
       "/working",
       "/hall-of-fame/bounty/user/mandip",
       "/hall-of-fame",
+      "/admin",
     ].includes(location.pathname) || location.pathname.startsWith("/messages/");
 
   return (
