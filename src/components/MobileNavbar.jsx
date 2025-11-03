@@ -1,6 +1,6 @@
 // src/components/MobileNavbar.jsx
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, } from "react-router-dom";
 import { Home, Users, MessageCircle, FileImage ,Video , Smile , Bell, UserCheck } from "lucide-react";
 
 

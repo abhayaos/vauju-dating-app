@@ -31,40 +31,21 @@ import {
   Gift,
   Wallet,
 } from "lucide-react";
-import { getProfileImage, handleImageError } from "../utils/imageUtils";
 
 function HamNav() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(() => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      return storedUser ? JSON.parse(storedUser) : null;
-    } catch (err) {
-      console.error("Failed to parse user from localStorage:", err);
-      return null;
-    }
-  });
+  const [user] = useState(JSON.parse(localStorage.getItem("user")));
   const isLoggedIn = !!localStorage.getItem("token");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Update user state when localStorage changes
+  // Fake loading animation
   useEffect(() => {
-    const handleStorageChange = () => {
-      try {
-        const storedUser = localStorage.getItem("user");
-        setUser(storedUser ? JSON.parse(storedUser) : null);
-      } catch (err) {
-        console.error("Failed to parse user from localStorage:", err);
-        setUser(null);
-      }
-    };
-    
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("authChange", handleStorageChange);
-    
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("authChange", handleStorageChange);
+      clearTimeout(timer);
     };
   }, []);
 
@@ -130,29 +111,17 @@ function HamNav() {
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            {user ? (
-              <>
-                <img
-                  src={getProfileImage(user)}
-                  alt={user?.name || "User"}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
-                  onError={(e) => handleImageError(e, user?.gender)}
-                />
-                <div>
-                  <h2 className="font-semibold text-gray-900">
-                    {isLoggedIn ? user?.name || "User" : "Guest"}
-                  </h2>
-                  <p className="text-xs text-gray-500">
-                    {isLoggedIn ? "Online" : "Not logged in"}
-                  </p>
-                </div>
-              </>
-            ) : (
-              <div className="flex-1">
-                <h2 className="font-semibold text-gray-900">Guest</h2>
-                <p className="text-xs text-gray-500">Not logged in</p>
-              </div>
-            )}
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold">
+              {user?.name?.charAt(0).toUpperCase() || "U"}
+            </div>
+            <div>
+              <h2 className="font-semibold text-gray-900">
+                {isLoggedIn ? user?.name || "User" : "Guest"}
+              </h2>
+              <p className="text-xs text-gray-500">
+                {isLoggedIn ? "Online" : "Not logged in"}
+              </p>
+            </div>
           </div>
           <button
             onClick={() => navigate("/settings")}

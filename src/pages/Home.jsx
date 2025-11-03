@@ -108,11 +108,8 @@ function Home() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const syncAuth = () => {
-      const newToken = localStorage.getItem('token');
-      const newUser = getSafeUser(localStorage.getItem('user'));
-      setToken(newToken);
-      setCurrentUser(newUser);
-      console.log('Auth synced. Current user with profile image:', newUser?.profilePic);
+      setToken(localStorage.getItem('token'));
+      setCurrentUser(getSafeUser(localStorage.getItem('user')));
     };
     syncAuth();
     window.addEventListener('authChange', syncAuth);
@@ -774,16 +771,13 @@ function Home() {
                       <div className="flex items-center gap-3 mb-4">
             <img
               src={getProfileImage(currentUser)}
-              alt={currentUser?.name || 'Profile'}
+              alt={currentUser.name}
               className="h-14 w-14 rounded-full object-cover border-2 border-pink-200 flex-shrink-0"
-              onError={(e) => {
-                console.warn('Profile image failed to load for:', currentUser?.name, 'User data:', currentUser);
-                handleImageError(e, currentUser?.gender);
-              }}
+              onError={(e) => handleImageError(e, currentUser.gender)}
             />
                         <div>
-                          <p className="font-semibold text-gray-900">{currentUser?.name || 'User'}</p>
-                          <p className="text-sm text-gray-500">{currentUser?.email || ''}</p>
+                          <p className="font-semibold text-gray-900">{currentUser.name}</p>
+                          <p className="text-sm text-gray-500">{currentUser.email}</p>
                         </div>
                       </div>
                     ) : (
