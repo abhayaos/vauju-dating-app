@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { X, Heart } from 'lucide-react';
 import DefaultAvatar from '../assets/dp.png';
+import { getProfileImage, handleImageError } from '../utils/imageUtils';
 
 const SwipeCard = ({ profile, onSwipeLeft, onSwipeRight }) => {
   const x = useMotionValue(0);
@@ -56,10 +57,10 @@ const SwipeCard = ({ profile, onSwipeLeft, onSwipeRight }) => {
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
         <div className="relative h-80 bg-gradient-to-br from-pink-50 to-purple-50 overflow-hidden">
           <img
-            src={profile.profileImage || DefaultAvatar}
+            src={getProfileImage(profile)}
             alt={profile.name}
             className="absolute inset-0 w-full h-full object-cover"
-            onError={(e) => (e.target.src = DefaultAvatar)}
+            onError={(e) => handleImageError(e, profile.gender)}
           />
           
           {profile.isVerified && (

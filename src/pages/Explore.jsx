@@ -3,6 +3,7 @@ import axios from "axios";
 import { Loader2, MessageSquare, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Dp from "../assets/dp.png";
+import { getProfileImage, handleImageError } from "../utils/imageUtils";
 
 function RandomGirl() {
   const [girl, setGirl] = useState(null);
@@ -81,10 +82,10 @@ function RandomGirl() {
       ) : girl ? (
         <div className="flex flex-col items-center">
           <img
-            src={girl.image || Dp}
+            src={getProfileImage(girl)}
             alt={girl.name}
             className="w-24 h-24 rounded-full object-cover border-2 border-pink-400"
-            onError={(e) => (e.target.src = Dp)}
+            onError={(e) => handleImageError(e, girl.gender)}
           />
           <h3 className="mt-3 text-lg font-semibold text-gray-800">{girl.name}</h3>
           <p className="text-sm text-gray-500">

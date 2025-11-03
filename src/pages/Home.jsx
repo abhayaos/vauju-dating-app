@@ -6,6 +6,7 @@ import ProfileImage from '../assets/dp.png';
 import PostModel from '../Models/PostModel';
 import SwipeCard from '../components/SwipeCard';
 import UrlPreview from '../components/UrlPreview';
+import { getProfileImage, handleImageError } from '../utils/imageUtils';
 
 const API_BASE = 'https://backend-vauju-1.onrender.com';
 
@@ -537,10 +538,10 @@ function Home() {
         >
           <div className="flex items-center gap-3 mb-4">
             <img
-              src={post.user?.profileImage || post.avatar || ProfileImage}
+              src={getProfileImage(post.user)}
               alt={post.user?.name || post.author || 'YugalMeet User'}
               className="h-12 w-12 rounded-full object-cover border border-gray-200"
-              onError={(e) => (e.target.src = ProfileImage)}
+              onError={(e) => handleImageError(e, post.user?.gender)}
             />
             <div className="flex-1">
               <div className="flex items-center gap-1">
@@ -769,10 +770,10 @@ function Home() {
                     {currentUser ? (
                       <div className="flex items-center gap-3 mb-4">
                         <img
-                          src={currentUser.profileImage || ProfileImage}
+                          src={getProfileImage(currentUser)}
                           alt={currentUser.name}
                           className="h-14 w-14 rounded-full object-cover border-2 border-pink-200"
-                          onError={(e) => (e.target.src = ProfileImage)}
+                          onError={(e) => handleImageError(e, currentUser.gender)}
                         />
                         <div>
                           <p className="font-semibold text-gray-900">{currentUser.name}</p>

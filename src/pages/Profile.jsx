@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { CheckCircle } from "lucide-react";
 import { validateToken, decodeJWT, clearAuthData } from "../utils/auth";
+import { getProfileImage, handleImageError, validateImageFile } from "../utils/imageUtils";
 
 const BASE_API = "https://backend-vauju-1.onrender.com/api";
 
@@ -207,8 +208,12 @@ function Profile() {
 
   const handleProfilePicChange = async (e) => {
     const file = e.target.files[0];
-    if (!file || !file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
+    if (!file) return;
+
+    // Validate file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast.error(validation.error);
       return;
     }
 
@@ -301,12 +306,13 @@ function Profile() {
 
       <div className="relative mb-4">
         <img
-          src={user.profilePic || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
+          src={getProfileImage(user)}
           alt="Profile"
           className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-blue-200 object-cover cursor-pointer ${
             uploading ? "opacity-50" : ""
           }`}
           onClick={() => isOwnProfile && document.getElementById("profilePicInput").click()}
+          onError={(e) => handleImageError(e, user.gender)}
         />
         {isOwnProfile && (
           <input

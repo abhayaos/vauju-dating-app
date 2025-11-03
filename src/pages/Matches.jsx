@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import DefaultAvatar from "../assets/dp.png";
+import { getProfileImage, handleImageError } from "../utils/imageUtils";
 
 // Base URL for API calls
 const BASE_URL = "https://backend-vauju-1.onrender.com/api";
@@ -311,7 +312,6 @@ function Matches() {
           {/* Profiles Grid */}
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {currentProfiles.map((profile) => {
-              const avatar = DefaultAvatar;
               const tagline = profile.bio || "Aura member";
               const interests = Array.isArray(profile.interests)
                 ? profile.interests.filter(Boolean).slice(0, 5)
@@ -326,9 +326,10 @@ function Matches() {
                   {/* Avatar + optional badge */}
                   <div className="relative h-56 bg-gradient-to-br from-pink-50 to-purple-50 overflow-hidden">
                     <img
-                      src={avatar}
+                      src={getProfileImage(profile)}
                       alt={profile.name}
                       className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => handleImageError(e, profile.gender)}
                     />
                     <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
 

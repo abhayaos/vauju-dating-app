@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
+import { getProfileImage, handleImageError, validateImageFile } from "../utils/imageUtils";
 
 // Use environment variable for BASE_URL
 const BASE_URL = import.meta.env.VITE_API_URL || "https://backend-vauju-1.onrender.com";
@@ -91,13 +92,10 @@ function EditProfile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type and size
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select a valid image file");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      toast.error("Image size must be less than 5MB");
+    // Validate file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast.error(validation.error);
       return;
     }
 
@@ -213,9 +211,10 @@ function EditProfile() {
         </h2>
         <div className="flex flex-col items-center mb-6">
           <img
-            src={form.profilePic || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
+            src={getProfileImage({ profileImage: form.profilePic })}
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover mb-2"
+            onError={(e) => handleImageError(e)}
           />
           <label className="cursor-pointer text-sm text-blue-600 hover:underline">
             Change Profile Picture
