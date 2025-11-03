@@ -47,7 +47,7 @@ function Post({ onNewPost }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': token
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ content: content.trim() })
       });

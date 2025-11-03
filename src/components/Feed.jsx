@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { getProfileImage, handleImageError } from '../utils/imageUtils';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://backend-vauju-1.onrender.com';
 
@@ -29,7 +30,7 @@ function Feed() {
     setError('');
     try {
       const res = await fetch(`${API_BASE}/api/posts?page=1&limit=20`, {
-        headers: token ? { 'x-user-id': token } : {}
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       if (!res.ok) {
         const message = await res.text();
@@ -81,13 +82,23 @@ function Feed() {
             key={postId}
             className="bg-white p-4 rounded shadow hover:bg-gray-50"
           >
-            <h3 className="font-bold">{authorName}</h3>
-            <p className="mt-1 whitespace-pre-line">{content}</p>
-            {timestamp && (
-              <small className="block text-gray-400 text-sm mt-2">
-                {new Date(timestamp).toLocaleString()}
-              </small>
-            )}
+            <div className="flex items-center gap-3 mb-3">
+              <img
+                src={getProfileImage(post.user)}
+                alt={authorName}
+                className="h-10 w-10 rounded-full object-cover border border-gray-200"
+                onError={(e) => handleImageError(e, post.user?.gender)}
+              />
+              <div>
+                <h3 className="font-bold text-sm text-gray-900">{authorName}</h3>
+                {timestamp && (
+                  <small className="block text-gray-400 text-xs mt-0.5">
+                    {new Date(timestamp).toLocaleString()}
+                  </small>
+                )}
+              </div>
+            </div>
+            <p className="mt-1 whitespace-pre-line text-sm text-gray-700">{content}</p>
             <div className="flex gap-4 text-sm text-gray-500 mt-3">
               <span>{likesCount} {likesCount === 1 ? 'Like' : 'Likes'}</span>
               <span>{commentsCount} {commentsCount === 1 ? 'Comment' : 'Comments'}</span>

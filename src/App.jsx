@@ -151,7 +151,7 @@ function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/notifications" element={<Notification />} />
           <Route path="/create" element={<Create />} />
-          <Route path="/hamvav" element={<HamNav />} />
+          <Route path="/menu" element={<HamNav />} />
           <Route path="/blog/how-tp-update-profile-in-aura-meet" element={<NameChanging />} />
           <Route
             path="/term-and-conditions"

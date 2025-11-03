@@ -130,6 +130,25 @@ function EditProfile() {
       if (!res.ok) throw new Error(data.message || "Upload failed");
 
       setForm((prev) => ({ ...prev, profilePic: data.url }));
+      
+      // Update localStorage with new profilePic if user object is returned
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      } else {
+        // If backend doesn't return full user object, update locally from form
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          try {
+            const user = JSON.parse(storedUser);
+            user.profilePic = data.url;
+            localStorage.setItem('user', JSON.stringify(user));
+          } catch (e) {
+            console.error('Failed to update localStorage:', e);
+          }
+        }
+      }
+      
+      window.dispatchEvent(new Event("authChange"));
       toast.success("Profile picture updated!");
     } catch (err) {
       toast.error(err.message || "Failed to upload profile picture");
@@ -189,6 +208,11 @@ function EditProfile() {
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Update failed");
 
+      // Update localStorage with the updated user data
+      if (result.user) {
+        localStorage.setItem('user', JSON.stringify(result.user));
+      }
+
       window.dispatchEvent(new Event("authChange"));
       toast.success("Profile updated successfully!");
       navigate("/profile");
@@ -211,7 +235,7 @@ function EditProfile() {
         </h2>
         <div className="flex flex-col items-center mb-6">
           <img
-            src={getProfileImage({ profileImage: form.profilePic })}
+            src={getProfileImage({ profilePic: form.profilePic })}
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover mb-2"
             onError={(e) => handleImageError(e)}

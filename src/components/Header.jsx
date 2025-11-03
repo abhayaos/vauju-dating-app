@@ -35,7 +35,7 @@ function Header() {
 
         {/* Menu / Navigation */}
         <button
-          onClick={() => navigate("/hamvav")}
+          onClick={() => navigate("/menu")}
           className="bg-gray-100  hover:bg-gray-200 p-2 rounded-full transition-all duration-200"
         >
           <Menu size={20} />

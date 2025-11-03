@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
+import { getProfileImage, handleImageError } from "../utils/imageUtils";
 
 const ADMIN_API = "https://backend-vauju-1.onrender.com";
 
@@ -182,6 +183,7 @@ function Admin() {
                       onChange={toggleSelectAll}
                     />
                   </th>
+                  <th className="p-3">Photo</th>
                   <th className="p-3">Name</th>
                   <th className="p-3">Email</th>
                   <th className="p-3">Verified</th>
@@ -204,6 +206,14 @@ function Admin() {
                         type="checkbox"
                         checked={selected.includes(u._id)}
                         onChange={() => toggleSelect(u._id)}
+                      />
+                    </td>
+                    <td className="p-3">
+                      <img
+                        src={getProfileImage(u)}
+                        alt={u.name}
+                        className="w-10 h-10 rounded-full object-cover border border-gray-300"
+                        onError={(e) => handleImageError(e, u.gender)}
                       />
                     </td>
                     <td className="p-3 font-medium">{u.name}</td>

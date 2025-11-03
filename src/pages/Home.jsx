@@ -108,8 +108,11 @@ function Home() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const syncAuth = () => {
-      setToken(localStorage.getItem('token'));
-      setCurrentUser(getSafeUser(localStorage.getItem('user')));
+      const newToken = localStorage.getItem('token');
+      const newUser = getSafeUser(localStorage.getItem('user'));
+      setToken(newToken);
+      setCurrentUser(newUser);
+      console.log('Auth synced. Current user with profile image:', newUser?.profilePic);
     };
     syncAuth();
     window.addEventListener('authChange', syncAuth);
@@ -125,7 +128,7 @@ function Home() {
     setError('');
     try {
       const res = await fetch(`${API_BASE}/api/posts?page=1&limit=20`, {
-        headers: token ? { 'x-user-id': token } : {},
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       });
       if (!res.ok) {
         const message = await res.text();
@@ -167,7 +170,7 @@ function Home() {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'x-user-id': token,
+            'Authorization': `Bearer ${token}`,
           },
         }
       );
@@ -206,7 +209,7 @@ function Home() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-user-id': token,
+            'Authorization': `Bearer ${token}`,
           },
         }
       );
@@ -228,7 +231,7 @@ function Home() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-user-id': token,
+            'Authorization': `Bearer ${token}`,
           },
         }
       );
@@ -269,7 +272,7 @@ function Home() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': token,
+          'Authorization': `Bearer ${token}`,
         },
       });
       if (!res.ok) {
@@ -331,7 +334,7 @@ function Home() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': token,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ content: draft }),
       });
@@ -769,15 +772,18 @@ function Home() {
                     </h3>
                     {currentUser ? (
                       <div className="flex items-center gap-3 mb-4">
-                        <img
-                          src={getProfileImage(currentUser)}
-                          alt={currentUser.name}
-                          className="h-14 w-14 rounded-full object-cover border-2 border-pink-200"
-                          onError={(e) => handleImageError(e, currentUser.gender)}
-                        />
+            <img
+              src={getProfileImage(currentUser)}
+              alt={currentUser?.name || 'Profile'}
+              className="h-14 w-14 rounded-full object-cover border-2 border-pink-200 flex-shrink-0"
+              onError={(e) => {
+                console.warn('Profile image failed to load for:', currentUser?.name, 'User data:', currentUser);
+                handleImageError(e, currentUser?.gender);
+              }}
+            />
                         <div>
-                          <p className="font-semibold text-gray-900">{currentUser.name}</p>
-                          <p className="text-sm text-gray-500">{currentUser.email}</p>
+                          <p className="font-semibold text-gray-900">{currentUser?.name || 'User'}</p>
+                          <p className="text-sm text-gray-500">{currentUser?.email || ''}</p>
                         </div>
                       </div>
                     ) : (

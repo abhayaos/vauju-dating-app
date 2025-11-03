@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileImage from "../assets/dp.png";
 import { SendHorizontal } from "lucide-react";
+import { getProfileImage, handleImageError } from "../utils/imageUtils";
 
 const API_BASE = "https://backend-vauju-1.onrender.com";
 
@@ -82,7 +83,7 @@ function PostModel({ onPostCreated }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": token,
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({ content: trimmed }),
       });
@@ -130,9 +131,10 @@ function PostModel({ onPostCreated }) {
           <div className="flex-shrink-0 p-3">
             <div className="relative">
               <img
-                src={ProfileImage}
+                src={currentUser ? getProfileImage(currentUser) : ProfileImage}
                 alt="Your profile"
                 className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
+                onError={(e) => handleImageError(e, currentUser?.gender)}
               />
               {!canPost && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
