@@ -62,12 +62,7 @@ function Messages() {
       </div>
 
       <div className="flex-1 flex flex-col md:pl-[70px] w-full">
-        <div className="md:hidden sticky top-0 z-50 bg-white shadow-sm">
-          <Header />
-        </div>
-        <div className="md:hidden sticky top-[64px] z-40 bg-white shadow-sm">
-          <MobileNavbar />
-        </div>
+       
 
         {/* Offline Banner */}
         <motion.div

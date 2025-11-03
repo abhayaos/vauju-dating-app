@@ -6,12 +6,57 @@ import { validateToken, decodeJWT, clearAuthData } from "../utils/auth";
 
 const BASE_API = "https://backend-vauju-1.onrender.com/api";
 
+// Skeleton component for profile loading state
+const ProfileSkeleton = () => (
+  <div className="min-h-screen flex flex-col items-center pt-14 pb-8 px-5 bg-gray-50">
+    <div className="flex flex-col items-center w-full max-w-md">
+      {/* Profile picture skeleton */}
+      <div className="relative mb-4">
+        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gray-200 animate-pulse"></div>
+      </div>
+
+      {/* Name skeleton */}
+      <div className="h-8 bg-gray-200 rounded-full w-40 mb-2 animate-pulse"></div>
+
+      {/* Username skeleton */}
+      <div className="h-4 bg-gray-200 rounded-full w-24 mb-5 animate-pulse"></div>
+
+      {/* Bio skeleton */}
+      <div className="h-4 bg-gray-200 rounded-full w-64 mb-2 animate-pulse"></div>
+      <div className="h-4 bg-gray-200 rounded-full w-56 mb-6 animate-pulse"></div>
+
+      {/* Stats skeleton */}
+      <div className="flex justify-center gap-10 mb-5 w-full">
+        <div className="text-center">
+          <div className="h-6 bg-gray-200 rounded-full w-8 mx-auto mb-1 animate-pulse"></div>
+          <div className="h-3 bg-gray-200 rounded-full w-12 mx-auto animate-pulse"></div>
+        </div>
+        <div className="text-center">
+          <div className="h-6 bg-gray-200 rounded-full w-8 mx-auto mb-1 animate-pulse"></div>
+          <div className="h-3 bg-gray-200 rounded-full w-12 mx-auto animate-pulse"></div>
+        </div>
+        <div className="text-center">
+          <div className="h-6 bg-gray-200 rounded-full w-8 mx-auto mb-1 animate-pulse"></div>
+          <div className="h-3 bg-gray-200 rounded-full w-12 mx-auto animate-pulse"></div>
+        </div>
+      </div>
+
+      {/* Buttons skeleton */}
+      <div className="flex flex-col sm:flex-row justify-center gap-3 w-full max-w-xs">
+        <div className="h-10 bg-gray-200 rounded-full animate-pulse flex-1"></div>
+        <div className="h-10 bg-gray-200 rounded-full animate-pulse flex-1"></div>
+      </div>
+    </div>
+  </div>
+);
+
 function Profile() {
   const [user, setUser] = useState(null);
   const [suspended, setSuspended] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(true);
+  const [loading, setLoading] = useState(true); // Added loading state
   const navigate = useNavigate();
   const { username, id } = useParams();
 
@@ -55,6 +100,7 @@ function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        setLoading(true); // Set loading to true when starting fetch
         let url = "";
         let headers = {};
         let profileData = null;
@@ -151,6 +197,8 @@ function Profile() {
         console.error("Fetch profile error:", err);
         toast.error("Failed to load profile: " + (err.message || "unknown"));
         setNotFound(true);
+      } finally {
+        setLoading(false); // Set loading to false when fetch completes
       }
     };
 
@@ -236,14 +284,9 @@ function Profile() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-screen text-gray-500 animate-pulse bg-gray-50">
-        <div className="text-center">
-          <p className="text-lg mb-2">Loading profile...</p>
-        </div>
-      </div>
-    );
+  // Show skeleton loader when loading
+  if (loading) {
+    return <ProfileSkeleton />;
   }
 
   return (
