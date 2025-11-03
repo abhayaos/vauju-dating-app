@@ -1,4 +1,3 @@
-// src/components/HamNav.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -18,6 +17,19 @@ import {
   Coins,
   Plus,
   ShoppingBag,
+  Home,
+  Users,
+  Video,
+  Bookmark,
+  Calendar,
+  MapPin,
+  Music,
+  Camera,
+  Gamepad2,
+  ShoppingBasket,
+  Trophy,
+  Gift,
+  Wallet,
 } from "lucide-react";
 
 function HamNav() {
@@ -25,36 +37,51 @@ function HamNav() {
   const [user] = useState(JSON.parse(localStorage.getItem("user")));
   const isLoggedIn = !!localStorage.getItem("token");
   const [loading, setLoading] = useState(true);
-  const [dots, setDots] = useState(".");
-  const [yugalCurrency, setYugalCurrency] = useState(250);
 
   // Fake loading animation
   useEffect(() => {
-    const dotInterval = setInterval(() => {
-      setDots((prev) => (prev === "..." ? "." : prev + "."));
-    }, 500);
-
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 2000);
+    }, 1000);
 
     return () => {
-      clearInterval(dotInterval);
       clearTimeout(timer);
     };
   }, []);
 
-  const menuItems = [
-    { icon: <User size={28} />, label: "Profile", path: "/profile" },
-    { icon: <Briefcase size={28} />, label: "Dashboard", path: "/dashboard" },
-    { icon: <Bell size={28} />, label: "Notifications", path: "/notifications" },
-    { icon: <MessageSquare size={28} />, label: "Messages", path: "/messages" },
-    { icon: <ScrollText size={28} />, label: "Terms", path: "/term-and-conditions" },
-    { icon: <Globe size={28} />, label: "Community", path: "/community" },
-    { icon: <Star size={28} />, label: "Hall of Fame", path: "/hall-of-fame" },
-    { icon: <BookOpen size={28} />, label: "Blogs", path: "/blogs" },
-    { icon: <Coins size={28} />, label: "Buy Coins - रु 250", path: "/buy-coins" },
-    { icon: <HelpCircle size={28} />, label: "Support", path: "/support" },
+  // Main menu items (Facebook-like)
+  const mainMenuItems = [
+    { icon: <User size={24} />, label: "Profile", path: "/profile" },
+    { icon: <Users size={24} />, label: "Friends", path: "/matches" },
+    { icon: <MessageSquare size={24} />, label: "Messages", path: "/messages" },
+    { icon: <Bell size={24} />, label: "Notifications", path: "/notifications" },
+    { icon: <Bookmark size={24} />, label: "Saved", path: "/saved" },
+    { icon: <Calendar size={24} />, label: "Events", path: "/events" },
+    { icon: <MapPin size={24} />, label: "Nearby", path: "/explore" },
+    { icon: <Briefcase size={24} />, label: "Jobs", path: "/jobs" },
+  ];
+
+  // Media menu items
+  const mediaMenuItems = [
+    { icon: <Video size={24} />, label: "Videos", path: "/videos" },
+    { icon: <Music size={24} />, label: "Music", path: "/music" },
+    { icon: <Camera size={24} />, label: "Photos", path: "/photos" },
+    { icon: <Gamepad2 size={24} />, label: "Games", path: "/games" },
+  ];
+
+  // Shopping menu items
+  const shoppingMenuItems = [
+    { icon: <ShoppingBasket size={24} />, label: "Marketplace", path: "/marketplace" },
+    { icon: <Coins size={24} />, label: "Buy Coins", path: "/buy-coins" },
+    { icon: <Wallet size={24} />, label: "Orders", path: "/orders" },
+  ];
+
+  // Support menu items
+  const supportMenuItems = [
+    { icon: <HelpCircle size={24} />, label: "Support", path: "/support" },
+    { icon: <ScrollText size={24} />, label: "Terms", path: "/term-and-conditions" },
+    { icon: <Star size={24} />, label: "Hall of Fame", path: "/hall-of-fame" },
+    { icon: <BookOpen size={24} />, label: "Blogs", path: "/blogs" },
   ];
 
   const handleAuthClick = () => {
@@ -69,104 +96,182 @@ function HamNav() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-black text-white text-2xl font-semibold">
-        Loading{dots}
+      <div className="flex items-center justify-center h-screen bg-white">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-12 h-12 bg-blue-600 rounded-full mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-24"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-black text-white min-h-screen flex flex-col justify-between">
-      {/* User Info */}
-      {isLoggedIn && user && (
-        <div className="bg-neutral-900 p-4 mt-4 mx-4 rounded-xl shadow-sm border border-neutral-800 flex items-center gap-3">
-          <div className="bg-gradient-to-r from-pink-600 to-red-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
-            {user.name?.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <p className="font-semibold text-white text-sm">{user.name}</p>
-            <p className="text-gray-400 text-xs">{user.email}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Yugal Currency Card */}
-      {isLoggedIn && (
-        <div className="bg-neutral-900 mx-4 mt-3 rounded-xl shadow-sm border border-neutral-800 p-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-yellow-200/20 text-yellow-400 p-2 rounded-lg">
-              <Coins size={22} />
+    <div className="bg-white min-h-screen">
+      {/* Header with user info */}
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold">
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </div>
             <div>
-              <p className="text-gray-100 text-sm font-semibold">Yugal Currency</p>
-              <p className="text-gray-400 text-xs">{yugalCurrency.toLocaleString()} YC</p>
+              <h2 className="font-semibold text-gray-900">
+                {isLoggedIn ? user?.name || "User" : "Guest"}
+              </h2>
+              <p className="text-xs text-gray-500">
+                {isLoggedIn ? "Online" : "Not logged in"}
+              </p>
             </div>
           </div>
           <button
-            onClick={() => navigate('/buy-coins')}
-            className="flex items-center gap-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-xs px-3 py-1.5 rounded-lg font-semibold active:scale-95 transition-all"
+            onClick={() => navigate("/settings")}
+            className="p-2 rounded-full hover:bg-gray-100"
           >
-            <Plus size={14} /> Top Up - रु 250
+            <Settings size={20} className="text-gray-600" />
           </button>
         </div>
-      )}
+      </div>
 
-      {/* Not Logged In */}
-      {!isLoggedIn && (
-        <div className="bg-neutral-900 p-4 mt-4 mx-4 rounded-xl shadow-sm border border-neutral-800 text-center">
-          <p className="text-gray-400 text-sm mb-3">You’re not logged in</p>
-          <button
-            onClick={() => navigate("/login")}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white w-full py-2 rounded-lg font-semibold text-sm hover:opacity-90 active:scale-95 transition-all"
+      {/* Shortcuts section */}
+      <div className="p-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Shortcuts</h3>
+        <div className="grid grid-cols-4 gap-3">
+          <div 
+            onClick={() => navigate("/profile")}
+            className="flex flex-col items-center cursor-pointer"
           >
-            Login to Continue
-          </button>
+            <div className="bg-gray-100 p-3 rounded-lg mb-1">
+              <User size={20} className="text-blue-600" />
+            </div>
+            <span className="text-xs text-gray-700">Profile</span>
+          </div>
+          <div 
+            onClick={() => navigate("/matches")}
+            className="flex flex-col items-center cursor-pointer"
+          >
+            <div className="bg-gray-100 p-3 rounded-lg mb-1">
+              <Heart size={20} className="text-red-500" />
+            </div>
+            <span className="text-xs text-gray-700">Matches</span>
+          </div>
+          <div 
+            onClick={() => navigate("/messages")}
+            className="flex flex-col items-center cursor-pointer"
+          >
+            <div className="bg-gray-100 p-3 rounded-lg mb-1">
+              <MessageSquare size={20} className="text-green-500" />
+            </div>
+            <span className="text-xs text-gray-700">Messages</span>
+          </div>
+          <div 
+            onClick={() => navigate("/notifications")}
+            className="flex flex-col items-center cursor-pointer"
+          >
+            <div className="bg-gray-100 p-3 rounded-lg mb-1">
+              <Bell size={20} className="text-yellow-500" />
+            </div>
+            <span className="text-xs text-gray-700">Alerts</span>
+          </div>
         </div>
-      )}
+      </div>
 
-      {/* Facebook-like Grid Menu */}
-      <div className="bg-neutral-900 mx-4 mt-5 rounded-xl shadow-sm border border-neutral-800 p-4">
-        <div className="grid grid-cols-2 gap-4 text-center">
-          {menuItems.map((item, index) => (
+      {/* Main Menu */}
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Menu</h3>
+        <div className="space-y-1">
+          {mainMenuItems.map((item, index) => (
             <div
               key={index}
               onClick={() => navigate(item.path)}
-              className="flex flex-col items-center justify-center p-4 rounded-lg hover:bg-neutral-800 active:scale-95 transition-all cursor-pointer"
+              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer"
             >
-              <div className="bg-neutral-800 p-4 rounded-2xl mb-2 text-blue-400">
-                {item.icon}
-              </div>
-              <span className="text-sm font-medium text-gray-200">{item.label}</span>
+              <div className="text-blue-600">{item.icon}</div>
+              <span className="text-gray-800">{item.label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Auth Button */}
-      <div className="mt-5 mx-4">
+      {/* Media Section */}
+      <div className="p-4 border-t border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Media</h3>
+        <div className="space-y-1">
+          {mediaMenuItems.map((item, index) => (
+            <div
+              key={index}
+              onClick={() => navigate(item.path)}
+              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer"
+            >
+              <div className="text-purple-600">{item.icon}</div>
+              <span className="text-gray-800">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Shopping Section */}
+      <div className="p-4 border-t border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Shopping</h3>
+        <div className="space-y-1">
+          {shoppingMenuItems.map((item, index) => (
+            <div
+              key={index}
+              onClick={() => navigate(item.path)}
+              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer"
+            >
+              <div className="text-green-600">{item.icon}</div>
+              <span className="text-gray-800">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Support Section */}
+      <div className="p-4 border-t border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Support</h3>
+        <div className="space-y-1">
+          {supportMenuItems.map((item, index) => (
+            <div
+              key={index}
+              onClick={() => navigate(item.path)}
+              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer"
+            >
+              <div className="text-gray-600">{item.icon}</div>
+              <span className="text-gray-800">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Logout/Login Button */}
+      <div className="p-4 border-t border-gray-200">
         <button
           onClick={handleAuthClick}
-          className={`w-full flex items-center justify-center gap-2 py-3 font-semibold rounded-xl shadow-md transition-all active:scale-95 ${
+          className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-medium ${
             isLoggedIn
-              ? "bg-gradient-to-r from-red-600 to-pink-600 text-white hover:opacity-90"
-              : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90"
+              ? "bg-red-50 text-red-600 hover:bg-red-100"
+              : "bg-blue-50 text-blue-600 hover:bg-blue-100"
           }`}
         >
           {isLoggedIn ? (
             <>
-              <LogOut size={18} /> Logout
+              <LogOut size={20} />
+              <span>Logout</span>
             </>
           ) : (
             <>
-              <LogIn size={18} /> Login
+              <LogIn size={20} />
+              <span>Login</span>
             </>
           )}
         </button>
       </div>
 
       {/* Footer */}
-      <div className="mt-8 mb-5 text-center text-[11px] text-gray-500">
-        AuraMeet © {new Date().getFullYear()} <br /> Made with ❤️ in Nepal 🇳🇵
+      <div className="p-4 border-t border-gray-200 text-center">
+        <p className="text-xs text-gray-500">
+          © {new Date().getFullYear()} AuraMeet. All rights reserved.
+        </p>
       </div>
     </div>
   );
