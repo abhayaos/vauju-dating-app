@@ -1,7 +1,7 @@
 // src/components/MobileNavbar.jsx
 import React from "react";
 import { Link, useLocation, } from "react-router-dom";
-import { Home, Users, MessageCircle, FileImage ,Video , Smile , Bell } from "lucide-react";
+import { Home, Users, MessageCircle, FileImage ,Video , Smile , Bell, UserCheck } from "lucide-react";
 
 
 function MobileNavbar() {
@@ -13,7 +13,8 @@ function MobileNavbar() {
 
   const navItems = [
     { path: "/", icon: Home, label: "Home" },
-    { path: "/matches", icon: Users, label: "Friends" },
+    { path: "/friends", icon: UserCheck, label: "Friends" },
+    { path: "/matches", icon: Users, label: "Matches" },
     { path: "/messages", icon: MessageCircle, label: "Messages" },
     { path: "/notifications", icon: Bell, label: "Notifications" },
   ];

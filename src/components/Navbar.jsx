@@ -6,7 +6,7 @@ import SupportIcon from "../assets/support.png";
 import Logo from "../assets/logo.png";
 
 // Icons
-import { Home, MessageSquare, Users, User, LogOut, LogIn, UserPlus, Compass, Heart, Podcast } from "lucide-react";
+import { Home, MessageSquare, Users, User, LogOut, LogIn, UserPlus, Compass, Heart, Podcast, UserCheck } from "lucide-react";
 
 function XSidebar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -76,6 +76,7 @@ function XSidebar() {
   const navItems = [
     { path: "/", icon: <Home size={20} />, label: "Home" },
     { path: "/explore", icon: <Compass size={20} />, label: "Explore" },
+    { path: "/friends", icon: <UserCheck size={20} />, label: "Friends" },
     { path: "/matches", icon: <Users size={20} />, label: "Matches" },
     { path: "/messages", icon: <MessageSquare size={20} />, label: "Messages" },
     { path: "/notifications", icon: <Heart size={20} />, label: "Notifications" },

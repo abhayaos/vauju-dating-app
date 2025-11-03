@@ -86,11 +86,11 @@ export default function Notification() {
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-100 flex justify-center py-10 px-4">
+    <main className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-100 flex justify-center py-10 px-4 md:ml-[70px]">
       <div className="w-full max-w-3xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between mb-8 animate-fadeIn">
+          <div className="flex items-center gap-3 transition-transform duration-300 hover:scale-105">
             <div className="relative w-12 h-12">
               <RiveComponent />
               {unreadCount > 0 && (
@@ -107,7 +107,7 @@ export default function Notification() {
           {unreadCount > 0 && !showAllRead && (
             <button
               onClick={markAllAsRead}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-pink-600 bg-pink-100 rounded-full hover:bg-pink-200 transition"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-pink-600 bg-pink-100 rounded-full hover:bg-pink-200 transition duration-200 hover:shadow-md active:scale-95"
             >
               <CheckCheck size={18} />
               Mark All Read
@@ -124,23 +124,24 @@ export default function Notification() {
 
         {/* Empty State */}
         {notifications.length === 0 ? (
-          <div className="text-center py-16">
-            <BellRing className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-            <p className="text-gray-500">No notifications yet.</p>
+          <div className="text-center py-16 animate-fadeIn">
+            <BellRing className="mx-auto h-16 w-16 text-gray-300 mb-4 animate-pulse" />
+            <p className="text-gray-500 text-lg">No notifications yet.</p>
+            <p className="text-gray-400 text-sm mt-2">Check back later for updates</p>
           </div>
         ) : (
           <div className="space-y-4">
             {notifications.map((notif) => (
               <div
                 key={notif.id}
-                className={`bg-white/90 backdrop-blur-lg p-5 rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-                  notif.unread ? "border-pink-200" : "border-gray-100"
+                className={`bg-white/90 backdrop-blur-lg p-5 rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default ${
+                  notif.unread ? "border-pink-200 bg-pink-50/50" : "border-gray-100 hover:border-gray-200"
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
                   {/* Icon + Content */}
                   <div className="flex items-start gap-3 flex-1">
-                    <div className="relative">
+                    <div className="relative flex-shrink-0">
                       {notif.unread ? (
                         <div className="w-9 h-9">
                           <RiveComponent />
@@ -153,31 +154,31 @@ export default function Notification() {
                       )}
                     </div>
 
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h3 className="font-bold text-gray-900 text-base">
                           {notif.title}
                         </h3>
                         {notif.comingSoon && (
-                          <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-purple-700 bg-purple-100 rounded-full">
+                          <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-purple-700 bg-purple-100 rounded-full flex-shrink-0">
                             <Sparkles size={12} />
                             Coming Soon
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-600 text-sm leading-relaxed">
+                      <p className="text-gray-600 text-sm leading-relaxed break-words">
                         {notif.message}
                       </p>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-3 text-gray-400">
+                  <div className="flex items-center gap-3 text-gray-400 flex-shrink-0">
                     <div className="flex gap-2">
                       {notif.unread && (
                         <button
                           onClick={() => markAsRead(notif.id)}
-                          className="hover:text-pink-600 transition"
+                          className="hover:text-pink-600 transition duration-200 p-1.5 hover:bg-pink-50 rounded-lg active:scale-90"
                           title="Mark as read"
                         >
                           <Check size={20} />
@@ -185,13 +186,13 @@ export default function Notification() {
                       )}
                       <button
                         onClick={() => deleteNotification(notif.id)}
-                        className="hover:text-red-500 transition"
+                        className="hover:text-red-500 transition duration-200 p-1.5 hover:bg-red-50 rounded-lg active:scale-90"
                         title="Delete"
                       >
                         <Trash2 size={20} />
                       </button>
                     </div>
-                    <span className="text-xs whitespace-nowrap">
+                    <span className="text-xs whitespace-nowrap text-gray-500">
                       {getRelativeTime(new Date(notif.timeStamp))}
                     </span>
                   </div>

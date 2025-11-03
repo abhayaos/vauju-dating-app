@@ -39,6 +39,7 @@ import PrivateSpeech from "./pages/PrivateSpeech";
 import Blogs from "./pages/Blogs";
 import NameChanging from "./Blogs/NameChanging"
 import BuyCoins from "./pages/BuyCoins";
+import Friends from "./pages/Friends";
 
 import "./App.css";
 
@@ -143,6 +144,7 @@ function App() {
             path="/hall-of-fame/bounty/user/mandip"
             element={<MandipBlog />}
           />
+          <Route path="/friends" element={<Friends />} />
           <Route path="/community" element={<Community />} />
           <Route path="/working" element={<Working />} />
           <Route path="/explore" element={<Explore />} />
