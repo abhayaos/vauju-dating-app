@@ -1,28 +1,22 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAdminAuth } from '../context/AdminAuthContext'
 
 const ADMIN_API = 'https://backend-vauju-1.onrender.com'
 
 function ManageUsers() {
   const navigate = useNavigate()
+  const { adminToken } = useAdminAuth()
   const [users, setUsers] = useState([])
   const [q, setQ] = useState('')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState({})
-  const [token, setToken] = useState(() => localStorage.getItem('adminToken') || '')
+  const [token, setToken] = useState(adminToken || '')
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const syncToken = () => setToken(localStorage.getItem('adminToken') || '')
-    window.addEventListener('storage', syncToken)
-    window.addEventListener('adminLogin', syncToken)
-    window.addEventListener('adminLogout', syncToken)
-    return () => {
-      window.removeEventListener('storage', syncToken)
-      window.removeEventListener('adminLogin', syncToken)
-      window.removeEventListener('adminLogout', syncToken)
-    }
-  }, [])
+    setToken(adminToken || '');
+  }, [adminToken]);
 
   useEffect(() => {
     if (!token) {

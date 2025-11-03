@@ -2,7 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { isTokenExpired, clearAuthData } from "./utils/auth";
+import { isTokenExpired } from "./utils/auth";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AdminAuthProvider } from "./context/AdminAuthContext";
 import { Analytics } from "@vercel/analytics/react"
 
 // Components
@@ -44,9 +46,20 @@ import Friends from "./pages/Friends";
 import "./App.css";
 
 function App() {
+  return (
+    <AuthProvider>
+      <AdminAuthProvider>
+        <AppContent />
+      </AdminAuthProvider>
+    </AuthProvider>
+  );
+}
+
+function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { token, logout } = useAuth();
 
   // Detect route change
   useEffect(() => {
@@ -58,9 +71,8 @@ function App() {
   // Check token expiry every 60 seconds and auto-logout if expired
   useEffect(() => {
     const checkTokenExpiry = () => {
-      if (isTokenExpired()) {
-        clearAuthData();
-        window.dispatchEvent(new Event("authChange"));
+      if (token && isTokenExpired(token)) {
+        logout();
         if (location.pathname !== "/login" && location.pathname !== "/register") {
           navigate("/login", { replace: true });
         }
@@ -71,7 +83,7 @@ function App() {
     const interval = setInterval(checkTokenExpiry, 60000); // Check every 60 seconds
 
     return () => clearInterval(interval);
-  }, [navigate, location.pathname]);
+  }, [token, navigate, location.pathname, logout]);
 
   const hideLayout =
     [
@@ -151,7 +163,7 @@ function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/notifications" element={<Notification />} />
           <Route path="/create" element={<Create />} />
-          <Route path="/hamvav" element={<HamNav />} />
+          <Route path="/menu" element={<HamNav />} />
           <Route path="/blog/how-tp-update-profile-in-aura-meet" element={<NameChanging />} />
           <Route
             path="/term-and-conditions"

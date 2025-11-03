@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { CheckCircle } from "lucide-react";
-import { validateToken, decodeJWT, clearAuthData } from "../utils/auth";
+import { validateToken, decodeJWT } from "../utils/auth";
 import { getProfileImage, handleImageError, validateImageFile } from "../utils/imageUtils";
+import { useAuth } from "../context/AuthContext";
 
 const BASE_API = "https://backend-vauju-1.onrender.com/api";
 
@@ -57,13 +58,13 @@ function Profile() {
   const [notFound, setNotFound] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(true);
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { username, id } = useParams();
+  const { token, user: authUser } = useAuth();
 
-  const token = localStorage.getItem("token");
   const payload = token ? decodeJWT(token) : null;
-  const currentUserId = payload?._id;
+  const currentUserId = payload?._id || authUser?._id;
 
   const safeDecode = (value) => {
     if (typeof value !== "string") return value;
@@ -87,7 +88,6 @@ function Profile() {
       });
       if (res.ok) {
         const { token } = await res.json();
-        localStorage.setItem("token", token);
         console.log("Token refreshed successfully");
         return token;
       }
@@ -146,7 +146,7 @@ function Profile() {
           }
 
           headers = { Authorization: `Bearer ${token}` };
-          url = `${BASE_API}/profile/me`; // Use a single endpoint for own profile
+          url = `${BASE_API}/profile/me`;
           setIsOwnProfile(true);
         }
 
@@ -223,12 +223,11 @@ function Profile() {
 
     try {
       setUploading(true);
-      let currentToken = localStorage.getItem("token");
+      let currentToken = token;
       if (!currentToken || !validateToken(currentToken)) {
         currentToken = await refreshToken();
         if (!currentToken) {
           toast.error("Session expired. Please log in again.");
-          clearAuthData();
           navigate("/login", { replace: true });
           return;
         }

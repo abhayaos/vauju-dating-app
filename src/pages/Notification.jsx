@@ -19,8 +19,8 @@ function getRelativeTime(date) {
 
 export default function Notification() {
   const [notifications, setNotifications] = useState(() => {
-    // Load from localStorage on mount
-    const saved = localStorage.getItem("notifications");
+    // Load from sessionStorage on mount (not localStorage)
+    const saved = sessionStorage.getItem("notifications");
     if (saved) return JSON.parse(saved);
     
     // Default data if none
@@ -54,9 +54,9 @@ export default function Notification() {
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
-  // Save to localStorage whenever notifications change
+  // Save to sessionStorage whenever notifications change
   useEffect(() => {
-    localStorage.setItem("notifications", JSON.stringify(notifications));
+    sessionStorage.setItem("notifications", JSON.stringify(notifications));
   }, [notifications]);
 
   // Auto-refresh time
@@ -198,8 +198,7 @@ export default function Notification() {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+            ))}\n          </div>
         )}
       </div>
     </main>

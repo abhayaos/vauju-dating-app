@@ -3,18 +3,19 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
 import { getProfileImage, handleImageError } from "../utils/imageUtils";
+import { useAdminAuth } from "../context/AdminAuthContext";
 
 const ADMIN_API = "https://backend-vauju-1.onrender.com";
 
 function Admin() {
   const navigate = useNavigate();
+  const { adminToken } = useAdminAuth();
   const [users, setUsers] = useState([]);
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState({});
   const [selected, setSelected] = useState([]);
-
-  const token = useMemo(() => localStorage.getItem("adminToken"), []);
+  const token = adminToken;
   const [error, setError] = useState("");
 
   // Load users

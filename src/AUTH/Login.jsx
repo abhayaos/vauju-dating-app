@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { validateToken, decodeJWT } from "../utils/auth";
+import { useAuth } from "../context/AuthContext";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -10,14 +11,7 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  // 🔑 Redirect if already logged in
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token && validateToken(token)) {
-      navigate("/"); // redirect to home if user is logged in
-    }
-  }, [navigate]);
+  const { isLoggedIn, login } = useAuth();
 
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -65,13 +59,11 @@ function Login() {
         return;
       }
 
-      localStorage.setItem("token", data.token);
-      if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+      // Use AuthContext instead of localStorage
+      login(data.token, data.user);
 
       toast.success("🎉 Login successful!");
-      window.dispatchEvent(new Event("authChange"));
-
-      setTimeout(() => navigate("/profile", { replace: true }), 800);
+      setTimeout(() => navigate("/", { replace: true }), 800);
     } catch (err) {
       console.error("Login error:", err);
       toast.error(err.message || "🚨 Server error! Try again later.");

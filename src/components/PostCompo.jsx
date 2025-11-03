@@ -1,33 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://backend-vauju-1.onrender.com';
 
 const getSafeUser = () => {
-  if (typeof window === 'undefined') return null;
-  const stored = localStorage.getItem('user');
-  if (!stored) return null;
-  try {
-    return JSON.parse(stored);
-  } catch {
-    return null;
-  }
+  // Removed - use useAuth hook instead
+  return null;
 };
 
 const getToken = () => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token');
+  // Removed - use useAuth hook instead
+  return null;
 };
 
 function Post({ onNewPost }) {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { token, user } = useAuth();
 
   const handlePost = async () => {
-    const token = getToken();
-    const user = getSafeUser();
-
     if (!token || !user?._id) {
       navigate('/login');
       return;

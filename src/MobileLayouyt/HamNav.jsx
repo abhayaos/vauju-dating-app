@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   User,
   Settings,
@@ -34,8 +35,7 @@ import {
 
 function HamNav() {
   const navigate = useNavigate();
-  const [user] = useState(JSON.parse(localStorage.getItem("user")));
-  const isLoggedIn = !!localStorage.getItem("token");
+  const { user, isLoggedIn, logout } = useAuth();
   const [loading, setLoading] = useState(true);
 
   // Fake loading animation
@@ -86,8 +86,7 @@ function HamNav() {
 
   const handleAuthClick = () => {
     if (isLoggedIn) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      logout();
       navigate("/login");
     } else {
       navigate("/login");

@@ -1,6 +1,7 @@
 // ErrorBoundary.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 class ErrorBoundary extends React.Component {
   state = { hasError: false, error: null };
@@ -22,7 +23,7 @@ class ErrorBoundary extends React.Component {
             <p className="text-gray-600 mb-4">{this.state.error?.message || "Unknown error"}</p>
             <button
               onClick={() => {
-                localStorage.removeItem("token");
+                this.props.logout();
                 this.props.navigate("/login");
               }}
               className="bg-blue-500 text-white px-4 py-2 rounded-full"
@@ -39,5 +40,6 @@ class ErrorBoundary extends React.Component {
 
 export default function ErrorBoundaryWrapper(props) {
   const navigate = useNavigate();
-  return <ErrorBoundary navigate={navigate} {...props} />;
+  const { logout } = useAuth();
+  return <ErrorBoundary navigate={navigate} logout={logout} {...props} />;
 }

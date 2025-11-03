@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAdminAuth } from '../context/AdminAuthContext'
 
 const ADMIN_API = 'https://backend-vauju-1.onrender.com'
 
 function SuspendUsers() {
   const navigate = useNavigate()
-  const token = useMemo(() => localStorage.getItem('adminToken'), [])
+  const { adminToken } = useAdminAuth()
+  const token = adminToken
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')

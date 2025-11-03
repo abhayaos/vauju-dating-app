@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
+import { useAuth } from "../context/AuthContext";
 
 // Use environment variable for BASE_URL
 const BASE_URL = import.meta.env.VITE_API_URL || "https://backend-vauju-1.onrender.com";
@@ -19,6 +20,7 @@ const getUserIdFromToken = (token) => {
 
 function EditProfile() {
   const navigate = useNavigate();
+  const { token, user } = useAuth();
   const [form, setForm] = useState({
     username: "",
     name: "",
@@ -33,13 +35,12 @@ function EditProfile() {
 
   // Load user profile on mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
     if (!token) {
       toast.error("Please log in to continue");
       return navigate("/login");
     }
 
-    const userId = getUserIdFromToken(token);
+    const userId = user?._id || user?.id;
     if (!userId) {
       toast.error("Invalid session. Please log in again.");
       return navigate("/login");
@@ -49,7 +50,7 @@ function EditProfile() {
       try {
         const res = await fetch(`${BASE_URL}/api/profile`, {
           headers: {
-            Authorization: `Bearer ${token}`, // Use standard Authorization header
+            Authorization: `Bearer ${token}`,
           },
         });
         if (!res.ok) {
@@ -78,7 +79,7 @@ function EditProfile() {
     };
 
     fetchProfile();
-  }, [navigate]);
+  }, [navigate, token, user]);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -110,8 +111,12 @@ function EditProfile() {
 
     // Upload to backend
     try {
-      const token = localStorage.getItem("token");
-      const userId = getUserIdFromToken(token);
+      if (!token) {
+        toast.error("Please log in to continue");
+        return navigate("/login");
+      }
+
+      const userId = user?._id || user?.id;
       if (!userId) {
         toast.error("Invalid session. Please log in again.");
         return navigate("/login");
@@ -123,7 +128,7 @@ function EditProfile() {
       const res = await fetch(`${BASE_URL}/api/profile/upload`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`, // Use standard Authorization header
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -143,14 +148,13 @@ function EditProfile() {
     e.preventDefault();
     setLoading(true);
 
-    const token = localStorage.getItem("token");
     if (!token) {
       toast.error("Please log in to continue");
       setLoading(false);
       return navigate("/login");
     }
 
-    const userId = getUserIdFromToken(token);
+    const userId = user?._id || user?.id;
     if (!userId) {
       toast.error("Invalid session. Please log in again.");
       setLoading(false);
@@ -180,7 +184,7 @@ function EditProfile() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Use standard Authorization header
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...form,

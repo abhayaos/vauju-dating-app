@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ProfileImage from "../assets/dp.png";
 import { SendHorizontal } from "lucide-react";
 import { getProfileImage, handleImageError } from "../utils/imageUtils";
+import { useAuth } from "../context/AuthContext";
 
 const API_BASE = "https://backend-vauju-1.onrender.com";
 
@@ -17,10 +18,9 @@ const getSafeUser = (value) => {
 
 function PostModel({ onPostCreated }) {
   const navigate = useNavigate();
+  const { token, user: currentUser } = useAuth();
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState(() => typeof window !== "undefined" ? localStorage.getItem("token") : null);
-  const [currentUser, setCurrentUser] = useState(() => typeof window !== "undefined" ? getSafeUser(localStorage.getItem("user")) : null);
   const [feedback, setFeedback] = useState("");
   const [feedbackTone, setFeedbackTone] = useState("info");
   const textareaRef = useRef(null);
@@ -38,18 +38,7 @@ function PostModel({ onPostCreated }) {
 
   // Sync auth state
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const syncAuth = () => {
-      setToken(localStorage.getItem("token"));
-      setCurrentUser(getSafeUser(localStorage.getItem("user")));
-    };
-    syncAuth();
-    window.addEventListener("authChange", syncAuth);
-    window.addEventListener("storage", syncAuth);
-    return () => {
-      window.removeEventListener("authChange", syncAuth);
-      window.removeEventListener("storage", syncAuth);
-    };
+    // No longer needed - auth state is managed by AuthContext
   }, []);
 
   // Auto-hide feedback

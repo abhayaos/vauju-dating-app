@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import DefaultAvatar from "../assets/dp.png";
 import { getProfileImage, handleImageError } from "../utils/imageUtils";
+import { useAuth } from "../context/AuthContext";
 
 // Base URL for API calls
 const BASE_URL = "https://backend-vauju-1.onrender.com/api";
@@ -32,13 +33,13 @@ function Matches() {
   const [genderFilter, setGenderFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const profilesPerPage = 6; // Number of profiles per page
+  const profilesPerPage = 6;
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   /* ----------------------- FETCH ----------------------- */
   const fetchMatches = async () => {
     try {
-      const token = localStorage.getItem("token");
       if (!token) {
         toast.error("Please log in to view profiles.");
         setLoading(false);
@@ -59,7 +60,6 @@ function Matches() {
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("token");
           toast.error("Session expired. Please log in again.");
           navigate("/login");
           return;

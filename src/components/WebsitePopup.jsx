@@ -5,15 +5,16 @@ const WebsitePopup = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Check if popup has been shown before
-    const hasShownPopup = localStorage.getItem("hasShownPopup");
+    // Use a session flag instead of localStorage
+    const popupShownKey = 'WEBSITE_POPUP_SHOWN_SESSION';
+    const hasShownPopup = sessionStorage.getItem(popupShownKey) === 'true';
     
     // Show popup after a short delay if not shown before
     if (!hasShownPopup) {
       const timer = setTimeout(() => {
         setIsOpen(true);
-        // Mark popup as shown
-        localStorage.setItem("hasShownPopup", "true");
+        // Mark popup as shown in session
+        sessionStorage.setItem(popupShownKey, 'true');
       }, 1000); // Show after 1 second
       
       return () => clearTimeout(timer);

@@ -1,20 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
+import { useAdminAuth } from "../../context/AdminAuthContext";
 
 function AdminLogin() {
   const navigate = useNavigate();
+  const { adminToken, loginAdmin, isAdminLoggedIn } = useAdminAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const API_URL = "https://backend-vauju-1.onrender.com";
 
   useEffect(() => {
-    const token = localStorage.getItem("adminToken");
-    if (token) {
+    if (isAdminLoggedIn) {
       navigate("/admin");
     }
-  }, [navigate]);
+  }, [isAdminLoggedIn, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -49,12 +50,8 @@ function AdminLogin() {
         throw new Error("Login failed: token missing");
       }
 
-      localStorage.setItem("adminToken", data.token);
-      if (data.admin) {
-        localStorage.setItem("adminProfile", JSON.stringify(data.admin));
-      }
+      loginAdmin(data.token, data.admin);
       toast.success("Login successful 🎉");
-      window.dispatchEvent(new Event("adminLogin"));
       setTimeout(() => navigate("/admin"), 500);
     } catch (err) {
       console.error("Login error:", err);

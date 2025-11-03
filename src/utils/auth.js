@@ -41,62 +41,17 @@ export function validateToken(token) {
 }
 
 /**
- * Save token and user info to localStorage
- * @param {string} token - The JWT token
- * @param {object} user - The user data object
+ * Note: saveAuthData, getToken, getUser, and clearAuthData have been removed
+ * to eliminate localStorage usage. Use AuthContext from context/AuthContext.jsx instead.
  */
-export function saveAuthData(token, user) {
-  try {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-  } catch (err) {
-    console.error("❌ Failed to save auth data:", err);
-  }
-}
-
-/**
- * Get the saved token from localStorage
- * @returns {string|null} Token if exists, otherwise null
- */
-export function getToken() {
-  return localStorage.getItem("token");
-}
-
-/**
- * Get saved user data from localStorage
- * @returns {object|null} User object or null if not found
- */
-export function getUser() {
-  try {
-    const userData = localStorage.getItem("user");
-    return userData ? JSON.parse(userData) : null;
-  } catch (err) {
-    console.error("❌ Failed to parse user data:", err);
-    return null;
-  }
-}
-
-/**
- * Clear all authentication data from localStorage & sessionStorage
- */
-export function clearAuthData() {
-  try {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    sessionStorage.clear();
-    console.log("✅ Auth data cleared successfully.");
-  } catch (err) {
-    console.error("❌ Failed to clear auth data:", err);
-  }
-}
 
 /**
  * Check if token is expired and needs auto-logout
+ * @param {string} token - The JWT token to check
  * @returns {boolean} True if token is expired, false otherwise
  */
-export function isTokenExpired() {
+export function isTokenExpired(token) {
   try {
-    const token = getToken();
     if (!token) return true;
     
     const decoded = decodeJWT(token);

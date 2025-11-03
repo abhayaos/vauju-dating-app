@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getProfileImage, handleImageError } from '../utils/imageUtils';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://backend-vauju-1.onrender.com';
 
@@ -7,23 +8,7 @@ function Feed() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [token, setToken] = useState(() => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('token');
-  });
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const syncToken = () => {
-      setToken(localStorage.getItem('token'));
-    };
-    window.addEventListener('authChange', syncToken);
-    window.addEventListener('storage', syncToken);
-    return () => {
-      window.removeEventListener('authChange', syncToken);
-      window.removeEventListener('storage', syncToken);
-    };
-  }, []);
+  const { token } = useAuth();
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);

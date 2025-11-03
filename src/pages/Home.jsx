@@ -7,6 +7,7 @@ import PostModel from '../Models/PostModel';
 import SwipeCard from '../components/SwipeCard';
 import UrlPreview from '../components/UrlPreview';
 import { getProfileImage, handleImageError } from '../utils/imageUtils';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE = 'https://backend-vauju-1.onrender.com';
 
@@ -77,48 +78,26 @@ const renderContentWithPreviews = (content) => {
 
 function Home() {
   const navigate = useNavigate();
+  const { token, user: currentUser } = useAuth();
   const [posts, setPosts] = useState([]);
   const [profiles, setProfiles] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [swipeMode, setSwipeMode] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [expandedPosts, setExpandedPosts] = useState([]);
-  const [error, setError] = useState('');
-  const [commentDrafts, setCommentDrafts] = useState({});
-  const [pendingLikes, setPendingLikes] = useState({});
-  const [pendingComments, setPendingComments] = useState({});
-  const [openCommentPopup, setOpenCommentPopup] = useState(null);
-  const [token, setToken] = useState(() => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('token');
-  });
-  const [currentUser, setCurrentUser] = useState(() => {
-    if (typeof window === 'undefined') return null;
-    return getSafeUser(localStorage.getItem('user'));
-  });
   const [stats, setStats] = useState({
     posts: 0,
     matches: 0,
     coins: 250
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [swipeMode, setSwipeMode] = useState(false);
+  const [expandedPosts, setExpandedPosts] = useState([]);
+  const [pendingLikes, setPendingLikes] = useState({});
+  const [pendingComments, setPendingComments] = useState({});
+  const [commentDrafts, setCommentDrafts] = useState({});
+  const [openCommentPopup, setOpenCommentPopup] = useState(null);
   const commentInputRefs = useRef({});
 
   const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId;
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const syncAuth = () => {
-      setToken(localStorage.getItem('token'));
-      setCurrentUser(getSafeUser(localStorage.getItem('user')));
-    };
-    syncAuth();
-    window.addEventListener('authChange', syncAuth);
-    window.addEventListener('storage', syncAuth);
-    return () => {
-      window.removeEventListener('authChange', syncAuth);
-      window.removeEventListener('storage', syncAuth);
-    };
-  }, []);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
@@ -156,7 +135,6 @@ function Home() {
 
   const fetchProfiles = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
       if (!token) {
         return;
       }
@@ -187,7 +165,7 @@ function Home() {
     } catch (err) {
       console.error('Fetch Error:', err);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     fetchProfiles();
@@ -197,7 +175,6 @@ function Home() {
     // Pass action
     setCurrentIndex(prev => prev + 1);
     try {
-      const token = localStorage.getItem('token');
       if (!token) return;
 
       await fetch(
@@ -219,7 +196,6 @@ function Home() {
     // Like action
     setCurrentIndex(prev => prev + 1);
     try {
-      const token = localStorage.getItem('token');
       if (!token) return;
 
       await fetch(

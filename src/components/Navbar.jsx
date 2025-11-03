@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 // Assets
 import SupportIcon from "../assets/support.png";
@@ -9,34 +10,11 @@ import Logo from "../assets/logo.png";
 import { Home, MessageSquare, Users, User, LogOut, LogIn, UserPlus, Compass, Heart, Podcast, UserCheck } from "lucide-react";
 
 function XSidebar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
-
-  // Auth check
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem("token"); // JWT is a string
-      setIsLoggedIn(!!token);
-    };
-
-    checkAuth();
-
-    const onStorage = (e) => {
-      if (!e || e.key === "token") checkAuth();
-    };
-    const onAuthChange = () => checkAuth();
-
-    window.addEventListener("storage", onStorage);
-    window.addEventListener("authChange", onAuthChange);
-
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener("authChange", onAuthChange);
-    };
-  }, []);
+  const { isLoggedIn, logout } = useAuth();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -50,25 +28,20 @@ function XSidebar() {
   }, []);
 
   const handleLogout = () => {
-    // Clear all auth data
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("__auth_change_ts");
+    // Use AuthContext logout
+    logout();
     
     try {
       // Notify all listeners about logout
-      window.dispatchEvent(new Event("authChange"));
       window.dispatchEvent(new Event("logout"));
       
       // Give listeners time to cleanup (e.g., disconnect Socket.IO)
       setTimeout(() => {
-        setIsLoggedIn(false);
         setShowDropdown(false);
         navigate("/login", { replace: true });
       }, 100);
     } catch (err) {
       console.error("Logout error:", err);
-      setIsLoggedIn(false);
       navigate("/login", { replace: true });
     }
   };

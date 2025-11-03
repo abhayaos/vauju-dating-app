@@ -3,9 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { io } from "socket.io-client";
+import { useAuth } from "../context/AuthContext";
 
 function Register() {
   const navigate = useNavigate();
+  const { isLoggedIn, login } = useAuth();
 
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -17,11 +19,10 @@ function Register() {
 
   // Check if user is already logged in
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/"); // redirect to home if logged in
+    if (isLoggedIn) {
+      navigate("/");
     }
-  }, [navigate]);
+  }, [isLoggedIn, navigate]);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com|outlook\.com)$/;
 
@@ -46,7 +47,8 @@ function Register() {
         { username, name, email, password }
       );
 
-      localStorage.setItem("token", data.token);
+      // Use AuthContext instead of localStorage
+      login(data.token, data.user);
 
       const socket = io("http://localhost:5000");
       socket.emit("authenticate", data.token);

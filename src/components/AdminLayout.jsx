@@ -2,9 +2,11 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Users, Home, LogOut, ShieldCheck } from "lucide-react";
+import { useAdminAuth } from "../context/AdminAuthContext";
 
 function AdminLayout({ children }) {
   const location = useLocation();
+  const { logoutAdmin } = useAdminAuth();
 
   const links = [
     { to: "/admin", label: "Dashboard", icon: <Home size={20} /> },
@@ -13,8 +15,7 @@ function AdminLayout({ children }) {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    window.dispatchEvent(new Event("adminLogout"));
+    logoutAdmin();
     window.location.href = "/admin/login";
   };
 
