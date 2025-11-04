@@ -3,12 +3,14 @@
  * Provides consistent image URL handling, fallbacks, and validation across the application
  */
 
+import dpImage from '../assets/dp.png';
+
 // Default avatar URLs for consistent fallbacks
-const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+const DEFAULT_AVATAR = dpImage;
 const FALLBACK_AVATARS = {
   default: DEFAULT_AVATAR,
-  female: "https://cdn-icons-png.flaticon.com/512/747/747376.png",
-  male: "https://cdn-icons-png.flaticon.com/512/747/747376.png",
+  female: DEFAULT_AVATAR,
+  male: DEFAULT_AVATAR,
   user: DEFAULT_AVATAR,
 };
 

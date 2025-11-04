@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../context/AuthContext";
+import { getProfileImage } from "../utils/imageUtils";
 
 // Use environment variable for BASE_URL
 const BASE_URL = import.meta.env.VITE_API_URL || "https://backend-vauju-1.onrender.com";
@@ -66,9 +67,7 @@ function EditProfile() {
           gender: data.gender || "other",
           interests: (data.interests && data.interests.join(", ")) || "",
           location: data.location || "",
-          profilePic:
-            data.profilePic ||
-            "https://cdn-icons-png.flaticon.com/512/847/847969.png",
+          profilePic: data.profilePic || "",
         });
       } catch (err) {
         toast.error(`Failed to load profile: ${err.message}`);
@@ -217,7 +216,7 @@ function EditProfile() {
         </h2>
         <div className="flex flex-col items-center mb-6">
           <img
-            src={form.profilePic || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
+            src={form.profilePic ? form.profilePic : getProfileImage({ profilePic: "" })}
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover mb-2"
           />
