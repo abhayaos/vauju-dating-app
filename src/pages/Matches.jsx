@@ -1,12 +1,59 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
+import { motion } from "framer-motion";
 import DefaultAvatar from "../assets/dp.png";
 import { getProfileImage, handleImageError } from "../utils/imageUtils";
 import { useAuth } from "../context/AuthContext";
 
 // Base URL for API calls
 const BASE_URL = "https://backend-vauju-1.onrender.com/api";
+
+/* -------------------------------------------------
+   Skeleton Loading Component
+   ------------------------------------------------- */
+const SkeletonCard = ({ index }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: index * 0.1, duration: 0.4 }}
+    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+  >
+    {/* Image skeleton */}
+    <div className="relative h-56 bg-gradient-to-r from-gray-200 to-gray-100 animate-pulse" />
+
+    {/* Body skeleton */}
+    <div className="p-5 space-y-3">
+      {/* Name skeleton */}
+      <div className="h-6 bg-gray-200 rounded-lg w-3/4 animate-pulse" />
+
+      {/* Username skeleton */}
+      <div className="h-4 bg-gray-100 rounded-lg w-1/3 animate-pulse" />
+
+      {/* Bio skeleton */}
+      <div className="space-y-2">
+        <div className="h-4 bg-gray-100 rounded-lg w-full animate-pulse" />
+        <div className="h-4 bg-gray-100 rounded-lg w-5/6 animate-pulse" />
+      </div>
+
+      {/* Tags skeleton */}
+      <div className="flex gap-2 pt-2">
+        <div className="h-6 bg-gray-100 rounded-full w-16 animate-pulse" />
+        <div className="h-6 bg-gray-100 rounded-full w-20 animate-pulse" />
+      </div>
+
+      {/* Interests skeleton */}
+      <div className="pt-2 border-t border-gray-100">
+        <div className="h-3 bg-gray-100 rounded w-20 mb-2 animate-pulse" />
+        <div className="flex gap-1.5">
+          <div className="h-6 bg-gray-50 rounded-full w-12 animate-pulse" />
+          <div className="h-6 bg-gray-50 rounded-full w-14 animate-pulse" />
+          <div className="h-6 bg-gray-50 rounded-full w-16 animate-pulse" />
+        </div>
+      </div>
+    </div>
+  </motion.div>
+);
 
 /* -------------------------------------------------
    Blue-Tick SVG – tiny, reusable component
@@ -35,28 +82,29 @@ function Matches() {
   const [currentPage, setCurrentPage] = useState(1);
   const profilesPerPage = 6;
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, loading: authLoading } = useAuth();
 
   /* ----------------------- FETCH ----------------------- */
   const fetchMatches = async () => {
     try {
       if (!token) {
-        toast.error("Please log in to view profiles.");
+        // If token is not available and auth is still loading, wait
+        if (authLoading) {
+          return;
+        }
+        // Only redirect if auth is done loading and still no token
         setLoading(false);
         navigate("/login");
         return;
       }
 
-      const response = await fetch(
-        `${BASE_URL}/matches`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BASE_URL}/matches`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
@@ -85,8 +133,11 @@ function Matches() {
   };
 
   useEffect(() => {
-    fetchMatches();
-  }, []);
+    // Wait for auth context to finish loading before attempting fetch
+    if (!authLoading) {
+      fetchMatches();
+    }
+  }, [authLoading, token]);
 
   /* ----------------------- FILTER ----------------------- */
   useMemo(() => {
@@ -110,21 +161,125 @@ function Matches() {
     setFilteredProfiles(filtered);
   }, [profiles, genderFilter, searchQuery]);
 
-  /* ----------------------- UI ----------------------- */
+  // Show loading state only if auth is still loading
+  if (authLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 md:ml-12">
+        <Toaster position="top-center" reverseOrder={false} />
+
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
+            Meet Your{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+              Aura Matches
+            </span>
+          </h1>
+          <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
+            Discover handpicked, visibility-approved members ready to connect
+            meaningfully.
+          </p>
+        </div>
+
+        {/* Filters Skeleton */}
+        <div className="mb-10 space-y-4">
+          <div className="flex justify-center gap-3 flex-wrap">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-10 bg-gray-200 rounded-full w-24 animate-pulse"
+              />
+            ))}
+          </div>
+          <div className="max-w-md mx-auto">
+            <div className="h-12 bg-gray-200 rounded-xl animate-pulse" />
+          </div>
+        </div>
+
+        {/* Profiles Grid Skeleton */}
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, idx) => (
+            <SkeletonCard key={idx} index={idx} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated after auth loading is complete
+  if (!token) {
+    return (
+      <div className="flex md:ml-12 flex-col items-center justify-center min-h-[60vh] text-center px-6">
+        <Toaster position="top-center" reverseOrder={false} />
+        <div className="bg-red-50 border border-red-200 rounded-full p-4 mb-6">
+          <svg
+            className="w-10 h-10 text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+            />
+          </svg>
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          Authentication Required
+        </h2>
+        <p className="text-gray-600 mb-6 max-w-md">Please log in to view profiles.</p>
+        <button
+          onClick={() => navigate("/login")}
+          className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:from-pink-600 hover:to-pink-700 transition-all duration-200"
+        >
+          Go to Login
+        </button>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 md:ml-12">
         <Toaster position="top-center" reverseOrder={false} />
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-pink-200 rounded-full animate-spin"></div>
-          <div className="absolute inset-0 w-16 h-16 border-4 border-t-pink-600 rounded-full animate-spin animation-delay-200"></div>
+
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
+            Meet Your{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+              Aura Matches
+            </span>
+          </h1>
+          <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
+            Discover handpicked, visibility-approved members ready to connect
+            meaningfully.
+          </p>
         </div>
-        <p className="mt-6 text-lg font-medium text-gray-700">
-          Curating your matches...
-        </p>
-        <p className="text-sm text-gray-500 mt-1">
-          Only the best, vetted profiles.
-        </p>
+
+        {/* Filters Skeleton */}
+        <div className="mb-10 space-y-4">
+          <div className="flex justify-center gap-3 flex-wrap">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-10 bg-gray-200 rounded-full w-24 animate-pulse"
+              />
+            ))}
+          </div>
+          <div className="max-w-md mx-auto">
+            <div className="h-12 bg-gray-200 rounded-xl animate-pulse" />
+          </div>
+        </div>
+
+        {/* Profiles Grid Skeleton */}
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, idx) => (
+            <SkeletonCard key={idx} index={idx} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -180,7 +335,10 @@ function Matches() {
   // Pagination logic
   const indexOfLastProfile = currentPage * profilesPerPage;
   const indexOfFirstProfile = indexOfLastProfile - profilesPerPage;
-  const currentProfiles = filteredProfiles.slice(indexOfFirstProfile, indexOfLastProfile);
+  const currentProfiles = filteredProfiles.slice(
+    indexOfFirstProfile,
+    indexOfLastProfile
+  );
   const totalPages = Math.ceil(filteredProfiles.length / profilesPerPage);
 
   // Change page
@@ -282,7 +440,12 @@ function Matches() {
 
       {/* Empty State */}
       {filteredProfiles.length === 0 ? (
-        <div className="bg-gradient-to-br from-pink-50 to-purple-50 border-2 border-dashed border-pink-200 rounded-3xl p-16 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-gradient-to-br from-pink-50 to-purple-50 border-2 border-dashed border-pink-200 rounded-3xl p-16 text-center"
+        >
           <div className="bg-white bg-opacity-80 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-sm">
             <svg
               className="w-12 h-12 text-pink-400"
@@ -306,11 +469,25 @@ function Matches() {
               ? "Try adjusting your filters or search for something else."
               : "New profiles are being reviewed. Check back soon!"}
           </p>
-        </div>
+        </motion.div>
       ) : (
         <>
           {/* Profiles Grid */}
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div
+            className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1,
+                },
+              },
+            }}
+          >
             {currentProfiles.map((profile) => {
               const tagline = profile.bio || "Aura member";
               const interests = Array.isArray(profile.interests)
@@ -318,25 +495,35 @@ function Matches() {
                 : [];
 
               return (
-                <article
+                <motion.article
                   key={profile._id}
-                  className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 transform hover:-translate-y-2 cursor-pointer"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5 }}
+                  whileHover={{ y: -8 }}
+                  className="group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-shadow duration-300 overflow-hidden border border-gray-100 cursor-pointer h-full flex flex-col"
                   onClick={() => navigate(`/messages/${profile._id}`)}
                 >
                   {/* Avatar + optional badge */}
-                  <div className="relative h-56 bg-gradient-to-br from-pink-50 to-purple-50 overflow-hidden">
+                  <div className="relative h-56 bg-gradient-to-br from-pink-50 to-purple-50 overflow-hidden flex items-center justify-center">
                     <img
                       src={getProfileImage(profile)}
                       alt={profile.name}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 rounded-b-none"
                       onError={(e) => handleImageError(e, profile.gender)}
                     />
                     <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
 
                     {/* Chat-now pill */}
-                    <div className="absolute bottom-3 right-3 bg-white bg-opacity-90 px-3 py-1 rounded-full text-xs font-medium text-pink-600 shadow-sm">
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="absolute bottom-3 right-3 bg-white bg-opacity-90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium text-pink-600 shadow-md"
+                    >
                       Chat Now
-                    </div>
+                    </motion.div>
 
                     {/* Blue tick on avatar (top-right) */}
                     {profile.isVerified && (
@@ -347,14 +534,14 @@ function Matches() {
                   </div>
 
                   {/* Card body */}
-                  <div className="p-5 space-y-3">
+                  <div className="p-5 space-y-3 flex-1 flex flex-col">
                     {/* Name + badge next to name */}
                     <div className="flex items-center space-x-2">
-                      <h2 className="text-xl font-bold text-gray-900">
+                      <h2 className="text-xl font-bold text-gray-900 truncate">
                         {profile.name}
                       </h2>
                       {profile.isVerified && (
-                        <div className="bg-blue-50 rounded-full p-1 flex items-center">
+                        <div className="bg-blue-50 rounded-full p-1 flex-shrink-0 flex items-center">
                           <BlueTick />
                         </div>
                       )}
@@ -362,13 +549,13 @@ function Matches() {
 
                     {/* Username */}
                     {profile.username && (
-                      <p className="text-sm text-pink-600 font-medium">
+                      <p className="text-sm text-pink-600 font-medium truncate">
                         @{profile.username}
                       </p>
                     )}
 
                     {/* Bio */}
-                    <p className="text-sm text-gray-600 line-clamp-2">
+                    <p className="text-sm text-gray-600 line-clamp-2 flex-grow">
                       {tagline}
                     </p>
 
@@ -388,7 +575,7 @@ function Matches() {
 
                     {/* Interests */}
                     {interests.length > 0 && (
-                      <div className="pt-2 border-t border-gray-100">
+                      <div className="pt-2 border-t border-gray-100 mt-auto">
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                           Interests
                         </p>
@@ -410,22 +597,27 @@ function Matches() {
                       </div>
                     )}
                   </div>
-                </article>
+                </motion.article>
               );
             })}
-          </div>
+          </motion.div>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-12 flex justify-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="mt-12 flex justify-center"
+            >
               <nav className="flex items-center gap-2">
                 <button
                   onClick={prevPage}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg ${
+                  className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                     currentPage === 1
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:shadow-md"
                   }`}
                 >
                   Previous
@@ -434,28 +626,27 @@ function Matches() {
                 {/* Page numbers */}
                 {[...Array(totalPages)].map((_, index) => {
                   const pageNumber = index + 1;
-                  // Show first, last, current, and nearby pages
                   if (
                     pageNumber === 1 ||
                     pageNumber === totalPages ||
                     (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
                   ) {
                     return (
-                      <button
+                      <motion.button
                         key={pageNumber}
                         onClick={() => paginate(pageNumber)}
-                        className={`px-4 py-2 rounded-lg ${
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                           currentPage === pageNumber
-                            ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
-                            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                            ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md"
+                            : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:shadow-md"
                         }`}
                       >
                         {pageNumber}
-                      </button>
+                      </motion.button>
                     );
-                  }
-                  // Show ellipsis for skipped pages
-                  else if (
+                  } else if (
                     (pageNumber === currentPage - 2 && currentPage > 3) ||
                     (pageNumber === currentPage + 2 && currentPage < totalPages - 2)
                   ) {
@@ -471,16 +662,16 @@ function Matches() {
                 <button
                   onClick={nextPage}
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg ${
+                  className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                     currentPage === totalPages
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:shadow-md"
                   }`}
                 >
                   Next
                 </button>
               </nav>
-            </div>
+            </motion.div>
           )}
         </>
       )}
