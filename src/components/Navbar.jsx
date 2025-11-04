@@ -31,19 +31,13 @@ function XSidebar() {
     // Use AuthContext logout
     logout();
     
-    try {
-      // Notify all listeners about logout
-      window.dispatchEvent(new Event("logout"));
-      
-      // Give listeners time to cleanup (e.g., disconnect Socket.IO)
-      setTimeout(() => {
-        setShowDropdown(false);
-        navigate("/login", { replace: true });
-      }, 100);
-    } catch (err) {
-      console.error("Logout error:", err);
+    // Clear dropdown and redirect
+    setShowDropdown(false);
+    
+    // Give listeners time to cleanup (e.g., disconnect Socket.IO)
+    setTimeout(() => {
       navigate("/login", { replace: true });
-    }
+    }, 100);
   };
 
   const navItems = [

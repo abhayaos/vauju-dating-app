@@ -1,11 +1,12 @@
 // src/components/AdminLayout.jsx
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Users, Home, LogOut, ShieldCheck } from "lucide-react";
 import { useAdminAuth } from "../context/AdminAuthContext";
 
 function AdminLayout({ children }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { logoutAdmin } = useAdminAuth();
 
   const links = [
@@ -16,7 +17,9 @@ function AdminLayout({ children }) {
 
   const handleLogout = () => {
     logoutAdmin();
-    window.location.href = "/admin/login";
+    setTimeout(() => {
+      navigate("/admin/login", { replace: true });
+    }, 100);
   };
 
   return (

@@ -87,7 +87,9 @@ function HamNav() {
   const handleAuthClick = () => {
     if (isLoggedIn) {
       logout();
-      navigate("/login");
+      setTimeout(() => {
+        navigate("/login", { replace: true });
+      }, 100);
     } else {
       navigate("/login");
     }

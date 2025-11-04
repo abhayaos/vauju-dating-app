@@ -20,7 +20,7 @@ function Register() {
   // Check if user is already logged in
   useEffect(() => {
     if (isLoggedIn) {
-      navigate("/");
+      navigate("/", { replace: true });
     }
   }, [isLoggedIn, navigate]);
 

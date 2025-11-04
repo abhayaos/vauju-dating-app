@@ -13,6 +13,13 @@ function Login() {
   const navigate = useNavigate();
   const { isLoggedIn, login } = useAuth();
 
+  // Check if user is already logged in
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/", { replace: true });
+    }
+  }, [isLoggedIn, navigate]);
+
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const isValidJWT = (token) => {
