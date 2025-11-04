@@ -507,101 +507,93 @@ function Home() {
     const likeDisabled = !token || !currentUserId || hasLiked || pendingLikes[postId];
 
     return (
-      <>
-        <div
-          key={postId}
-          className="post-card bg-white rounded-2xl p-6 shadow-sm border border-gray-200 transition-shadow hover:shadow-md"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <img
-              src={getProfileImage(post.user)}
-              alt={post.user?.name || post.author || 'YugalMeet User'}
-              className="h-12 w-12 rounded-full object-cover border border-gray-200"
-              onError={(e) => handleImageError(e, post.user?.gender)}
-            />
-            <div className="flex-1">
-              <div className="flex items-center gap-1">
-                <h3 className="text-base font-semibold text-gray-900">
-                  {post.user?.name || post.author || 'YugalMeet User'}
-                </h3>
-                {post.user?.verified && (
-                  <CheckCircle2
-                    className="h-4 w-4 text-blue-500"
-                    aria-label="Verified User"
-                  />
-                )}
-              </div>
-              {post.createdAt && (
-                <p className="text-xs text-gray-500">
-                  {new Date(post.createdAt).toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true,
-                  })}
-                </p>
+      <div
+        key={postId}
+        className="post-card bg-white rounded-2xl p-6 shadow-sm border border-gray-200 transition-shadow hover:shadow-md"
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <img
+            src={getProfileImage(post.user)}
+            alt={post.user?.name || post.author || 'YugalMeet User'}
+            className="h-12 w-12 rounded-full object-cover border border-gray-200"
+            onError={(e) => handleImageError(e, post.user?.gender)}
+          />
+          <div className="flex-1">
+            <div className="flex items-center gap-1">
+              <h3 className="text-base font-semibold text-gray-900">
+                {post.user?.name || post.author || 'YugalMeet User'}
+              </h3>
+              {post.user?.verified && (
+                <CheckCircle2
+                  className="h-4 w-4 text-blue-500"
+                  aria-label="Verified User"
+                />
               )}
             </div>
-          </div>
-          {post.title && (
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">{post.title}</h2>
-          )}
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-4">
-            {renderContentWithPreviews(content)}
-          </p>
-          {post.content && post.content.split(' ').length > 30 && (
-            <button
-              onClick={() => toggleReadMore(postId)}
-              className="mt-2 text-sm font-medium text-pink-600 hover:text-pink-700 transition"
-              type="button"
-            >
-              {isExpanded ? 'Show Less' : 'Read More'}
-            </button>
-          )}
-          <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleLike(postId)}
-                disabled={likeDisabled}
-                className={`flex h-10 w-10 items-center justify-center rounded-full border transition ${
-                  likeDisabled
-                    ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300'
-                    : hasLiked
-                    ? 'border-pink-200 bg-pink-50 text-pink-600'
-                    : 'border-gray-200 bg-white text-gray-500 hover:border-pink-300 hover:text-pink-600'
-                }`}
-                aria-label={hasLiked ? 'Liked' : 'Like this post'}
-                type="button"
-              >
-                <Heart
-                  strokeWidth={1.8}
-                  className="h-5 w-5"
-                  fill={hasLiked ? '#ec4899' : 'none'}
-                />
-              </button>
-              <span className="text-sm font-medium text-gray-700">{likesCount}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setOpenCommentPopup(postId)}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:border-pink-200 hover:text-pink-600 transition"
-                aria-label="View comments"
-                type="button"
-              >
-                <MessageCircle strokeWidth={1.8} className="h-5 w-5" />
-              </button>
-              <span className="text-sm font-medium text-gray-700">{commentsCount}</span>
-            </div>
+            {post.createdAt && (
+              <p className="text-xs text-gray-500">
+                {new Date(post.createdAt).toLocaleString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true,
+                })}
+              </p>
+            )}
           </div>
         </div>
-        {openCommentPopup === postId && (
-          <CommentPopup
-            post={post}
-            onClose={() => setOpenCommentPopup(null)}
-          />
+        {post.title && (
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">{post.title}</h2>
         )}
-      </>
+        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-4">
+          {renderContentWithPreviews(content)}
+        </p>
+        {post.content && post.content.split(' ').length > 30 && (
+          <button
+            onClick={() => toggleReadMore(postId)}
+            className="mt-2 text-sm font-medium text-pink-600 hover:text-pink-700 transition"
+            type="button"
+          >
+            {isExpanded ? 'Show Less' : 'Read More'}
+          </button>
+        )}
+        <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleLike(postId)}
+              disabled={likeDisabled}
+              className={`flex h-10 w-10 items-center justify-center rounded-full border transition ${
+                likeDisabled
+                  ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300'
+                  : hasLiked
+                  ? 'border-pink-200 bg-pink-50 text-pink-600'
+                  : 'border-gray-200 bg-white text-gray-500 hover:border-pink-300 hover:text-pink-600'
+              }`}
+              aria-label={hasLiked ? 'Liked' : 'Like this post'}
+              type="button"
+            >
+              <Heart
+                strokeWidth={1.8}
+                className="h-5 w-5"
+                fill={hasLiked ? '#ec4899' : 'none'}
+              />
+            </button>
+            <span className="text-sm font-medium text-gray-700">{likesCount}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setOpenCommentPopup(postId)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:border-pink-200 hover:text-pink-600 transition"
+              aria-label="View comments"
+              type="button"
+            >
+              <MessageCircle strokeWidth={1.8} className="h-5 w-5" />
+            </button>
+            <span className="text-sm font-medium text-gray-700">{commentsCount}</span>
+          </div>
+        </div>
+      </div>
     );
   };
 
@@ -724,7 +716,19 @@ function Home() {
                       .fill(0)
                       .map((_, index) => <SkeletonCard key={index} />)
                   ) : hasContent ? (
-                    posts.map((post) => renderPostCard(post))
+                    <>
+                      {posts.map((post) => renderPostCard(post))}
+                      {posts.map((post) => {
+                        const postId = String(post._id || post.id);
+                        return openCommentPopup === postId ? (
+                          <CommentPopup
+                            key={`comment-${postId}`}
+                            post={post}
+                            onClose={() => setOpenCommentPopup(null)}
+                          />
+                        ) : null;
+                      })}
+                    </>
                   ) : (
                     <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-200">
                       <p className="text-gray-500 text-lg mb-6">

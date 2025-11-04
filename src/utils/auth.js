@@ -17,7 +17,7 @@ export function decodeJWT(token) {
     );
     return JSON.parse(jsonPayload);
   } catch (err) {
-    console.error("❌ Failed to decode JWT:", err);
+    // Removed console.error for security
     return null;
   }
 }
@@ -35,7 +35,7 @@ export function validateToken(token) {
     const currentTime = Date.now() / 1000; // seconds
     return decoded.exp > currentTime;
   } catch (err) {
-    console.error("❌ Token validation failed:", err);
+    // Removed console.error for security
     return false;
   }
 }
@@ -62,13 +62,13 @@ export function isTokenExpired(token) {
     
     // Auto-logout if token expires in less than 30 seconds
     if (timeUntilExpiry < 30) {
-      console.warn("⚠️ Token expiring soon, auto-logout triggered");
+      // Removed console.warn for security
       return true;
     }
     
     return false;
   } catch (err) {
-    console.error("❌ Token expiry check failed:", err);
+    // Removed console.error for security
     return true;
   }
 }

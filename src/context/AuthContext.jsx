@@ -1,7 +1,7 @@
 import React, { createContext, useState, useCallback, useEffect } from 'react';
 import { isTokenExpired } from '../utils/auth';
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
@@ -39,11 +39,18 @@ export const AuthProvider = ({ children }) => {
     if (savedToken && !isTokenExpired(savedToken)) {
       setToken(savedToken);
       if (savedUser) {
-        setUser(JSON.parse(savedUser));
+        try {
+          const userData = JSON.parse(savedUser);
+          setUser(userData);
+        } catch (e) {
+          // If parsing fails, clear the invalid data
+          localStorage.removeItem('authUser');
+        }
       }
     } else if (savedToken) {
       // Token is expired, clear it
-      logout();
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
     }
     
     setLoading(false);
@@ -60,6 +67,33 @@ export const AuthProvider = ({ children }) => {
     const interval = setInterval(checkTokenExpiry, 60000); // Check every 60 seconds
     return () => clearInterval(interval);
   }, [token, logout]);
+
+  // Add effect to handle storage events (for cross-tab auth sync)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'authToken') {
+        if (e.newValue && !isTokenExpired(e.newValue)) {
+          setToken(e.newValue);
+        } else {
+          setToken(null);
+          setUser(null);
+        }
+      } else if (e.key === 'authUser') {
+        if (e.newValue) {
+          try {
+            setUser(JSON.parse(e.newValue));
+          } catch (e) {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const updateUser = useCallback((userData) => {
     setUser(userData);
@@ -85,7 +119,7 @@ export const AuthProvider = ({ children }) => {
 };
 
 // Custom hook to use AuthContext
-const useAuth = () => {
+export const useAuth = () => {
   const context = React.useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider');
@@ -93,4 +127,4 @@ const useAuth = () => {
   return context;
 };
 
-export { AuthContext, useAuth };
+export default AuthContext;

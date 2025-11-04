@@ -57,11 +57,12 @@ function Profile() {
   const [suspended, setSuspended] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [isOwnProfile, setIsOwnProfile] = useState(true);
+  const [isOwnProfile, setIsOwnProfile] = useState(false); // Default to false
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
   const { username, id } = useParams();
-  const { token, user: authUser } = useAuth();
+  const { token, user: authUser, logout } = useAuth();
 
   const payload = token ? decodeJWT(token) : null;
   const currentUserId = payload?._id || authUser?._id;
@@ -71,7 +72,6 @@ function Profile() {
     try {
       return decodeURIComponent(value);
     } catch (err) {
-      console.warn("Failed to decode value", value, err);
       return value;
     }
   };
@@ -87,13 +87,11 @@ function Profile() {
         credentials: "include", // If backend uses cookies for refresh tokens
       });
       if (res.ok) {
-        const { token } = await res.json();
-        console.log("Token refreshed successfully");
-        return token;
+        const data = await res.json();
+        return data.token;
       }
-      throw new Error("Token refresh failed");
+      return null;
     } catch (err) {
-      console.error("Token refresh error:", err);
       return null;
     }
   };
@@ -111,53 +109,63 @@ function Profile() {
           setIsOwnProfile(false);
         } else if (id) {
           // Public profile view by ID
-          console.log("Fetching profile for ID:", id);
           url = `${BASE_API}/users/${encodeURIComponent(id)}`;
           setIsOwnProfile(false);
         } else {
           // Own profile view
-          if (!token) {
-            console.warn("No token found, redirecting to login");
+          // First check if we have a valid token
+          let currentToken = token;
+          
+          // If no token in context, check localStorage
+          if (!currentToken) {
+            const savedToken = localStorage.getItem('authToken');
+            if (savedToken && !isTokenExpired(savedToken)) {
+              currentToken = savedToken;
+            }
+          }
+          
+          // If still no valid token, redirect to login
+          if (!currentToken) {
             toast.error("Please log in to view your profile");
             navigate("/login", { replace: true });
             return;
           }
-
-          if (!validateToken(token)) {
-            console.warn("Invalid or expired token, attempting refresh");
+          
+          // If token is invalid/expired, try to refresh
+          if (!validateToken(currentToken)) {
             const newToken = await refreshToken();
-            if (!newToken) {
+            if (newToken && validateToken(newToken)) {
+              currentToken = newToken;
+            } else {
               toast.error("Session expired. Please log in again.");
-              clearAuthData();
+              logout();
               navigate("/login", { replace: true });
               return;
             }
           }
-
-          if (!currentUserId) {
-            console.warn("No user ID in token, attempting refresh");
-            const newToken = await refreshToken();
-            if (!newToken || !decodeJWT(newToken)?._id) {
-              toast.error("Invalid session. Please log in again.");
-              clearAuthData();
-              navigate("/login", { replace: true });
-              return;
-            }
+          
+          // Validate that we have a user ID
+          const payload = decodeJWT(currentToken);
+          const userId = payload?._id || payload?.id;
+          if (!userId) {
+            toast.error("Invalid session. Please log in again.");
+            logout();
+            navigate("/login", { replace: true });
+            return;
           }
 
-          headers = { Authorization: `Bearer ${token}` };
+          headers = { Authorization: `Bearer ${currentToken}` };
           url = `${BASE_API}/profile/me`;
           setIsOwnProfile(true);
         }
 
-        console.log(`Fetching from: ${url}`);
         const res = await fetch(url, { headers });
 
         if (!res.ok) {
           if (res.status === 401 && isOwnProfile) {
-            console.warn("401 Unauthorized, attempting token refresh");
+            // If we get 401 for own profile, try to refresh token
             const newToken = await refreshToken();
-            if (newToken) {
+            if (newToken && validateToken(newToken)) {
               const retryRes = await fetch(url, {
                 headers: { Authorization: `Bearer ${newToken}` },
               });
@@ -168,14 +176,26 @@ function Profile() {
               }
             } else {
               toast.error("Session expired. Please log in again.");
-              clearAuthData();
+              logout();
               navigate("/login", { replace: true });
               return;
             }
           } else if (res.status === 404) {
-            console.error("Profile not found");
+            // Add retry mechanism for 404 errors
+            if (retryCount < 2) {
+              // Wait 1 second before retrying
+              setTimeout(() => {
+                setRetryCount(prev => prev + 1);
+              }, 1000);
+              return;
+            }
             setNotFound(true);
             toast.error("Profile not found");
+            return;
+          } else if (res.status >= 500) {
+            // Server error - show more descriptive message
+            toast.error("Server error. Please try again later.");
+            setNotFound(true);
             return;
           } else {
             throw new Error(`Server error: ${res.status}`);
@@ -183,9 +203,17 @@ function Profile() {
         }
 
         profileData = await res.json();
-        console.log("Success! Profile data:", profileData);
 
         setUser(profileData);
+
+        // Check if this is actually the own profile by comparing IDs
+        if (isOwnProfile && profileData && currentUserId) {
+          const profileUserId = profileData._id || profileData.id;
+          if (profileUserId !== currentUserId) {
+            // This shouldn't happen, but if it does, treat it as a public profile
+            setIsOwnProfile(false);
+          }
+        }
 
         if (profileData?.suspended) {
           setSuspended(true);
@@ -195,7 +223,13 @@ function Profile() {
           }
         }
       } catch (err) {
-        console.error("Fetch profile error:", err);
+        // Add retry mechanism for network errors
+        if (retryCount < 2) {
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+          }, 1000);
+          return;
+        }
         toast.error("Failed to load profile: " + (err.message || "unknown"));
         setNotFound(true);
       } finally {
@@ -204,7 +238,7 @@ function Profile() {
     };
 
     fetchProfile();
-  }, [navigate, token, currentUserId, username, id]);
+  }, [navigate, token, currentUserId, username, id, logout, retryCount]);
 
   const handleProfilePicChange = async (e) => {
     const file = e.target.files[0];
@@ -228,6 +262,7 @@ function Profile() {
         currentToken = await refreshToken();
         if (!currentToken) {
           toast.error("Session expired. Please log in again.");
+          logout();
           navigate("/login", { replace: true });
           return;
         }
@@ -244,7 +279,6 @@ function Profile() {
 
       if (!res.ok) {
         if (res.status === 401) {
-          console.warn("401 Unauthorized during upload, attempting refresh");
           currentToken = await refreshToken();
           if (currentToken) {
             const retryRes = await fetch(`${BASE_API}/profile/upload`, {
@@ -261,7 +295,7 @@ function Profile() {
             }
           }
           toast.error("Session expired. Please log in again.");
-          clearAuthData();
+          logout();
           navigate("/login", { replace: true });
           return;
         }
@@ -273,7 +307,6 @@ function Profile() {
       setUser((prev) => ({ ...prev, profilePic: data.url }));
       toast.success("Profile picture updated!");
     } catch (err) {
-      console.error("Upload error:", err);
       toast.error(err.message || "Failed to upload profile picture");
     } finally {
       setUploading(false);
@@ -282,14 +315,59 @@ function Profile() {
 
   if (notFound) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-gray-600 text-lg bg-gray-50">
-        Profile not found 😕
+      <div className="flex flex-col items-center justify-center min-h-screen text-gray-600 bg-gray-50 p-4">
+        <div className="text-center max-w-md">
+          <div className="text-5xl mb-4">😕</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Profile Not Found</h2>
+          <p className="text-gray-600 mb-6">
+            The profile you're looking for doesn't exist or may have been removed.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+            <button
+              onClick={() => navigate("/")}
+              className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+            >
+              Go Home
+            </button>
+            <button
+              onClick={() => navigate("/matches")}
+              className="px-5 py-2.5 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 transition"
+            >
+              Find Matches
+            </button>
+          </div>
+          <button
+            onClick={() => {
+              setNotFound(false);
+              setRetryCount(prev => prev + 1);
+            }}
+            className="px-5 py-2.5 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition mb-6"
+          >
+            Retry Loading Profile
+          </button>
+          {!token && (
+            <div className="mt-6">
+              <p className="text-gray-600 mb-3">Want to create your own profile?</p>
+              <button
+                onClick={() => navigate("/register")}
+                className="px-5 py-2.5 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition"
+              >
+                Create Account
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   // Show skeleton loader when loading
   if (loading) {
+    return <ProfileSkeleton />;
+  }
+
+  // Show skeleton loader when user data is not available
+  if (!user) {
     return <ProfileSkeleton />;
   }
 
@@ -325,7 +403,7 @@ function Profile() {
       </div>
 
       <div className="flex items-center gap-2 mb-1">
-        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">{user.name}</h2>
+        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">{user.name || "User"}</h2>
         {user.isBlueTick && (
           <div className="group relative">
             <CheckCircle size={18} className="text-blue-500" />
@@ -336,7 +414,7 @@ function Profile() {
         )}
       </div>
 
-      <p className="text-gray-500 text-sm mb-5">@{user.username}</p>
+      <p className="text-gray-500 text-sm mb-5">@{user.username || "username"}</p>
       {user.bio && (
         <p className="text-gray-700 text-center text-sm sm:text-base mb-6 max-w-md">{user.bio}</p>
       )}
@@ -361,7 +439,7 @@ function Profile() {
             </button>
             <button
               onClick={() => {
-                clearAuthData();
+                logout();
                 navigate("/login", { replace: true });
               }}
               className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-300 transition"
@@ -374,6 +452,7 @@ function Profile() {
             <button
               onClick={() => navigate(`/messages/${user._id}`)}
               className="flex-1 bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-red-700 transition"
+              disabled={!user._id}
             >
               Message
             </button>
