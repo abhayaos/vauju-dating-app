@@ -1,8 +1,7 @@
 import React, { createContext, useState, useCallback, useEffect } from 'react';
-import { isTokenExpired, validateToken } from '../utils/auth';
-import Cookies from 'js-cookie';
+import { isTokenExpired } from '../utils/auth';
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
@@ -13,13 +12,7 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(() => {
     setToken(null);
     setUser(null);
-    // Clear cookie
-    Cookies.remove('token', { 
-      path: '/', 
-      domain: window.location.hostname,
-      secure: window.location.protocol === 'https:'
-    });
-    // Also clear localStorage for backward compatibility
+    // Clear from localStorage
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
     // Notify other components about auth change
@@ -29,18 +22,7 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback((authToken, userData) => {
     setToken(authToken);
     setUser(userData || null);
-    
-    // Set secure cookie with proper configuration
-    const isProduction = window.location.protocol === 'https:';
-    Cookies.set('token', authToken, {
-      path: '/',
-      domain: window.location.hostname,
-      secure: isProduction, // only true in production (HTTPS)
-      sameSite: 'Lax', // Changed from 'None' to 'Lax' for better compatibility
-      expires: 7 // 7 days
-    });
-    
-    // Also persist to localStorage for backward compatibility
+    // Persist to localStorage
     localStorage.setItem('authToken', authToken);
     if (userData) {
       localStorage.setItem('authUser', JSON.stringify(userData));
@@ -49,15 +31,13 @@ export const AuthProvider = ({ children }) => {
     window.dispatchEvent(new Event('authChange'));
   }, []);
 
-  // Initialize auth state from cookie on mount
+  // Initialize auth state from localStorage on mount
   useEffect(() => {
-    // First try to get token from cookie
-    const cookieToken = Cookies.get('token');
+    const savedToken = localStorage.getItem('authToken');
+    const savedUser = localStorage.getItem('authUser');
     
-    if (cookieToken && !isTokenExpired(cookieToken)) {
-      setToken(cookieToken);
-      // Try to get user data from localStorage for backward compatibility
-      const savedUser = localStorage.getItem('authUser');
+    if (savedToken && !isTokenExpired(savedToken)) {
+      setToken(savedToken);
       if (savedUser) {
         try {
           const userData = JSON.parse(savedUser);
@@ -67,31 +47,20 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('authUser');
         }
       }
-    } else if (cookieToken) {
+    } else if (savedToken) {
       // Token is expired, clear it
-      Cookies.remove('token', { 
-        path: '/', 
-        domain: window.location.hostname,
-        secure: window.location.protocol === 'https:'
-      });
       localStorage.removeItem('authToken');
       localStorage.removeItem('authUser');
     }
     
     setLoading(false);
-  }, []);
+  }, [logout]);
 
   // Check token expiry periodically
   useEffect(() => {
     const checkTokenExpiry = () => {
-      // Check cookie token first
-      const cookieToken = Cookies.get('token');
-      
-      if (cookieToken && isTokenExpired(cookieToken)) {
+      if (token && isTokenExpired(token)) {
         logout();
-      } else if (cookieToken !== token) {
-        // Token in cookie differs from state, update state
-        setToken(cookieToken || null);
       }
     };
 
@@ -99,12 +68,35 @@ export const AuthProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [token, logout]);
 
+  // Add effect to handle storage events (for cross-tab auth sync)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'authToken') {
+        if (e.newValue && !isTokenExpired(e.newValue)) {
+          setToken(e.newValue);
+        } else {
+          setToken(null);
+          setUser(null);
+        }
+      } else if (e.key === 'authUser') {
+        if (e.newValue) {
+          try {
+            setUser(JSON.parse(e.newValue));
+          } catch (e) {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const updateUser = useCallback((userData) => {
     setUser(userData);
-    // Update user data in localStorage for backward compatibility
-    if (userData) {
-      localStorage.setItem('authUser', JSON.stringify(userData));
-    }
   }, []);
 
   const isLoggedIn = !!token;

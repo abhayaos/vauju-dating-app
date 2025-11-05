@@ -12,45 +12,20 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) => request.destination === 'document',
-            handler: 'NetworkFirst',
-          },
-          {
-            urlPattern: ({ request }) => request.destination === 'image',
-            handler: 'CacheFirst',
-          },
-          {
-            urlPattern: ({ request }) => request.destination === 'script' || request.destination === 'style',
-            handler: 'StaleWhileRevalidate',
-          },
-        ],
-        // 👇 Ignore known ad/network URLs to reduce console errors
-        navigateFallbackDenylist: [
-          /pagead\//,
-          /adsbygoogle\.js/,
-          /doubleclick\.net/,
-          /adservice\.google\.com/,
-          /adtrafficquality\.google/,
-        ],
-        // Reduce workbox logging
-        cleanupOutdatedCaches: true,
-      },
       devOptions: {
-        enabled: true // Enable in development for testing
+        enabled: true
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
       },
       manifest: {
-        name: 'YugalMeet',
-        short_name: 'YugalMeet',
+        name: 'AuraMeet',
+        short_name: 'AuraMeet',
         description: 'Connect and meet with your community easily 🌐',
         theme_color: '#ffffff',
         background_color: '#000000',
         display: 'standalone',
         start_url: '/',
-        icon: 'src/assets/logo.png', // Add your app icon path here
         icons: [
           {
             src: '/icons/icon-192x192.png',
@@ -68,6 +43,26 @@ export default defineConfig({
             type: 'image/png',
             purpose: 'any maskable',
           },
+        ],
+      },
+      workbox: {
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.destination === 'document',
+            handler: 'NetworkFirst',
+          },
+          {
+            urlPattern: ({ request }) => request.destination === 'image',
+            handler: 'CacheFirst',
+          },
+        ],
+        // 👇 Ignore known ad/network URLs to reduce console errors
+        navigateFallbackDenylist: [
+          /pagead\//,
+          /adsbygoogle\.js/,
+          /doubleclick\.net/,
+          /adservice\.google\.com/,
+          /adtrafficquality\.google/,
         ],
       },
     }),

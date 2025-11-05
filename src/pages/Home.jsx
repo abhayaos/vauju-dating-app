@@ -8,9 +8,7 @@ import SwipeCard from '../components/SwipeCard';
 import UrlPreview from '../components/UrlPreview';
 import { getProfileImage, handleImageError } from '../utils/imageUtils';
 import { useAuth } from '../context/AuthContext';
-
 const API_BASE = 'https://backend-vauju-1.onrender.com';
-
 const getSafeUser = (value) => {
   if (!value) return null;
   try {
@@ -19,7 +17,6 @@ const getSafeUser = (value) => {
     return null;
   }
 };
-
 const getLikeId = (like) => {
   if (!like) return null;
   if (typeof like === 'string') return like;
@@ -27,7 +24,6 @@ const getLikeId = (like) => {
   if (typeof like === 'object' && like.id) return like.id;
   return null;
 };
-
 const getCommentUserId = (comment) => {
   if (!comment) return null;
   const user = comment.user;
@@ -37,14 +33,11 @@ const getCommentUserId = (comment) => {
   if (typeof user === 'object' && user.id) return user.id;
   return null;
 };
-
 const renderContentWithPreviews = (content) => {
   if (!content) return '';
-  
   // Split content by URLs
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = content.split(urlRegex);
-  
   return parts.map((part, index) => {
     // Check if this part is a URL by testing the original regex
     if (part && part.match && part.match(/^https?:\/\/[^\s]+$/)) {
@@ -54,7 +47,6 @@ const renderContentWithPreviews = (content) => {
       // This is regular text, check for hashtags
       const hashtagRegex = /(#\w+)/g;
       const textParts = part ? part.split(hashtagRegex) : [''];
-      
       return (textParts || ['']).map((textPart, textIndex) => {
         if (textPart && textPart.match && textPart.match(hashtagRegex)) {
           // This is a hashtag
@@ -75,7 +67,6 @@ const renderContentWithPreviews = (content) => {
     }
   });
 };
-
 function Home() {
   const navigate = useNavigate();
   const { token, user: currentUser } = useAuth();
@@ -96,7 +87,6 @@ function Home() {
   const [commentDrafts, setCommentDrafts] = useState({});
   const [openCommentPopup, setOpenCommentPopup] = useState(null);
   const commentInputRefs = useRef({});
-
   const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId;
 
   const fetchPosts = useCallback(async () => {
@@ -132,13 +122,11 @@ function Home() {
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
-
   const fetchProfiles = useCallback(async () => {
     try {
       if (!token) {
         return;
       }
-
       const response = await fetch(
         'https://backend-vauju-1.onrender.com/api/matches',
         {
@@ -149,16 +137,13 @@ function Home() {
           },
         }
       );
-
       if (!response.ok) {
         throw new Error(`Failed to fetch profiles: ${response.status}`);
       }
-
       const data = await response.json();
       const visibleProfiles = Array.isArray(data)
         ? data.filter((item) => item && item._id && item.name)
         : [];
-
       setProfiles(visibleProfiles);
       // Update stats
       setStats(prev => ({ ...prev, matches: visibleProfiles.length }));
@@ -170,7 +155,6 @@ function Home() {
   useEffect(() => {
     fetchProfiles();
   }, [fetchProfiles]);
-
   const handleSwipeLeft = async (profileId) => {
     // Pass action
     setCurrentIndex(prev => prev + 1);
@@ -219,13 +203,11 @@ function Home() {
     if (split.length <= words) return text;
     return `${split.slice(0, words).join(' ')}...`;
   };
-
   const toggleReadMore = (id) => {
     setExpandedPosts((prev) =>
       prev.includes(id) ? prev.filter((postId) => postId !== id) : [...prev, id]
     );
   };
-
   const handleLike = async (rawId) => {
     const postId = String(rawId);
     if (!token || !currentUserId) {
@@ -279,11 +261,9 @@ function Home() {
       });
     }
   };
-
   const handleCommentDraftChange = (postId, value) => {
     setCommentDrafts((prev) => ({ ...prev, [postId]: value }));
   };
-
   const handleCommentSubmit = async (rawId) => {
     const postId = String(rawId);
     if (!token || !currentUserId) {
@@ -348,7 +328,6 @@ function Home() {
   };
 
   const hasContent = Array.isArray(posts) && posts.length > 0;
-
   const SkeletonCard = () => (
     <div className="bg-white animate-pulse rounded-2xl p-6 shadow-sm border border-gray-200">
       <div className="flex items-center gap-3 mb-4">
@@ -632,8 +611,6 @@ function Home() {
           <div className="max-w-6xl mx-auto px-6 py-3 md:ml-20 ml-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
-              
-                
                 <div className="flex items-center gap-2">
                   <Heart className="h-5 w-5 text-pink-500" />
                   <span className="text-sm font-medium text-gray-600">Matches</span>
@@ -653,7 +630,7 @@ function Home() {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-6xl mx-auto px-6 py-8 md:ml-20 ml-0">
+        <div className="max-w-6xl mx-auto px-6 py-4 md:ml-20 ml-0">
           {swipeMode ? (
             <div className="flex flex-col items-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Discover Matches</h2>
@@ -680,7 +657,6 @@ function Home() {
                   </div>
                 )}
               </div>
-              
               <div className="flex gap-6 mt-8">
                 <motion.button
                   whileTap={{ scale: 0.9 }}
@@ -689,7 +665,6 @@ function Home() {
                 >
                   <X className="text-white" size={24} />
                 </motion.button>
-                
                 <motion.button
                   whileTap={{ scale: 0.9 }}
                   onClick={() => profiles[currentIndex] && handleSwipeRight(profiles[currentIndex]._id)}
@@ -749,12 +724,12 @@ function Home() {
                     </h3>
                     {currentUser ? (
                       <div className="flex items-center gap-3 mb-4">
-            <img
-              src={getProfileImage(currentUser)}
-              alt={currentUser.name}
-              className="h-14 w-14 rounded-full object-cover border-2 border-pink-200 flex-shrink-0"
-              onError={(e) => handleImageError(e, currentUser.gender)}
-            />
+                        <img
+                          src={getProfileImage(currentUser)}
+                          alt={currentUser.name}
+                          className="h-14 w-14 rounded-full object-cover border-2 border-pink-200 flex-shrink-0"
+                          onError={(e) => handleImageError(e, currentUser.gender)}
+                        />
                         <div>
                           <p className="font-semibold text-gray-900">{currentUser.name}</p>
                           <p className="text-sm text-gray-500">{currentUser.email}</p>
@@ -879,7 +854,6 @@ function Home() {
                 </div>
               )}
             </div>
-            
             <div className="flex gap-6 mt-6">
               <motion.button
                 whileTap={{ scale: 0.9 }}
@@ -888,7 +862,6 @@ function Home() {
               >
                 <X className="text-white" size={20} />
               </motion.button>
-              
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => profiles[currentIndex] && handleSwipeRight(profiles[currentIndex]._id)}
@@ -921,7 +894,6 @@ function Home() {
                 </p>
               )}
             </div>
-            
             {/* Yugal Coins Section - Mobile */}
             <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-5 shadow-sm border border-yellow-200 mt-6">
               <div className="flex items-center justify-between mb-3">
