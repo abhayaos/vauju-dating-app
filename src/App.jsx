@@ -4,7 +4,6 @@ import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { isTokenExpired } from "./utils/auth";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { AdminAuthProvider } from "./context/AdminAuthContext";
 import { Analytics } from "@vercel/analytics/react"
 
 // Components
@@ -21,10 +20,6 @@ import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Messages from "./pages/Messages";
 import Matches from "./pages/Matches";
-import Admin from "./Admin/Admin";
-import AdminLogin from "./Admin/Auth/Login";
-import SuspendUsers from "./Admin/SuspendUsers";
-import ManageUser from "./Admin/ManageUsers";
 import Support from "./pages/SupportNew";
 import HallOfFame from "./pages/HallOfFame";
 import PageNotFound from "./pages/PageNotFound";
@@ -47,9 +42,7 @@ import "./App.css";
 function App() {
   return (
     <AuthProvider>
-      <AdminAuthProvider>
-        <AppContent />
-      </AdminAuthProvider>
+      <AppContent />
     </AuthProvider>
   );
 }
@@ -107,11 +100,9 @@ function AppContent() {
           [
             "/login",
             "/register",
-            "/admin/login",
             "/working",
             "/hall-of-fame/bounty/user/mandip",
             "/hall-of-fame",
-            "/admin",
           ].includes(location.pathname) || location.pathname.startsWith("/messages/");
 
         return (
@@ -162,11 +153,6 @@ function AppContent() {
                 <Route path="/messages/:userId" element={<Messages />} />
                 <Route path="/matches" element={<Matches />} />
                 <Route path="/support" element={<Support />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin/suspend" element={<SuspendUsers />} />
-                <Route path="/admin/users" element={<ManageUser />} />
-                <Route path="/admin/manage-users" element={<ManageUser />} />
                 <Route path="/hall-of-fame" element={<HallOfFame />} />
                 <Route path="/blogs" element={<Blogs />} />
                 <Route
