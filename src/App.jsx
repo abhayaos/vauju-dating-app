@@ -69,12 +69,9 @@ function AppContent() {
       {({ token, logout }) => {
         useEffect(() => {
           const checkTokenExpiry = () => {
-            const cookieToken = Cookies.get("token"); // 👈 Get latest token from cookie
-
-            // if token in cookie differs from context OR is expired
-            if (!cookieToken || isTokenExpired(cookieToken)) {
+            // Check if token exists in context and is not expired
+            if (token && isTokenExpired(token)) {
               logout();
-              Cookies.remove("token"); // 👈 Clear invalid cookie automatically
               if (
                 location.pathname !== "/login" &&
                 location.pathname !== "/register"
