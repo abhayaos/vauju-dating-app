@@ -1,277 +1,193 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+// src/MobileLayouyt/HamNav.jsx
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import {
-  User,
-  Settings,
-  Briefcase,
-  Globe,
-  HelpCircle,
+import { 
+  Home, 
+  User, 
+  MessageCircle, 
+  Heart, 
+  Users, 
+  Globe, 
+  BookOpen, 
+  HelpCircle, 
   LogOut,
-  Bell,
-  Heart,
-  MessageSquare,
-  LogIn,
-  ScrollText,
-  Star,
-  BookOpen,
-  Coins,
-  Plus,
-  ShoppingBag,
-  Home,
-  Users,
-  Video,
-  Bookmark,
-  Calendar,
-  MapPin,
-  Music,
-  Camera,
-  Gamepad2,
-  ShoppingBasket,
-  Trophy,
-  Gift,
-  Wallet,
+  X,
+  Shield,
+  Award,
+  Settings,
+  DollarSign,
+  Lock,
+  Mail,
+  Phone,
+  MapPin
 } from "lucide-react";
 
 function HamNav() {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { user, isLoggedIn, logout } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState("main");
 
-  // Fake loading animation
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, []);
-
-  // Main menu items (Facebook-like)
-  const mainMenuItems = [
-    { icon: <User size={24} />, label: "Profile", path: "/profile" },
-    { icon: <Users size={24} />, label: "Friends", path: "/matches" },
-    { icon: <MessageSquare size={24} />, label: "Messages", path: "/messages" },
-    { icon: <Bell size={24} />, label: "Notifications", path: "/notifications" },
-    { icon: <Bookmark size={24} />, label: "Saved", path: "/saved" },
-    { icon: <Calendar size={24} />, label: "Events", path: "/events" },
-    { icon: <MapPin size={24} />, label: "Nearby", path: "/explore" },
-    { icon: <Briefcase size={24} />, label: "Jobs", path: "/jobs" },
-  ];
-
-  // Media menu items
-  const mediaMenuItems = [
-    { icon: <Video size={24} />, label: "Videos", path: "/videos" },
-    { icon: <Music size={24} />, label: "Music", path: "/music" },
-    { icon: <Camera size={24} />, label: "Photos", path: "/photos" },
-    { icon: <Gamepad2 size={24} />, label: "Games", path: "/games" },
-  ];
-
-  // Shopping menu items
-  const shoppingMenuItems = [
-    { icon: <ShoppingBasket size={24} />, label: "Marketplace", path: "/marketplace" },
-    { icon: <Coins size={24} />, label: "Buy Coins", path: "/buy-coins" },
-    { icon: <Wallet size={24} />, label: "Orders", path: "/orders" },
-  ];
-
-  // Support menu items
-  const supportMenuItems = [
-    { icon: <HelpCircle size={24} />, label: "Support", path: "/support" },
-    { icon: <ScrollText size={24} />, label: "Terms", path: "/term-and-conditions" },
-    { icon: <Star size={24} />, label: "Hall of Fame", path: "/hall-of-fame" },
-    { icon: <BookOpen size={24} />, label: "Blogs", path: "/blogs" },
-  ];
-
-  const handleAuthClick = () => {
-    if (isLoggedIn) {
-      logout();
-      setTimeout(() => {
-        navigate("/login", { replace: true });
-      }, 100);
-    } else {
-      navigate("/login");
-    }
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-white">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="w-12 h-12 bg-blue-600 rounded-full mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-24"></div>
-        </div>
+  const menuItems = [
+    { icon: Home, label: "Home", path: "/" },
+    { icon: User, label: "Profile", path: "/profile" },
+    { icon: MessageCircle, label: "Messages", path: "/messages" },
+    { icon: Heart, label: "Matches", path: "/matches" },
+    { icon: Users, label: "Friends", path: "/friends" },
+    { icon: Globe, label: "Explore", path: "/explore" },
+    { icon: BookOpen, label: "Blogs", path: "/blogs" },
+    { icon: Award, label: "Hall of Fame", path: "/hall-of-fame" },
+    { icon: Globe, label: "Community", path: "/community" },
+    { icon: DollarSign, label: "Buy Coins", path: "/buy-coins" },
+    { icon: HelpCircle, label: "Support", path: "/support" },
+    { icon: Settings, label: "Settings", path: "/settings" },
+  ];
+
+  const legalItems = [
+    { label: "Terms & Conditions", path: "/term-and-conditions" },
+    { label: "Privacy Policy", path: "/privacy-policy" },
+    { label: "Community Guidelines", path: "/community-guidelines" },
+  ];
+
+  const contactItems = [
+    { icon: Mail, label: "support@yugameet.com", path: "mailto:support@yugameet.com" },
+    { icon: Phone, label: "+977-98XXXXXXXX", path: "tel:+97798XXXXXXXX" },
+    { icon: MapPin, label: "Kathmandu, Nepal", path: "#" },
+  ];
+
+  const renderMainMenu = () => (
+    <div className="space-y-1">
+      {menuItems.map((item, index) => (
+        <Link
+          key={index}
+          to={item.path}
+          className="flex items-center px-4 py-3 text-base font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <item.icon className="mr-3 h-5 w-5 text-gray-500" />
+          {item.label}
+        </Link>
+      ))}
+      
+      <div className="pt-4 mt-4 border-t border-gray-200">
+        <button
+          onClick={handleLogout}
+          className="flex items-center w-full px-4 py-3 text-base font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+        >
+          <LogOut className="mr-3 h-5 w-5" />
+          Logout
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
+
+  const renderLegalMenu = () => (
+    <div className="space-y-1">
+      <button
+        onClick={() => setActiveSection("main")}
+        className="flex items-center px-4 py-3 text-base font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors w-full text-left"
+      >
+        <span className="mr-3">←</span> Back
+      </button>
+      
+      <div className="pt-4 mt-4 border-t border-gray-200">
+        <h3 className="px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Legal</h3>
+        {legalItems.map((item, index) => (
+          <Link
+            key={index}
+            to={item.path}
+            className="block px-4 py-3 text-base font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderContactMenu = () => (
+    <div className="space-y-1">
+      <button
+        onClick={() => setActiveSection("main")}
+        className="flex items-center px-4 py-3 text-base font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors w-full text-left"
+      >
+        <span className="mr-3">←</span> Back
+      </button>
+      
+      <div className="pt-4 mt-4 border-t border-gray-200">
+        <h3 className="px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Contact Us</h3>
+        {contactItems.map((item, index) => (
+          <a
+            key={index}
+            href={item.path}
+            className="flex items-center px-4 py-3 text-base font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <item.icon className="mr-3 h-5 w-5 text-gray-500" />
+            {item.label}
+          </a>
+        ))}
+      </div>
+      
+      <div className="pt-4 mt-4 border-t border-gray-200">
+        <h3 className="px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Security</h3>
+        <Link
+          to="/privacy-policy"
+          className="flex items-center px-4 py-3 text-base font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <Shield className="mr-3 h-5 w-5 text-gray-500" />
+          Privacy & Security
+        </Link>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="bg-white min-h-screen">
-      {/* Header with user info */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
-            </div>
-            <div>
-              <h2 className="font-semibold text-gray-900">
-                {isLoggedIn ? user?.name || "User" : "Guest"}
-              </h2>
-              <p className="text-xs text-gray-500">
-                {isLoggedIn ? "Online" : "Not logged in"}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => navigate("/settings")}
-            className="p-2 rounded-full hover:bg-gray-100"
-          >
-            <Settings size={20} className="text-gray-600" />
-          </button>
-        </div>
-      </div>
-
-      {/* Shortcuts section */}
-      <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Shortcuts</h3>
-        <div className="grid grid-cols-4 gap-3">
-          <div 
-            onClick={() => navigate("/profile")}
-            className="flex flex-col items-center cursor-pointer"
-          >
-            <div className="bg-gray-100 p-3 rounded-lg mb-1">
-              <User size={20} className="text-blue-600" />
-            </div>
-            <span className="text-xs text-gray-700">Profile</span>
-          </div>
-          <div 
-            onClick={() => navigate("/matches")}
-            className="flex flex-col items-center cursor-pointer"
-          >
-            <div className="bg-gray-100 p-3 rounded-lg mb-1">
-              <Heart size={20} className="text-red-500" />
-            </div>
-            <span className="text-xs text-gray-700">Matches</span>
-          </div>
-          <div 
-            onClick={() => navigate("/messages")}
-            className="flex flex-col items-center cursor-pointer"
-          >
-            <div className="bg-gray-100 p-3 rounded-lg mb-1">
-              <MessageSquare size={20} className="text-green-500" />
-            </div>
-            <span className="text-xs text-gray-700">Messages</span>
-          </div>
-          <div 
-            onClick={() => navigate("/notifications")}
-            className="flex flex-col items-center cursor-pointer"
-          >
-            <div className="bg-gray-100 p-3 rounded-lg mb-1">
-              <Bell size={20} className="text-yellow-500" />
-            </div>
-            <span className="text-xs text-gray-700">Alerts</span>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center">
+          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10" />
+          <div className="ml-3">
+            <h1 className="text-lg font-bold text-gray-900">YugalMeet</h1>
+            {user && (
+              <p className="text-sm text-gray-500">{user.name || user.username}</p>
+            )}
           </div>
         </div>
+        <Link to="/" className="p-2 rounded-full hover:bg-gray-100">
+          <X className="h-6 w-6 text-gray-500" />
+        </Link>
       </div>
 
-      {/* Main Menu */}
+      {/* Menu Content */}
       <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Menu</h3>
-        <div className="space-y-1">
-          {mainMenuItems.map((item, index) => (
-            <div
-              key={index}
-              onClick={() => navigate(item.path)}
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer"
-            >
-              <div className="text-blue-600">{item.icon}</div>
-              <span className="text-gray-800">{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Media Section */}
-      <div className="p-4 border-t border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Media</h3>
-        <div className="space-y-1">
-          {mediaMenuItems.map((item, index) => (
-            <div
-              key={index}
-              onClick={() => navigate(item.path)}
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer"
-            >
-              <div className="text-purple-600">{item.icon}</div>
-              <span className="text-gray-800">{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Shopping Section */}
-      <div className="p-4 border-t border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Shopping</h3>
-        <div className="space-y-1">
-          {shoppingMenuItems.map((item, index) => (
-            <div
-              key={index}
-              onClick={() => navigate(item.path)}
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer"
-            >
-              <div className="text-green-600">{item.icon}</div>
-              <span className="text-gray-800">{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Support Section */}
-      <div className="p-4 border-t border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Support</h3>
-        <div className="space-y-1">
-          {supportMenuItems.map((item, index) => (
-            <div
-              key={index}
-              onClick={() => navigate(item.path)}
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer"
-            >
-              <div className="text-gray-600">{item.icon}</div>
-              <span className="text-gray-800">{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Logout/Login Button */}
-      <div className="p-4 border-t border-gray-200">
-        <button
-          onClick={handleAuthClick}
-          className={`w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-medium ${
-            isLoggedIn
-              ? "bg-red-50 text-red-600 hover:bg-red-100"
-              : "bg-blue-50 text-blue-600 hover:bg-blue-100"
-          }`}
-        >
-          {isLoggedIn ? (
-            <>
-              <LogOut size={20} />
-              <span>Logout</span>
-            </>
-          ) : (
-            <>
-              <LogIn size={20} />
-              <span>Login</span>
-            </>
-          )}
-        </button>
+        {activeSection === "main" && renderMainMenu()}
+        {activeSection === "legal" && renderLegalMenu()}
+        {activeSection === "contact" && renderContactMenu()}
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 text-center">
-        <p className="text-xs text-gray-500">
-          © {new Date().getFullYear()} AuraMeet. All rights reserved.
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
+        <div className="flex justify-between items-center">
+          <button
+            onClick={() => setActiveSection("legal")}
+            className="text-xs text-gray-500 hover:text-gray-700"
+          >
+            Legal
+          </button>
+          <button
+            onClick={() => setActiveSection("contact")}
+            className="text-xs text-gray-500 hover:text-gray-700"
+          >
+            Contact
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-gray-500 text-center">
+          © {new Date().getFullYear()} YugalMeet. All rights reserved.
         </p>
       </div>
     </div>

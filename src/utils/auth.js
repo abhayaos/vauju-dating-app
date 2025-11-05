@@ -58,15 +58,10 @@ export function isTokenExpired(token) {
     if (!decoded || !decoded.exp) return true;
     
     const currentTime = Math.floor(Date.now() / 1000); // seconds
-    const timeUntilExpiry = decoded.exp - currentTime;
     
-    // Auto-logout if token expires in less than 30 seconds
-    if (timeUntilExpiry < 30) {
-      // Removed console.warn for security
-      return true;
-    }
-    
-    return false;
+    // Consider token expired only if it's actually expired
+    // Add a small buffer to account for clock skew (1 minute)
+    return decoded.exp <= (currentTime - 60);
   } catch (err) {
     // Removed console.error for security
     return true;
