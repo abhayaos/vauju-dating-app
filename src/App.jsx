@@ -62,42 +62,7 @@ function AppContent() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateSW, setUpdateSW] = useState(null);
 
-  // Initialize PWA
-  useEffect(() => {
-    async function registerPWA() {
-      try {
-        const { registerSW } = await import("virtual:pwa-register");
-        const sw = registerSW({
-          onNeedRefresh() {
-            setNeedRefresh(true);
-            console.log("New content available! Ready for update.");
-          },
-          onOfflineReady() {
-            console.log("App ready to work offline 💪");
-          },
-        });
-        setUpdateSW(() => sw);
-      } catch (error) {
-        console.warn("PWA not supported or registration failed:", error);
-      }
-    }
 
-    // Only attempt PWA registration in production or when explicitly enabled
-    if (import.meta.env.MODE === 'production' || import.meta.env.VITE_ENABLE_PWA === 'true') {
-      registerPWA();
-    }
-  }, []);
-
-  const updateApp = useCallback(() => {
-    if (updateSW) {
-      setIsUpdating(true);
-      updateSW(true);
-      // Set a timeout to reload the page if the update doesn't happen quickly
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
-    }
-  }, [updateSW]);
 
   useEffect(() => {
     setLoading(true);
