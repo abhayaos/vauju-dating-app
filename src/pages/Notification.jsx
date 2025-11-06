@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { BellRing, Check, CheckCheck, Trash2, Sparkles } from "lucide-react";
-import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
 
 // Helper: Format relative time
 function getRelativeTime(date) {
@@ -47,13 +46,6 @@ export default function Notification() {
 
   const [showAllRead, setShowAllRead] = useState(false);
 
-  // Rive Bell
-  const { RiveComponent } = useRive({
-    src: "https://cdn.rive.app/animations/bell.riv",
-    autoplay: true,
-    layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
-  });
-
   // Save to sessionStorage whenever notifications change
   useEffect(() => {
     sessionStorage.setItem("notifications", JSON.stringify(notifications));
@@ -86,81 +78,77 @@ export default function Notification() {
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-100 flex justify-center py-10 px-4 md:ml-[70px]">
-      <div className="w-full max-w-3xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8 animate-fadeIn">
-          <div className="flex items-center gap-3 transition-transform duration-300 hover:scale-105">
-            <div className="relative w-12 h-12">
-              <RiveComponent />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-pink-500 text-xs font-bold text-white animate-pulse">
-                  {unreadCount}
-                </span>
-              )}
+    <main className="min-h-screen bg-white md:ml-[70px]">
+      <div className="max-w-4xl mx-auto">
+        {/* Header Section */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 z-40">
+          <div className="px-4 md:px-6 py-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 flex-shrink-0">
+                <BellRing className="w-10 h-10 text-pink-600" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-600 text-xs font-bold text-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              Notifications
-            </h2>
+
+            {unreadCount > 0 && !showAllRead && (
+              <button
+                onClick={markAllAsRead}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-pink-600 rounded-lg hover:bg-pink-700 transition-colors duration-200 active:scale-95"
+              >
+                <CheckCheck size={18} />
+                Mark All Read
+              </button>
+            )}
+
+            {showAllRead && (
+              <div className="flex items-center gap-2 text-green-600 font-medium text-sm">
+                <CheckCheck size={18} />
+                All marked as read!
+              </div>
+            )}
           </div>
-
-          {unreadCount > 0 && !showAllRead && (
-            <button
-              onClick={markAllAsRead}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-pink-600 bg-pink-100 rounded-full hover:bg-pink-200 transition duration-200 hover:shadow-md active:scale-95"
-            >
-              <CheckCheck size={18} />
-              Mark All Read
-            </button>
-          )}
-
-          {showAllRead && (
-            <div className="flex items-center gap-2 text-green-600 font-medium text-sm">
-              <CheckCheck size={18} />
-              All marked as read!
-            </div>
-          )}
         </div>
 
-        {/* Empty State */}
-        {notifications.length === 0 ? (
-          <div className="text-center py-16 animate-fadeIn">
-            <BellRing className="mx-auto h-16 w-16 text-gray-300 mb-4 animate-pulse" />
-            <p className="text-gray-500 text-lg">No notifications yet.</p>
-            <p className="text-gray-400 text-sm mt-2">Check back later for updates</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {notifications.map((notif) => (
-              <div
-                key={notif.id}
-                className={`bg-white/90 backdrop-blur-lg p-5 rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default ${
-                  notif.unread ? "border-pink-200 bg-pink-50/50" : "border-gray-100 hover:border-gray-200"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  {/* Icon + Content */}
-                  <div className="flex items-start gap-3 flex-1">
-                    <div className="relative flex-shrink-0">
-                      {notif.unread ? (
-                        <div className="w-9 h-9">
-                          <RiveComponent />
-                        </div>
-                      ) : (
-                        <BellRing className="text-pink-500 w-6 h-6" />
-                      )}
-                      {notif.unread && (
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-500 rounded-full animate-ping" />
-                      )}
+        {/* Content Section */}
+        <div className="px-4 md:px-6 py-6">
+          {notifications.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="flex justify-center mb-4">
+                <BellRing className="h-16 w-16 text-gray-300" />
+              </div>
+              <p className="text-gray-600 text-lg font-medium">No notifications yet</p>
+              <p className="text-gray-400 text-sm mt-2">Check back later for updates</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {notifications.map((notif) => (
+                <div
+                  key={notif.id}
+                  className={`p-5 rounded-lg border transition-all duration-200 ${
+                    notif.unread 
+                      ? "bg-blue-50 border-blue-200" 
+                      : "bg-gray-50 border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Icon */}
+                    <div className="flex-shrink-0 pt-1">
+                      <BellRing className={`w-5 h-5 ${
+                        notif.unread ? "text-pink-600" : "text-gray-400"
+                      }`} />
                     </div>
 
+                    {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-bold text-gray-900 text-base">
-                          {notif.title}
-                        </h3>
+                        <h3 className="font-semibold text-gray-900">{notif.title}</h3>
                         {notif.comingSoon && (
-                          <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-purple-700 bg-purple-100 rounded-full flex-shrink-0">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-md">
                             <Sparkles size={12} />
                             Coming Soon
                           </span>
@@ -170,36 +158,39 @@ export default function Notification() {
                         {notif.message}
                       </p>
                     </div>
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-3 text-gray-400 flex-shrink-0">
-                    <div className="flex gap-2">
-                      {notif.unread && (
+                    {/* Actions */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className="text-xs text-gray-500 whitespace-nowrap">
+                        {getRelativeTime(new Date(notif.timeStamp))}
+                      </span>
+                      <div className="flex gap-1">
+                        {notif.unread && (
+                          <button
+                            onClick={() => markAsRead(notif.id)}
+                            className="p-2 text-gray-400 hover:text-pink-600 hover:bg-pink-50 rounded-md transition-colors duration-200 active:scale-90"
+                            title="Mark as read"
+                            aria-label="Mark notification as read"
+                          >
+                            <Check size={18} />
+                          </button>
+                        )}
                         <button
-                          onClick={() => markAsRead(notif.id)}
-                          className="hover:text-pink-600 transition duration-200 p-1.5 hover:bg-pink-50 rounded-lg active:scale-90"
-                          title="Mark as read"
+                          onClick={() => deleteNotification(notif.id)}
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors duration-200 active:scale-90"
+                          title="Delete"
+                          aria-label="Delete notification"
                         >
-                          <Check size={20} />
+                          <Trash2 size={18} />
                         </button>
-                      )}
-                      <button
-                        onClick={() => deleteNotification(notif.id)}
-                        className="hover:text-red-500 transition duration-200 p-1.5 hover:bg-red-50 rounded-lg active:scale-90"
-                        title="Delete"
-                      >
-                        <Trash2 size={20} />
-                      </button>
+                      </div>
                     </div>
-                    <span className="text-xs whitespace-nowrap text-gray-500">
-                      {getRelativeTime(new Date(notif.timeStamp))}
-                    </span>
                   </div>
                 </div>
-              </div>
-            ))}\n          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

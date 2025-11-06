@@ -86,7 +86,11 @@ function Home() {
   const [pendingComments, setPendingComments] = useState({});
   const [commentDrafts, setCommentDrafts] = useState({});
   const [openCommentPopup, setOpenCommentPopup] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyDrafts, setReplyDrafts] = useState({});
+  const [pendingReplies, setPendingReplies] = useState({});
   const commentInputRefs = useRef({});
+  const replyInputRefs = useRef({});
   const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId;
 
   const fetchPosts = useCallback(async () => {
@@ -269,6 +273,62 @@ function Home() {
     }
   };
 
+  const handleReplySubmit = async (postId, commentId) => {
+    if (!token || !currentUserId) {
+      navigate('/login');
+      return;
+    }
+    const replyKey = `${postId}-${commentId}`;
+    const draft = (replyDrafts[replyKey] || '').trim();
+    if (!draft) return;
+    if (pendingReplies[replyKey]) return;
+    try {
+      setPendingReplies((prev) => ({ ...prev, [replyKey]: true }));
+      const res = await fetch(`${API_BASE}/api/posts/${postId}/comments/${commentId}/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ content: draft }),
+      });
+      if (!res.ok) {
+        const message = await res.text();
+        throw new Error(message || 'Unable to add reply');
+      }
+      const data = await res.json();
+      setPosts((prev) =>
+        prev.map((post) => {
+          if (String(post._id || post.id) !== postId) {
+            return post;
+          }
+          return {
+            ...post,
+            comments: post.comments.map((comment) => {
+              if (String(comment._id || comment.id) === commentId) {
+                return {
+                  ...comment,
+                  replies: [...(comment.replies || []), data.reply],
+                };
+              }
+              return comment;
+            }),
+          };
+        })
+      );
+      setReplyDrafts((prev) => ({ ...prev, [replyKey]: '' }));
+      setReplyingTo(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setPendingReplies((prev) => {
+        const next = { ...prev };
+        delete next[replyKey];
+        return next;
+      });
+    }
+  };
+
   const handleCommentSubmit = async (rawId) => {
     const postId = String(rawId);
     if (!token || !currentUserId) {
@@ -396,21 +456,77 @@ function Home() {
                   (comment.user && (comment.user.name || comment.user.username)) ||
                   'YugalMeet User';
                 const isCommentVerified = comment.user?.verified || false;
+                const replyKey = `${postId}-${commentId}`;
+                const isReplying = replyingTo === replyKey;
                 return (
-                  <div
-                    key={commentId}
-                    className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 mb-2"
-                  >
-                    <div className="flex items-center gap-1">
-                      <p className="text-sm font-medium text-gray-800">{commentAuthor}</p>
-                      {isCommentVerified && (
-                        <CheckCircle2
-                          className="h-3.5 w-3.5 text-blue-500"
-                          aria-label="Verified Commenter"
-                        />
-                      )}
+                  <div key={commentId} className="mb-3">
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                      <div className="flex items-center gap-1 justify-between">
+                        <div className="flex items-center gap-1">
+                          <p className="text-sm font-medium text-gray-800">{commentAuthor}</p>
+                          {isCommentVerified && (
+                            <CheckCircle2
+                              className="h-3.5 w-3.5 text-blue-500"
+                              aria-label="Verified Commenter"
+                            />
+                          )}
+                        </div>
+                        <button
+                          onClick={() => setReplyingTo(isReplying ? null : replyKey)}
+                          className="text-xs text-pink-600 hover:text-pink-700 font-medium"
+                          type="button"
+                        >
+                          {isReplying ? 'Cancel' : 'Reply'}
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">{comment.content}</p>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{comment.content}</p>
+                    {isReplying && (
+                      <div className="mt-2 ml-4 flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                        <input
+                          ref={(el) => {
+                            if (el) {
+                              replyInputRefs.current[replyKey] = el;
+                            } else {
+                              delete replyInputRefs.current[replyKey];
+                            }
+                          }}
+                          type="text"
+                          value={replyDrafts[replyKey] || ''}
+                          onChange={(e) => setReplyDrafts((prev) => ({ ...prev, [replyKey]: e.target.value }))}
+                          placeholder="Write a reply..."
+                          disabled={pendingReplies[replyKey]}
+                          className="flex-1 bg-transparent text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none"
+                          aria-label="Reply input"
+                        />
+                        <button
+                          onClick={() => handleReplySubmit(postId, commentId)}
+                          disabled={pendingReplies[replyKey] || !(replyDrafts[replyKey] || '').trim()}
+                          className="inline-flex items-center justify-center rounded-full bg-pink-500 px-3 py-1 text-xs font-medium text-white transition hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
+                          type="button"
+                          aria-label="Submit reply"
+                        >
+                          {pendingReplies[replyKey] ? 'Sending...' : <Send className="h-3 w-3" />}
+                        </button>
+                      </div>
+                    )}
+                    {Array.isArray(comment.replies) && comment.replies.length > 0 && (
+                      <div className="mt-2 ml-4 space-y-2 border-l-2 border-gray-200 pl-3">
+                        {comment.replies.map((reply, replyIndex) => (
+                          <div key={`${commentId}-reply-${replyIndex}`} className="rounded-lg bg-blue-50 px-2 py-1.5">
+                            <div className="flex items-center gap-1">
+                              <p className="text-xs font-medium text-gray-800">
+                                {(reply.user && (reply.user.name || reply.user.username)) || 'YugalMeet User'}
+                              </p>
+                              {reply.user?.verified && (
+                                <CheckCircle2 className="h-3 w-3 text-blue-500" aria-label="Verified" />
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-600 mt-0.5">{reply.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })
@@ -806,34 +922,25 @@ function Home() {
               .fill(0)
               .map((_, index) => <SkeletonCard key={index} />)
           ) : hasContent ? (
-            posts.map((post) => renderPostCard(post))
+            posts.map((post) => {
+              const postId = String(post._id || post.id);
+              return (
+                <React.Fragment key={`post-${postId}`}>
+                  {renderPostCard(post)}
+                  {openCommentPopup === postId && (
+                    <CommentPopup
+                      post={post}
+                      onClose={() => setOpenCommentPopup(null)}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })
           ) : (
             <p className="text-gray-500 text-center text-sm py-8">
               No posts available. Create one to get started!
             </p>
           )}
-        </div>
-        {/* Yugal Coins Section - Mobile */}
-        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-5 shadow-sm border border-yellow-200 mt-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-900 flex items-center gap-2">
-              <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                YC
-              </div>
-              <span className="text-sm">Yugal Coins</span>
-            </h3>
-            <span className="text-lg font-bold text-yellow-600">{stats.coins}</span>
-          </div>
-          <p className="text-xs text-gray-600 mb-3">
-            Use coins to boost posts, send gifts, or unlock premium features.
-          </p>
-          <button 
-            onClick={() => navigate('/buy-coins')}
-            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-2 rounded-lg hover:from-yellow-600 hover:to-orange-700 transition font-medium flex items-center justify-center gap-2 text-sm"
-          >
-            <Sparkles className="h-3 w-3" />
-            Get More Coins - रु 250
-          </button>
         </div>
       </div>
     </div>

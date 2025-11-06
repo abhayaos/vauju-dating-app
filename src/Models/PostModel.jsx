@@ -33,7 +33,7 @@ function PostModel({ onPostCreated }) {
     const textarea = textareaRef.current;
     if (!textarea) return;
     textarea.style.height = "auto";
-    textarea.style.height = `${textarea.scrollHeight}px`;
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
   }, [content]);
 
   // Sync auth state
@@ -146,25 +146,36 @@ function PostModel({ onPostCreated }) {
               placeholder={canPost ? "What's on your mind?" : "Posting is limited"}
               readOnly={!canPost}
               disabled={loading}
-              className="flex-1 w-full px-3 pt-3 pb-1 text-sm text-gray-800 placeholder:text-gray-400 bg-transparent resize-none focus:outline-none disabled:cursor-not-allowed disabled:text-gray-400"
-              rows={1}
-              style={{ minHeight: "40px", maxHeight: "120px" }}
+              className="flex-1 w-full px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 bg-transparent resize-none focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:text-gray-400 scrollbar-hide"
+              style={{
+                minHeight: content.length === 0 ? "40px" : "48px",
+                maxHeight: "200px",
+                overflow: "hidden",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none"
+              }}
               aria-label="Create a post"
             />
+            {/* Hide scrollbar using CSS */}
+            <style>{`
+              textarea::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
 
-            <div className="flex justify-end px-3 pb-2">
+            <div className="flex items-center justify-end px-4 py-2 border-t border-gray-100">
               <button
                 onClick={handleSubmit}
                 disabled={loading || !content.trim() || !canPost}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg font-semibold text-sm transition-all duration-200 ${
                   loading || !content.trim() || !canPost
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow"
+                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 active:scale-95 text-white shadow-sm hover:shadow-md"
                 }`}
               >
                 {loading ? (
-                  <span className="flex items-center gap-1">
-                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
@@ -173,22 +184,13 @@ function PostModel({ onPostCreated }) {
                 ) : (
                   <>
                     Post
-                    <SendHorizontal size={14} />
+                    <SendHorizontal size={16} />
                   </>
                 )}
               </button>
             </div>
           </div>
         </div>
-
-        {/* Character counter */}
-        {content.length > 0 && (
-          <div className="text-right mt-1 px-1">
-            <span className={`text-xs ${content.length > 280 ? "text-red-500" : "text-gray-400"}`}>
-              {content.length}/280
-            </span>
-          </div>
-        )}
       </div>
 
       {/* DESKTOP VERSION IS REMOVED — HIDDEN ON PC */}
