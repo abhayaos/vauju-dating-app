@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import ProfileImage from '../assets/dp.png';
 import PostModel from '../Models/PostModel';
 
-import UrlPreview from '../components/UrlPreview';
+import ProfessionalUrlPreview from '../components/ProfessionalUrlPreview';
 import { getProfileImage, handleImageError } from '../utils/imageUtils';
 import { useAuth } from '../context/AuthContext';
 const API_BASE = 'https://backend-vauju-1.onrender.com';
@@ -42,7 +42,7 @@ const renderContentWithPreviews = (content) => {
     // Check if this part is a URL by testing the original regex
     if (part && part.match && part.match(/^https?:\/\/[^\s]+$/)) {
       // This is a URL, render a preview
-      return <UrlPreview key={`url-${index}`} url={part} />;
+      return <ProfessionalUrlPreview key={`url-${index}`} url={part} />;
     } else {
       // This is regular text, check for hashtags
       const hashtagRegex = /(#\w+)/g;
@@ -69,7 +69,7 @@ const renderContentWithPreviews = (content) => {
 };
 function Home() {
   const navigate = useNavigate();
-  const { token, user: currentUser } = useAuth();
+  const { token, user: currentUser, isLoggedIn } = useAuth();
   const [posts, setPosts] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [stats, setStats] = useState({
@@ -81,16 +81,14 @@ function Home() {
   const [error, setError] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  console.log("Home: Rendering with auth state", { token, isLoggedIn, currentUser });
+
   const [expandedPosts, setExpandedPosts] = useState([]);
   const [pendingLikes, setPendingLikes] = useState({});
   const [pendingComments, setPendingComments] = useState({});
   const [commentDrafts, setCommentDrafts] = useState({});
   const [openCommentPopup, setOpenCommentPopup] = useState(null);
-  const [replyingTo, setReplyingTo] = useState(null);
-  const [replyDrafts, setReplyDrafts] = useState({});
-  const [pendingReplies, setPendingReplies] = useState({});
   const commentInputRefs = useRef({});
-  const replyInputRefs = useRef({});
   const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId;
 
   const fetchPosts = useCallback(async () => {
@@ -175,7 +173,7 @@ function Home() {
   const handleLike = async (rawId) => {
     const postId = String(rawId);
     if (!token || !currentUserId) {
-      navigate('/login');
+      navigate('/register');
       return;
     }
     const target = posts.find((post) => String(post._id || post.id) === postId);
@@ -273,66 +271,10 @@ function Home() {
     }
   };
 
-  const handleReplySubmit = async (postId, commentId) => {
-    if (!token || !currentUserId) {
-      navigate('/login');
-      return;
-    }
-    const replyKey = `${postId}-${commentId}`;
-    const draft = (replyDrafts[replyKey] || '').trim();
-    if (!draft) return;
-    if (pendingReplies[replyKey]) return;
-    try {
-      setPendingReplies((prev) => ({ ...prev, [replyKey]: true }));
-      const res = await fetch(`${API_BASE}/api/posts/${postId}/comments/${commentId}/reply`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content: draft }),
-      });
-      if (!res.ok) {
-        const message = await res.text();
-        throw new Error(message || 'Unable to add reply');
-      }
-      const data = await res.json();
-      setPosts((prev) =>
-        prev.map((post) => {
-          if (String(post._id || post.id) !== postId) {
-            return post;
-          }
-          return {
-            ...post,
-            comments: post.comments.map((comment) => {
-              if (String(comment._id || comment.id) === commentId) {
-                return {
-                  ...comment,
-                  replies: [...(comment.replies || []), data.reply],
-                };
-              }
-              return comment;
-            }),
-          };
-        })
-      );
-      setReplyDrafts((prev) => ({ ...prev, [replyKey]: '' }));
-      setReplyingTo(null);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setPendingReplies((prev) => {
-        const next = { ...prev };
-        delete next[replyKey];
-        return next;
-      });
-    }
-  };
-
   const handleCommentSubmit = async (rawId) => {
     const postId = String(rawId);
     if (!token || !currentUserId) {
-      navigate('/login');
+      navigate('/register');
       return;
     }
     const draft = (commentDrafts[postId] || '').trim();
@@ -354,7 +296,7 @@ function Home() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: draft }),
+        body: JSON.stringify({ text: draft }),
       });
       if (!res.ok) {
         const message = await res.text();
@@ -372,7 +314,7 @@ function Home() {
           }
           const nextComments = data?.comment
             ? [...post.comments, data.comment]
-            : [...post.comments];
+            : post.comments;
           return {
             ...post,
             comments: nextComments,
@@ -456,60 +398,20 @@ function Home() {
                   (comment.user && (comment.user.name || comment.user.username)) ||
                   'YugalMeet User';
                 const isCommentVerified = comment.user?.verified || false;
-                const replyKey = `${postId}-${commentId}`;
-                const isReplying = replyingTo === replyKey;
                 return (
                   <div key={commentId} className="mb-3">
                     <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
-                      <div className="flex items-center gap-1 justify-between">
-                        <div className="flex items-center gap-1">
-                          <p className="text-sm font-medium text-gray-800">{commentAuthor}</p>
-                          {isCommentVerified && (
-                            <CheckCircle2
-                              className="h-3.5 w-3.5 text-blue-500"
-                              aria-label="Verified Commenter"
-                            />
-                          )}
-                        </div>
-                        <button
-                          onClick={() => setReplyingTo(isReplying ? null : replyKey)}
-                          className="text-xs text-pink-600 hover:text-pink-700 font-medium"
-                          type="button"
-                        >
-                          {isReplying ? 'Cancel' : 'Reply'}
-                        </button>
+                      <div className="flex items-center gap-1">
+                        <p className="text-sm font-medium text-gray-800">{commentAuthor}</p>
+                        {isCommentVerified && (
+                          <CheckCircle2
+                            className="h-3.5 w-3.5 text-blue-500"
+                            aria-label="Verified Commenter"
+                          />
+                        )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">{comment.content}</p>
+                      <p className="text-sm text-gray-600 mt-1">{comment.text}</p>
                     </div>
-                    {isReplying && (
-                      <div className="mt-2 ml-4 flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
-                        <input
-                          ref={(el) => {
-                            if (el) {
-                              replyInputRefs.current[replyKey] = el;
-                            } else {
-                              delete replyInputRefs.current[replyKey];
-                            }
-                          }}
-                          type="text"
-                          value={replyDrafts[replyKey] || ''}
-                          onChange={(e) => setReplyDrafts((prev) => ({ ...prev, [replyKey]: e.target.value }))}
-                          placeholder="Write a reply..."
-                          disabled={pendingReplies[replyKey]}
-                          className="flex-1 bg-transparent text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none"
-                          aria-label="Reply input"
-                        />
-                        <button
-                          onClick={() => handleReplySubmit(postId, commentId)}
-                          disabled={pendingReplies[replyKey] || !(replyDrafts[replyKey] || '').trim()}
-                          className="inline-flex items-center justify-center rounded-full bg-pink-500 px-3 py-1 text-xs font-medium text-white transition hover:bg-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
-                          type="button"
-                          aria-label="Submit reply"
-                        >
-                          {pendingReplies[replyKey] ? 'Sending...' : <Send className="h-3 w-3" />}
-                        </button>
-                      </div>
-                    )}
                     {Array.isArray(comment.replies) && comment.replies.length > 0 && (
                       <div className="mt-2 ml-4 space-y-2 border-l-2 border-gray-200 pl-3">
                         {comment.replies.map((reply, replyIndex) => (
@@ -522,7 +424,7 @@ function Home() {
                                 <CheckCircle2 className="h-3 w-3 text-blue-500" aria-label="Verified" />
                               )}
                             </div>
-                            <p className="text-xs text-gray-600 mt-0.5">{reply.content}</p>
+                            <p className="text-xs text-gray-600 mt-0.5">{reply.text}</p>
                           </div>
                         ))}
                       </div>
@@ -683,7 +585,7 @@ function Home() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setOpenCommentPopup(postId)}
+              onClick={() => navigate(`/posts/${postId}`)}
               className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:border-pink-200 hover:text-pink-600 transition"
               aria-label="View comments"
               type="button"
@@ -823,7 +725,7 @@ function Home() {
                       </div>
                     ) : (
                       <button
-                        onClick={() => navigate('/login')}
+                        onClick={() => navigate('/register')}
                         className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl hover:from-pink-600 hover:to-purple-700 transition font-medium"
                       >
                         Sign In to Connect

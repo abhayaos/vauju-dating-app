@@ -116,6 +116,9 @@ export const API_ENDPOINTS = {
   // Upload
   UPLOAD_IMAGE: '/upload',
   DELETE_IMAGE: (publicId) => `/upload/${publicId}`,
+  
+  // Preview
+  PREVIEW: '/preview'
 };
 
 /**
@@ -152,9 +155,11 @@ export const createApiClient = (token = null) => {
   };
 };
 
-// ... existing code ...
 export const getShareUrl = (postId) => {
   return `${window.location.origin}/posts/${postId}`;
 };
 
 export const SHARE_POST_ENDPOINT = (postId) => `/api/posts/${postId}/share`;
+
+// Preview endpoint
+export const PREVIEW_ENDPOINT = (url) => `/api/preview?url=${encodeURIComponent(url)}`;

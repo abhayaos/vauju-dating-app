@@ -52,6 +52,9 @@ const Friends = React.lazy(() => import(/* webpackChunkName: "pages" */ "./pages
 
 import "./App.css";
 
+// Create a lazy-loaded PostDetail component
+const PostDetail = React.lazy(() => import(/* webpackChunkName: "pages" */ "./pages/PostDetail"));
+
 function App() {
   return (
     <AuthProvider>
@@ -177,6 +180,8 @@ function AppContent() {
                   />
                   <Route path="/private-space" element={<PrivateSpeech />} />
                   <Route path="/buy-coins" element={<BuyCoins />} />
+                  {/* Add route for individual posts */}
+                  <Route path="/posts/:postId" element={<PostDetail />} />
                   <Route path="*" element={<PageNotFound />} />
                 </Routes>
               </Suspense>

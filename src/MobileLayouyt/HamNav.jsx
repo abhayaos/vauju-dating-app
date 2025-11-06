@@ -86,9 +86,11 @@ function HamNav() {
 
   const handleAuthClick = () => {
     if (isLoggedIn) {
+      console.log("HamNav: Logout initiated");
       logout();
       setTimeout(() => {
-        navigate("/login", { replace: true });
+        console.log("HamNav: Navigating to /register");
+        navigate("/register", { replace: true });
       }, 100);
     } else {
       navigate("/login");

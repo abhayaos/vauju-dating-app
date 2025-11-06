@@ -26,17 +26,6 @@ export const fetchOGMetadata = async (url) => {
       throw new Error('Invalid URL provided');
     }
     
-    // In a real implementation, you would use a service like:
-    // 1. A backend endpoint that fetches OG data
-    // 2. A third-party service like opengraph.io or microlink.io
-    // 3. A self-hosted solution
-    
-    // For now, we'll simulate the response with a delay
-    // In a production app, you would replace this with an actual API call
-    
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
     // Parse domain for display
     let domain = '';
     try {
@@ -45,17 +34,23 @@ export const fetchOGMetadata = async (url) => {
       domain = url;
     }
     
-    // Return mock data for demonstration
-    // In a real app, this would come from an actual OG metadata fetching service
-    return {
-      url: url,
-      title: `OG Preview for ${domain}`,
-      description: `This is a preview of ${url}. In a production environment, this would show the actual Open Graph metadata including title, description, and image from the website.`,
-      image: null,
-      domain: domain,
-      isLoading: false,
-      error: null
-    };
+    // Try to fetch from our backend preview endpoint
+    const response = await fetch(`/api/preview?url=${encodeURIComponent(url)}`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        url: url,
+        title: data.title || `OG Preview for ${domain}`,
+        description: data.description || `Preview for ${url}`,
+        image: data.image || null,
+        domain: data.domain || domain,
+        isLoading: false,
+        error: null
+      };
+    } else {
+      throw new Error('Failed to fetch preview data');
+    }
   } catch (error) {
     let domain = '';
     try {
