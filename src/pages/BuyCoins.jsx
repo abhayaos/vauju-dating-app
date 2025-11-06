@@ -1,320 +1,247 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, CreditCard, Shield, CheckCircle, WifiOff, Zap, Gem } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Sparkles, CreditCard, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 
 function BuyCoins() {
   const navigate = useNavigate();
   const isOnline = useOnlineStatus();
-  const [loading] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const coinPackages = [
     {
       id: 1,
-      coins: 10,
-      price: 10,
-      popular: false,
-      savings: null,
-      description: "Perfect for getting started",
-      color: "from-blue-500 to-cyan-500"
+      coins: 50,
+      price: 50,
+      description: "Starter Pack"
     },
     {
       id: 2,
-      coins: 10,
-      price: 10,
+      coins: 150,
+      price: 150,
       popular: true,
-      savings: "Best Value",
-      description: "Most popular choice",
-      color: "from-purple-500 to-pink-500"
+      description: "Best Value"
     },
     {
       id: 3,
-      coins: 10,
-      price: 10,
-      popular: false,
-      savings: null,
-      description: "Great for heavy users",
-      color: "from-green-500 to-emerald-500"
+      coins: 400,
+      price: 400,
+      description: "Pro Pack"
     },
     {
       id: 4,
-      coins: 10,
-      price: 10,
-      popular: false,
-      savings: null,
-      description: "Maximum value",
-      color: "from-orange-500 to-red-500"
+      coins: 1000,
+      price: 1000,
+      description: "Elite Pack"
     }
   ];
 
   const handlePurchase = (packageId) => {
-    alert(`Thank you for purchasing coin package #${packageId}! In a real app, this would redirect to a payment processor.`);
+    alert(`Thank you for your interest! Payment integration coming soon.`);
+  };
+
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev === 0 ? coinPackages.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev === coinPackages.length - 1 ? 0 : prev + 1));
   };
 
   // Show offline message
   if (!isOnline) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center max-w-md"
-        >
-          <WifiOff className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">
-            No Internet Connection
-          </h2>
-          <p className="text-gray-300 mb-4">
-            Purchasing coins requires an active internet connection. Please check your connection and try again.
-          </p>
-          <p className="text-sm text-gray-400">
-            Redirecting to home page...
-          </p>
-        </motion.div>
+      <div className="flex items-center justify-center min-h-screen bg-white px-4 md:ml-[70px]">
+        <div className="text-center max-w-md">
+          <div className="text-5xl mb-4">📡</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Internet Connection</h2>
+          <p className="text-gray-600">Please check your connection and try again.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white py-16 px-4 sm:px-6 relative overflow-hidden">
-      {/* Removed: Animated Background Elements */}
+    <div className="min-h-screen bg-white md:ml-[70px]">
+      {/* Header */}
+      <div className="border-b border-gray-200">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 py-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium mb-6 transition-colors"
+          >
+            <ArrowLeft size={20} />
+            Back
+          </button>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Yugal Coins</h1>
+          <p className="text-gray-600">Enhance your experience with premium features</p>
+        </div>
+      </div>
 
-      {/* Connection Status Indicator */}
-      {!isOnline && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-0 left-0 right-0 bg-red-500/10 border-b border-red-500/30 p-3 z-50 flex items-center justify-center gap-2 backdrop-blur-sm"
-        >
-          <WifiOff className="w-4 h-4 text-red-400" />
-          <span className="text-red-300 font-medium">No internet connection</span>
-        </motion.div>
-      )}
-
-      <div className="max-w-6xl mx-auto relative z-10">
-        {/* Enhanced Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-20"
-        >
-          <div className="flex justify-center mb-8">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="relative"
+      {/* Main Content */}
+      <div className="max-w-5xl mx-auto px-4 md:px-6 py-12">
+        {/* Mobile Carousel */}
+        <div className="md:hidden mb-16">
+          <div className="flex items-center justify-between gap-4">
+            <button
+              onClick={handlePrevious}
+              className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors flex-shrink-0"
+              aria-label="Previous"
             >
-              <div className="w-24 h-24 bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-2xl">
-                <Gem className="w-12 h-12 text-white" />
-              </div>
-            </motion.div>
-          </div>
-          <h1 className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-yellow-600 to-orange-600 mb-4 leading-tight">
-            Get Yugal Coins
-          </h1>
-          <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed font-light">
-            Boost your profile, send gifts, and unlock premium features
-          </p>
-        </motion.div>
+              <ChevronLeft size={24} className="text-gray-800" />
+            </button>
 
-        {/* Coin Packages - Enhanced Design */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20"
-        >
-          {coinPackages.map((pkg, idx) => (
-            <motion.div 
+            <div className="flex-1">
+              <div className={`relative rounded-xl border transition-all duration-200 p-6 text-center ${ 
+                coinPackages[currentIndex].popular
+                  ? 'border-pink-300 bg-pink-50 shadow-lg'
+                  : 'border-gray-200 bg-gray-50'
+              }`}>
+                {coinPackages[currentIndex].popular && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-pink-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    Popular
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <Sparkles size={20} className={coinPackages[currentIndex].popular ? 'text-pink-600' : 'text-gray-400'} />
+                  <span className={`text-3xl font-bold ${coinPackages[currentIndex].popular ? 'text-pink-600' : 'text-gray-900'}`}>
+                    {coinPackages[currentIndex].coins}
+                  </span>
+                </div>
+
+                <p className="text-sm text-gray-600 mb-4">{coinPackages[currentIndex].description}</p>
+
+                <div className="mb-6">
+                  <div className="text-2xl font-bold text-gray-900">रु {coinPackages[currentIndex].price}</div>
+                </div>
+
+                <button
+                  onClick={() => handlePurchase(coinPackages[currentIndex].id)}
+                  className={`w-full py-3 rounded-lg font-semibold transition-colors duration-200 ${
+                    coinPackages[currentIndex].popular
+                      ? 'bg-pink-600 text-white hover:bg-pink-700'
+                      : 'bg-gray-300 text-gray-800 hover:bg-gray-400'
+                  }`}
+                >
+                  Buy Now
+                </button>
+              </div>
+            </div>
+
+            <button
+              onClick={handleNext}
+              className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors flex-shrink-0"
+              aria-label="Next"
+            >
+              <ChevronRight size={24} className="text-gray-800" />
+            </button>
+          </div>
+
+          {/* Indicators */}
+          <div className="flex justify-center gap-2 mt-4">
+            {coinPackages.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  idx === currentIndex ? 'bg-pink-600' : 'bg-gray-300'
+                }`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop Grid */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
+          {coinPackages.map((pkg) => (
+            <div
               key={pkg.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              whileHover={{ y: -12, scale: 1.02 }}
-              className={`rounded-3xl border backdrop-blur-xl transition-all duration-300 overflow-hidden group cursor-pointer ${
-                pkg.popular 
-                  ? 'border-amber-400 bg-white shadow-xl scale-105 relative' 
-                  : 'border-gray-200 bg-white shadow-lg hover:border-purple-300'
+              className={`relative rounded-xl border transition-all duration-200 p-6 text-center cursor-pointer ${ 
+                pkg.popular
+                  ? 'border-pink-300 bg-pink-50 shadow-lg scale-105'
+                  : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:shadow-md'
               }`}
             >
               {pkg.popular && (
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 text-xs font-black px-6 py-1.5 rounded-full shadow-lg z-10">
-                  ⭐ MOST POPULAR
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-pink-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                  Popular
                 </div>
               )}
               
-              <div className="p-8 relative h-full flex flex-col">
-                {/* Gradient Background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${pkg.color} opacity-5 group-hover:opacity-10 transition`}></div>
-
-                {/* Coin Amount Circle */}
-                <div className="text-center mb-8 relative z-10">
-                  <motion.div
-                    animate={{ y: [-8, 8, -8] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className={`w-24 h-24 bg-gradient-to-br ${pkg.color} rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl`}
-                  >
-                    <span className="text-white font-black text-4xl">{pkg.coins}</span>
-                  </motion.div>
-                  <h3 className="text-4xl font-black text-gray-900 mb-2">{pkg.coins}</h3>
-                  <p className="text-sm text-gray-600 font-semibold">Yugal Coins</p>
-                </div>
-
-                {/* Badge */}
-                {pkg.savings && (
-                  <div className="text-center mb-6 relative z-10">
-                    <span className={`inline-block bg-gradient-to-r ${pkg.color} text-white text-sm font-black px-4 py-1.5 rounded-full shadow-lg`}>
-                      {pkg.savings}
-                    </span>
-                  </div>
-                )}
-
-                {/* Price */}
-                <div className="mb-8 text-center relative z-10 flex-grow">
-                  <div className="text-5xl font-black text-gray-900 mb-2">
-                    रु {pkg.price}
-                  </div>
-                  <span className="text-gray-600 text-sm font-medium">One-time payment</span>
-                </div>
-
-                {/* Description */}
-                <p className="text-center text-gray-700 text-sm mb-8 relative z-10 h-10 flex items-center justify-center">
-                  {pkg.description}
-                </p>
-
-                {/* Button */}
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handlePurchase(pkg.id)}
-                  className={`w-full py-4 rounded-2xl font-black text-lg transition duration-300 shadow-xl relative z-10 group/btn overflow-hidden ${
-                    pkg.popular
-                      ? `bg-gradient-to-r ${pkg.color} text-white hover:shadow-2xl`
-                      : `bg-gray-700/50 text-white hover:bg-gray-600/70 border border-gray-600/50`
-                  }`}
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    <Zap className="w-5 h-5" />
-                    Get Coins Now
-                  </span>
-                </motion.button>
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <Sparkles size={20} className={pkg.popular ? 'text-pink-600' : 'text-gray-400'} />
+                <span className={`text-3xl font-bold ${pkg.popular ? 'text-pink-600' : 'text-gray-900'}`}>
+                  {pkg.coins}
+                </span>
               </div>
-            </motion.div>
+
+              <p className="text-sm text-gray-600 mb-4">{pkg.description}</p>
+
+              <div className="mb-6">
+                <div className="text-2xl font-bold text-gray-900">रु {pkg.price}</div>
+              </div>
+
+              <button
+                onClick={() => handlePurchase(pkg.id)}
+                className={`w-full py-3 rounded-lg font-semibold transition-colors duration-200 ${
+                  pkg.popular
+                    ? 'bg-pink-600 text-white hover:bg-pink-700'
+                    : 'bg-gray-300 text-gray-800 hover:bg-gray-400'
+                }`}
+              >
+                Buy Now
+              </button>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
         {/* Features Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-gradient-to-r from-gray-100 to-gray-50 rounded-3xl shadow-lg p-12 mb-16 border border-gray-200 backdrop-blur-xl"
-        >
-          <h2 className="text-4xl font-black text-gray-900 mb-12 text-center">Why Choose Yugal Coins?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <motion.div 
-              whileHover={{ y: -8 }}
-              className="text-center p-8 bg-white rounded-2xl hover:shadow-lg transition border border-gray-200 backdrop-blur-sm"
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-                <Sparkles className="text-white" size={32} />
+        <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">What Can You Do With Coins?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex gap-4">
+              <CreditCard className="text-pink-600 flex-shrink-0" size={24} />
+              <div>
+                <h3 className="font-semibold text-gray-900">Boost Posts</h3>
+                <p className="text-sm text-gray-600 mt-1">Increase visibility of your posts</p>
               </div>
-              <h3 className="font-black text-xl text-gray-900 mb-3">Boost Posts</h3>
-              <p className="text-gray-700 text-sm leading-relaxed">
-                Increase visibility and reach more users with post boosting features
-              </p>
-            </motion.div>
-
-            <motion.div 
-              whileHover={{ y: -8 }}
-              className="text-center p-8 bg-white rounded-2xl hover:shadow-lg transition border border-gray-200 backdrop-blur-sm"
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-                <CreditCard className="text-white" size={32} />
-              </div>
-              <h3 className="font-black text-xl text-gray-900 mb-3">Send Gifts</h3>
-              <p className="text-gray-700 text-sm leading-relaxed">
-                Show appreciation to users with virtual gifts and special rewards
-              </p>
-            </motion.div>
-
-            <motion.div 
-              whileHover={{ y: -8 }}
-              className="text-center p-8 bg-white rounded-2xl hover:shadow-lg transition border border-gray-200 backdrop-blur-sm"
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-                <Shield className="text-white" size={32} />
-              </div>
-              <h3 className="font-black text-xl text-gray-900 mb-3">Premium Access</h3>
-              <p className="text-gray-700 text-sm leading-relaxed">
-                Unlock exclusive features and access premium user benefits
-              </p>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Security & Trust */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="bg-gradient-to-r from-gray-50 to-white rounded-3xl p-12 border border-gray-200 shadow-lg backdrop-blur-xl"
-        >
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="flex-1">
-              <h2 className="text-4xl font-black text-gray-900 mb-6">Secure & Trusted</h2>
-              <p className="text-gray-700 mb-8 leading-relaxed text-lg">
-                Your payments are securely processed with industry-standard encryption. We never store your complete payment information.
-              </p>
-              <ul className="space-y-4">
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="text-green-600 flex-shrink-0" size={24} />
-                  <span className="text-gray-800 font-semibold text-lg">256-bit SSL encryption</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="text-green-600 flex-shrink-0" size={24} />
-                  <span className="text-gray-800 font-semibold text-lg">PCI DSS Level 1 compliant</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="text-green-600 flex-shrink-0" size={24} />
-                  <span className="text-gray-800 font-semibold text-lg">30-day money-back guarantee</span>
-                </li>
-              </ul>
             </div>
-            <div className="flex-1">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="bg-white rounded-2xl p-10 shadow-lg border border-gray-200 text-center backdrop-blur-sm"
-              >
-                <div className="flex items-center justify-center mb-6">
-                  <Shield className="text-green-600" size={64} />
-                </div>
-                <h3 className="font-black text-2xl text-gray-900 mb-3">
-                  Money-Back Guarantee
-                </h3>
-                <p className="text-gray-700 text-lg">
-                  Not satisfied? Get a full refund within 30 days.
-                </p>
-              </motion.div>
+            <div className="flex gap-4">
+              <Sparkles className="text-pink-600 flex-shrink-0" size={24} />
+              <div>
+                <h3 className="font-semibold text-gray-900">Send Gifts</h3>
+                <p className="text-sm text-gray-600 mt-1">Show appreciation with virtual gifts</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <Sparkles className="text-pink-600 flex-shrink-0" size={24} />
+              <div>
+                <h3 className="font-semibold text-gray-900">Premium Features</h3>
+                <p className="text-sm text-gray-600 mt-1">Unlock exclusive benefits</p>
+              </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Back Button */}
-        <div className="text-center mt-20">
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(-1)}
-            className="px-10 py-4 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-2xl font-black text-lg hover:from-gray-700 hover:to-gray-800 transition shadow-lg border border-gray-600 hover:border-gray-500"
-          >
-            ← Back to Home
-          </motion.button>
+        {/* FAQ Section */}
+        <div className="max-w-2xl">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked</h2>
+          <div className="space-y-4">
+            <div className="border border-gray-200 rounded-lg p-4">
+              <p className="font-semibold text-gray-900 mb-2">Are coins refundable?</p>
+              <p className="text-sm text-gray-600">Yes, we offer a 30-day money-back guarantee if you're not satisfied.</p>
+            </div>
+            <div className="border border-gray-200 rounded-lg p-4">
+              <p className="font-semibold text-gray-900 mb-2">How do I use my coins?</p>
+              <p className="text-sm text-gray-600">Use coins to boost posts, send gifts, or unlock premium features throughout the app.</p>
+            </div>
+            <div className="border border-gray-200 rounded-lg p-4">
+              <p className="font-semibold text-gray-900 mb-2">Is it secure?</p>
+              <p className="text-sm text-gray-600">All payments are processed securely with industry-standard encryption.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
