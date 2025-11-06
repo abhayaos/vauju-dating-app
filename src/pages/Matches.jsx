@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { motion } from "framer-motion";
+import { MessageCircle, MapPin, Zap } from "lucide-react";
 import DefaultAvatar from "../assets/dp.png";
 import { getProfileImage, handleImageError } from "../utils/imageUtils";
 import { useAuth } from "../context/AuthContext";
@@ -137,6 +138,8 @@ function Matches() {
     if (!authLoading) {
       fetchMatches();
     }
+    // Scroll to top on mount
+    window.scrollTo(0, 0);
   }, [authLoading, token]);
 
   /* ----------------------- FILTER ----------------------- */
@@ -342,16 +345,25 @@ function Matches() {
   const totalPages = Math.ceil(filteredProfiles.length / profilesPerPage);
 
   // Change page
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Previous page
   const prevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   // Next page
   const nextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -359,7 +371,12 @@ function Matches() {
       <Toaster position="top-center" reverseOrder={false} />
 
       {/* Header */}
-      <div className="text-center mb-10">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center mb-10"
+      >
         <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
           Meet Your{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
@@ -370,10 +387,15 @@ function Matches() {
           Discover handpicked, visibility-approved members ready to connect
           meaningfully.
         </p>
-      </div>
+      </motion.div>
 
       {/* Filters & Search */}
-      <div className="mb-10 space-y-4">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="mb-10 space-y-4"
+      >
         {/* Gender Buttons */}
         <div className="flex justify-center gap-3 flex-wrap">
           {["all", "female", "male"].map((filter) => (
@@ -436,7 +458,7 @@ function Matches() {
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Empty State */}
       {filteredProfiles.length === 0 ? (
@@ -444,6 +466,7 @@ function Matches() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
           className="bg-gradient-to-br from-pink-50 to-purple-50 border-2 border-dashed border-pink-200 rounded-3xl p-16 text-center"
         >
           <div className="bg-white bg-opacity-80 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-sm">
@@ -461,9 +484,7 @@ function Matches() {
               />
             </svg>
           </div>
-          <h3 className="text-2xl font-semibold text-gray-800 mb-3">
-            No matches found
-          </h3>
+          <h3 className="text-2xl font-semibold text-gray-800 mb-3">No matches found</h3>
           <p className="text-gray-600 max-w-md mx-auto">
             {searchQuery || genderFilter !== "all"
               ? "Try adjusting your filters or search for something else."
@@ -500,51 +521,49 @@ function Matches() {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5 }}
-                  whileHover={{ y: -8 }}
-                  className="group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-shadow duration-300 overflow-hidden border border-gray-100 cursor-pointer h-full flex flex-col"
+                  transition={{ duration: 0.4 }}
+                  className="group bg-white rounded-3xl shadow-sm overflow-hidden border border-gray-100 cursor-pointer h-full flex flex-col"
                   onClick={() => navigate(`/messages/${profile._id}`)}
                 >
                   {/* Avatar + optional badge */}
-                  <div className="relative h-56 bg-gradient-to-br from-pink-50 to-purple-50 overflow-hidden flex items-center justify-center">
+                  <div className="relative h-72 bg-gradient-to-br from-pink-50 to-purple-50 overflow-hidden flex items-center justify-center rounded-3xl">
                     <img
                       src={getProfileImage(profile)}
                       alt={profile.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 rounded-b-none"
+                      className="w-full h-full object-cover rounded-3xl"
                       onError={(e) => handleImageError(e, profile.gender)}
                     />
-                    <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
 
-                    {/* Chat-now pill */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="absolute bottom-3 right-3 bg-white bg-opacity-90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium text-pink-600 shadow-md"
-                    >
-                      Chat Now
-                    </motion.div>
-
-                    {/* Blue tick on avatar (top-right) */}
+                    {/* Verified Badge */}
                     {profile.isVerified && (
-                      <div className="absolute top-3 right-3 bg-blue-100 rounded-full p-1.5 shadow-md">
+                      <div className="absolute top-4 left-4 bg-blue-500 text-white rounded-full p-2 shadow-lg flex items-center justify-center z-10">
                         <BlueTick />
+                      </div>
+                    )}
+                    
+                    {/* Online Status */}
+                    {profile.isOnline && (
+                      <div className="absolute top-4 right-4 bg-green-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg z-10 flex items-center gap-1">
+                        <span className="inline-block w-2 h-2 bg-white rounded-full"></span> Online
                       </div>
                     )}
                   </div>
 
                   {/* Card body */}
-                  <div className="p-5 space-y-3 flex-1 flex flex-col">
-                    {/* Name + badge next to name */}
-                    <div className="flex items-center space-x-2">
-                      <h2 className="text-xl font-bold text-gray-900 truncate">
-                        {profile.name}
-                      </h2>
-                      {profile.isVerified && (
-                        <div className="bg-blue-50 rounded-full p-1 flex-shrink-0 flex items-center">
-                          <BlueTick />
-                        </div>
-                      )}
+                  <div className="p-6 space-y-3 flex-1 flex flex-col bg-white">
+                    {/* Name + age + verified badge */}
+                    <div className="flex items-center space-x-2 justify-between">
+                      <div className="flex items-center space-x-2 flex-1">
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          {profile.name}
+                          {profile.age && <span className="text-xl text-gray-600 font-normal">, {profile.age}</span>}
+                        </h2>
+                        {profile.isVerified && (
+                          <div className="bg-blue-50 rounded-full p-1 flex-shrink-0 flex items-center">
+                            <BlueTick />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Username */}
@@ -554,48 +573,62 @@ function Matches() {
                       </p>
                     )}
 
+                    {/* Location */}
+                    {profile.location && (
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <MapPin className="w-4 h-4" /> {profile.location}
+                      </p>
+                    )}
+
                     {/* Bio */}
-                    <p className="text-sm text-gray-600 line-clamp-2 flex-grow">
-                      {tagline}
+                    <p className="text-sm text-gray-700 line-clamp-2 flex-grow italic">
+                      "{profile.bio || 'Happy to connect!'}"
                     </p>
 
-                    {/* Age / Gender tags */}
-                    <div className="flex flex-wrap gap-2">
-                      {profile.age && (
-                        <span className="px-3 py-1 text-xs font-medium text-pink-700 bg-pink-100 rounded-full">
-                          {profile.age} yrs
+                    {/* Gender tag */}
+                    {profile.gender && (
+                      <div className="flex gap-2">
+                        <span className="px-3 py-1 text-xs font-bold text-purple-700 bg-purple-100 rounded-full capitalize">
+                          {profile.gender === 'male' ? 'Male' : 'Female'}
                         </span>
-                      )}
-                      {profile.gender && (
-                        <span className="px-3 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full capitalize">
-                          {profile.gender}
-                        </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                     {/* Interests */}
                     {interests.length > 0 && (
-                      <div className="pt-2 border-t border-gray-100 mt-auto">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                          Interests
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {interests.map((interest, idx) => (
+                      <div className="pt-3 border-t border-gray-200">
+                        <div className="flex items-center gap-1 mb-2">
+                          <Zap className="w-4 h-4 text-gray-500" />
+                          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Interests</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {interests.slice(0, 4).map((interest, idx) => (
                             <span
                               key={`${profile._id}-int-${idx}`}
-                              className="px-2.5 py-1 bg-gray-50 text-gray-700 text-xs rounded-full"
+                              className="px-3 py-1 bg-gradient-to-r from-pink-100 to-purple-100 text-gray-800 text-xs font-semibold rounded-full hover:from-pink-200 hover:to-purple-200 transition"
                             >
                               {interest}
                             </span>
                           ))}
-                          {profile.interests?.length > 5 && (
-                            <span className="px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">
-                              +{profile.interests.length - 5}
+                          {profile.interests?.length > 4 && (
+                            <span className="px-3 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded-full">
+                              +{profile.interests.length - 4} more
                             </span>
                           )}
                         </div>
                       </div>
                     )}
+                    
+                    {/* Chat-now button */}
+                    <motion.button
+                      onClick={() => navigate(`/messages/${profile._id}`)}
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="mt-4 w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg flex items-center justify-center gap-2 transition-all duration-200"
+                    >
+                      <MessageCircle className="w-4 h-4" /> Chat Now
+                    </motion.button>
                   </div>
                 </motion.article>
               );

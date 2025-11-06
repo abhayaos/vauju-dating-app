@@ -381,16 +381,26 @@ function Profile() {
         </div>
       )}
 
-      <div className="relative mb-4">
-        <img
-          src={getProfileImage(user)}
-          alt="Profile"
-          className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-blue-200 object-cover cursor-pointer ${
-            uploading ? "opacity-50" : ""
-          }`}
-          onClick={() => isOwnProfile && document.getElementById("profilePicInput").click()}
-          onError={(e) => handleImageError(e, user.gender)}
-        />
+      <div className="relative mb-6 w-full flex justify-center">
+        <div className="relative">
+          <img
+            src={getProfileImage(user)}
+            alt="Profile"
+            className={`w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52 rounded-full border-4 border-blue-300 object-cover cursor-pointer shadow-lg ${
+              uploading ? "opacity-50" : ""
+            }`}
+            onClick={() => isOwnProfile && document.getElementById("profilePicInput").click()}
+            onError={(e) => handleImageError(e, user.gender)}
+          />
+          {isOwnProfile && (
+            <div className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 cursor-pointer shadow-md transition">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+          )}
+        </div>
         {isOwnProfile && (
           <input
             type="file"

@@ -87,6 +87,7 @@ export const API_ENDPOINTS = {
   DELETE_POST: (id) => `/posts/${id}`,
   LIKE_POST: (id) => `/posts/${id}/like`,
   COMMENT_POST: (id) => `/posts/${id}/comments`,
+  SHARE_POST: (id) => `/posts/${id}/share`,
   
   // Users
   PROFILE: '/users/profile',
@@ -151,12 +152,9 @@ export const createApiClient = (token = null) => {
   };
 };
 
-export default {
-  API_BASE_URL,
-  BACKEND_URL,
-  getApiUrl,
-  getBackendUrl,
-  apiFetch,
-  createApiClient,
-  API_ENDPOINTS,
+// ... existing code ...
+export const getShareUrl = (postId) => {
+  return `${window.location.origin}/posts/${postId}`;
 };
+
+export const SHARE_POST_ENDPOINT = (postId) => `/api/posts/${postId}/share`;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, CheckCircle2, X, Send, Sparkles, Users, Bell, Calendar, MapPin, Award } from 'lucide-react';
+import { Heart, MessageCircle, CheckCircle2, X, Send, Sparkles, Users, Bell, Calendar, MapPin, Award, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ProfileImage from '../assets/dp.png';
 import PostModel from '../Models/PostModel';
@@ -264,6 +264,51 @@ function Home() {
   const handleCommentDraftChange = (postId, value) => {
     setCommentDrafts((prev) => ({ ...prev, [postId]: value }));
   };
+  const generatePostShareUrl = (postId) => {
+    return `${window.location.origin}/posts/${postId}`;
+  };
+
+  const handleShare = (postId) => {
+    const shareUrl = generatePostShareUrl(postId);
+    
+    // Store share in database
+    storeShare(postId);
+    
+    // Copy link to clipboard
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert('Post link copied to clipboard!');
+    }).catch(() => {
+      alert(`Share this link: ${shareUrl}`);
+    });
+  };
+
+  const storeShare = async (postId) => {
+    try {
+      if (!token || !currentUserId) {
+        return;
+      }
+      const endpoint = `/api/posts/${postId}/share`;
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId: currentUserId,
+          sharedAt: new Date().toISOString(),
+        }),
+      });
+      if (!res.ok) {
+        console.error('Failed to store share:', res.status);
+      } else {
+        console.log('Share recorded successfully');
+      }
+    } catch (err) {
+      console.error('Error storing share:', err);
+    }
+  };
+
   const handleCommentSubmit = async (rawId) => {
     const postId = String(rawId);
     if (!token || !currentUserId) {
@@ -571,6 +616,16 @@ function Home() {
             </button>
             <span className="text-sm font-medium text-gray-700">{commentsCount}</span>
           </div>
+          <div className="relative">
+            <button
+              onClick={() => handleShare(postId)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:border-blue-200 hover:text-blue-600 transition"
+              aria-label="Share this post"
+              type="button"
+            >
+              <Share2 strokeWidth={1.8} className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -692,17 +747,22 @@ function Home() {
                       .map((_, index) => <SkeletonCard key={index} />)
                   ) : hasContent ? (
                     <>
-                      {posts.map((post) => renderPostCard(post))}
                       {posts.map((post) => {
                         const postId = String(post._id || post.id);
-                        return openCommentPopup === postId ? (
-                          <CommentPopup
-                            key={`comment-${postId}`}
-                            post={post}
-                            onClose={() => setOpenCommentPopup(null)}
-                          />
-                        ) : null;
+                        return (
+                          <React.Fragment key={`post-${postId}`}>
+                            {renderPostCard(post)}
+                            {openCommentPopup === postId && (
+                              <CommentPopup
+                                post={post}
+                                onClose={() => setOpenCommentPopup(null)}
+                              />
+                            )}
+                          </React.Fragment>
+                        );
                       })}
+                      {/* Removed duplicate mapping - comments handled above */}
+                      {/* Comment popups moved above to avoid duplication */}
                     </>
                   ) : (
                     <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-200">
