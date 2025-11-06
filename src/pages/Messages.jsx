@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Search, MessageCircle } from "lucide-react";
+import { Search, MessageCircle, Wifi, WifiOff } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { getProfileImage, handleImageError } from "../utils/imageUtils";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
 import Header from "../components/Header";
@@ -14,18 +15,34 @@ function Messages() {
   const navigate = useNavigate();
   const { userId } = useParams();
   const { token } = useAuth();
+  const isOnline = useOnlineStatus();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("inbox");
   const [selectedConversation, setSelectedConversation] = useState(userId || null);
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState([]);
 
+  // Redirect to home if offline
   useEffect(() => {
-    fetchConversations();
-  }, [token]);
+    if (!isOnline) {
+      // Show offline message for 2 seconds before redirecting
+      const timer = setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOnline, navigate]);
+
+  useEffect(() => {
+    if (isOnline) {
+      fetchConversations();
+    } else {
+      setLoading(false);
+    }
+  }, [token, isOnline]);
 
   const fetchConversations = async () => {
-    if (!token) {
+    if (!token || !isOnline) {
       setLoading(false);
       return;
     }
@@ -65,6 +82,37 @@ function Messages() {
     navigate(`/messages/${conversationId}`);
   };
 
+  // Show offline message
+  if (!isOnline) {
+    return (
+      <div className="flex flex-col md:flex-row min-h-screen bg-white">
+        <div className="hidden md:block">
+          <Navbar />
+        </div>
+        <div className="flex-1 flex flex-col md:pl-[70px] w-full">
+          <div className="flex items-center justify-center h-full">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center p-6 max-w-md"
+            >
+              <WifiOff className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                No Internet Connection
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Messages require an active internet connection. Please check your connection and try again.
+              </p>
+              <p className="text-sm text-gray-500">
+                Redirecting to home page...
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col md:flex-row min-h-screen bg-white">
@@ -94,13 +142,25 @@ function Messages() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-white">
+      {/* Connection Status Indicator */}
+      {!isOnline && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed top-0 left-0 right-0 bg-red-50 border-b border-red-200 p-3 z-50 flex items-center justify-center gap-2"
+        >
+          <WifiOff className="w-4 h-4 text-red-600" />
+          <span className="text-red-700 font-medium">No internet connection</span>
+        </motion.div>
+      )}
+
       {/* Desktop Navbar */}
       <div className="hidden md:block">
         <Navbar />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col md:pl-[70px] w-full">
+      <div className="flex-1 flex flex-col md:pl-[70px] w-full" style={!isOnline ? { marginTop: '56px' } : {}}>
         {/* Mobile Header */}
       
         {/* Messages Container */}

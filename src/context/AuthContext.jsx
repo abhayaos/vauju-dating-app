@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { isTokenExpired } from '../utils/auth';
 
 export const AuthContext = createContext();
@@ -101,7 +101,8 @@ export const AuthProvider = ({ children }) => {
 
   const isLoggedIn = !!token;
 
-  const value = {
+  // Memoize the value object to prevent unnecessary re-renders of consumers
+  const value = useMemo(() => ({
     token,
     user,
     loading,
@@ -109,7 +110,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateUser,
-  };
+  }), [token, user, loading, isLoggedIn, login, logout, updateUser]);
 
   return (
     <AuthContext.Provider value={value}>

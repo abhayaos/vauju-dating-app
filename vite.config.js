@@ -15,9 +15,6 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
-      },
       manifest: {
         name: 'AuraMeet',
         short_name: 'AuraMeet',
@@ -46,6 +43,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === 'document',
@@ -92,6 +90,38 @@ export default defineConfig({
   },
 
   build: {
-    rollupOptions: {},
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['framer-motion', 'lucide-react', 'react-icons'],
+          'vendor-utils': ['axios', 'js-cookie', 'jwt-decode', 'socket.io-client'],
+        },
+        chunkFileNames: 'js/[name]-[hash].js',
+        entryFileNames: 'js/[name]-[hash].js',
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name.split('.');
+          const ext = info[info.length - 1];
+          if (/png|jpe?g|gif|svg/.test(ext)) {
+            return `images/[name]-[hash][extname]`;
+          } else if (/woff|woff2|eot|ttf|otf/.test(ext)) {
+            return `fonts/[name]-[hash][extname]`;
+          } else if (ext === 'css') {
+            return `css/[name]-[hash][extname]`;
+          }
+          return `[name]-[hash][extname]`;
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+    sourcemap: false,
+    reportCompressedSize: false,
   },
 });

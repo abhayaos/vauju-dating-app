@@ -1,287 +1,320 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, CreditCard, Shield, CheckCircle } from 'lucide-react';
+import { Sparkles, CreditCard, Shield, CheckCircle, WifiOff, Zap, Gem } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
 
 function BuyCoins() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate loading for 4 seconds
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 4000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const isOnline = useOnlineStatus();
+  const [loading] = useState(false);
 
   const coinPackages = [
     {
       id: 1,
-      coins: 100,
-      price: 250,
+      coins: 10,
+      price: 10,
       popular: false,
-      savings: null
+      savings: null,
+      description: "Perfect for getting started",
+      color: "from-blue-500 to-cyan-500"
     },
     {
       id: 2,
-      coins: 500,
-      price: 999,
+      coins: 10,
+      price: 10,
       popular: true,
-      savings: "20% OFF"
+      savings: "Best Value",
+      description: "Most popular choice",
+      color: "from-purple-500 to-pink-500"
     },
     {
       id: 3,
-      coins: 1200,
-      price: 1999,
+      coins: 10,
+      price: 10,
       popular: false,
-      savings: "30% OFF"
+      savings: null,
+      description: "Great for heavy users",
+      color: "from-green-500 to-emerald-500"
     },
     {
       id: 4,
-      coins: 2500,
-      price: 3499,
+      coins: 10,
+      price: 10,
       popular: false,
-      savings: "40% OFF"
+      savings: null,
+      description: "Maximum value",
+      color: "from-orange-500 to-red-500"
     }
   ];
 
   const handlePurchase = (packageId) => {
-    // In a real app, this would integrate with a payment processor
     alert(`Thank you for purchasing coin package #${packageId}! In a real app, this would redirect to a payment processor.`);
   };
 
-  // Skeleton loading component
-  const SkeletonLoader = () => (
-    <div className="min-h-screen bg-white py-12 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header Skeleton */}
-        <div className="text-center mb-12 animate-pulse">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gray-200 rounded-full"></div>
-          </div>
-          <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-3"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
-        </div>
-
-        {/* Coin Packages Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {[1, 2, 3, 4].map((item) => (
-            <div key={item} className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6 animate-pulse">
-              <div className="text-center mb-5">
-                <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-3"></div>
-                <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto"></div>
-              </div>
-              <div className="mb-6">
-                <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto"></div>
-              </div>
-              <div className="h-10 bg-gray-200 rounded-xl"></div>
-            </div>
-          ))}
-        </div>
-
-        {/* Features Skeleton */}
-        <div className="bg-gray-50 rounded-2xl shadow-lg p-8 mb-12 animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="text-center p-4 bg-white rounded-xl shadow-sm">
-                <div className="w-12 h-12 bg-gray-200 rounded-full mx-auto mb-4"></div>
-                <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-full mx-auto"></div>
-                <div className="h-4 bg-gray-200 rounded w-4/5 mx-auto mt-2"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Security & Trust Skeleton */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100 animate-pulse">
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="flex-1 mb-6 md:mb-0 md:pr-8">
-              <div className="h-8 bg-gray-200 rounded w-1/3 mb-3"></div>
-              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-5/6 mb-4"></div>
-              <div className="space-y-2">
-                {[1, 2, 3].map((item) => (
-                  <div key={item} className="flex items-center">
-                    <div className="w-5 h-5 bg-gray-200 rounded-full mr-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex-1">
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
-                </div>
-                <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-full mx-auto"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+  // Show offline message
+  if (!isOnline) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center max-w-md"
+        >
+          <WifiOff className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">
+            No Internet Connection
+          </h2>
+          <p className="text-gray-300 mb-4">
+            Purchasing coins requires an active internet connection. Please check your connection and try again.
+          </p>
+          <p className="text-sm text-gray-400">
+            Redirecting to home page...
+          </p>
+        </motion.div>
       </div>
-    </div>
-  );
-
-  if (loading) {
-    return <SkeletonLoader />;
+    );
   }
 
   return (
-    <div className="min-h-screen bg-white py-12 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                <span className="text-yellow-500 font-bold text-lg">YC</span>
-              </div>
-            </div>
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">Buy Yugal Coins</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Get Yugal Coins to boost your posts, send gifts, and unlock premium features
-          </p>
-        </div>
+    <div className="min-h-screen bg-white py-16 px-4 sm:px-6 relative overflow-hidden">
+      {/* Removed: Animated Background Elements */}
 
-        {/* Coin Packages */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {coinPackages.map((pkg) => (
-            <div 
+      {/* Connection Status Indicator */}
+      {!isOnline && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed top-0 left-0 right-0 bg-red-500/10 border-b border-red-500/30 p-3 z-50 flex items-center justify-center gap-2 backdrop-blur-sm"
+        >
+          <WifiOff className="w-4 h-4 text-red-400" />
+          <span className="text-red-300 font-medium">No internet connection</span>
+        </motion.div>
+      )}
+
+      <div className="max-w-6xl mx-auto relative z-10">
+        {/* Enhanced Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-20"
+        >
+          <div className="flex justify-center mb-8">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="relative"
+            >
+              <div className="w-24 h-24 bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-2xl">
+                <Gem className="w-12 h-12 text-white" />
+              </div>
+            </motion.div>
+          </div>
+          <h1 className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-yellow-600 to-orange-600 mb-4 leading-tight">
+            Get Yugal Coins
+          </h1>
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed font-light">
+            Boost your profile, send gifts, and unlock premium features
+          </p>
+        </motion.div>
+
+        {/* Coin Packages - Enhanced Design */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20"
+        >
+          {coinPackages.map((pkg, idx) => (
+            <motion.div 
               key={pkg.id}
-              className={`bg-white rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              whileHover={{ y: -12, scale: 1.02 }}
+              className={`rounded-3xl border backdrop-blur-xl transition-all duration-300 overflow-hidden group cursor-pointer ${
                 pkg.popular 
-                  ? 'border-yellow-400 transform scale-105 relative' 
-                  : 'border-gray-100'
+                  ? 'border-amber-400 bg-white shadow-xl scale-105 relative' 
+                  : 'border-gray-200 bg-white shadow-lg hover:border-purple-300'
               }`}
             >
               {pkg.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold px-4 py-1 rounded-full">
-                  MOST POPULAR
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-400 to-orange-500 text-gray-900 text-xs font-black px-6 py-1.5 rounded-full shadow-lg z-10">
+                  ⭐ MOST POPULAR
                 </div>
               )}
-              <div className="p-6">
-                <div className="text-center mb-5">
-                  <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <span className="text-yellow-600 font-bold text-xl">{pkg.coins}</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900">{pkg.coins} Coins</h3>
-                  {pkg.savings && (
-                    <span className="inline-block mt-2 bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+              
+              <div className="p-8 relative h-full flex flex-col">
+                {/* Gradient Background */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${pkg.color} opacity-5 group-hover:opacity-10 transition`}></div>
+
+                {/* Coin Amount Circle */}
+                <div className="text-center mb-8 relative z-10">
+                  <motion.div
+                    animate={{ y: [-8, 8, -8] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    className={`w-24 h-24 bg-gradient-to-br ${pkg.color} rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl`}
+                  >
+                    <span className="text-white font-black text-4xl">{pkg.coins}</span>
+                  </motion.div>
+                  <h3 className="text-4xl font-black text-gray-900 mb-2">{pkg.coins}</h3>
+                  <p className="text-sm text-gray-600 font-semibold">Yugal Coins</p>
+                </div>
+
+                {/* Badge */}
+                {pkg.savings && (
+                  <div className="text-center mb-6 relative z-10">
+                    <span className={`inline-block bg-gradient-to-r ${pkg.color} text-white text-sm font-black px-4 py-1.5 rounded-full shadow-lg`}>
                       {pkg.savings}
                     </span>
-                  )}
-                </div>
-                
-                <div className="mb-6">
-                  <div className="text-center">
-                    <span className="text-3xl font-bold text-gray-900">रु {pkg.price}</span>
-                    <span className="text-gray-500 text-sm">/one-time</span>
                   </div>
+                )}
+
+                {/* Price */}
+                <div className="mb-8 text-center relative z-10 flex-grow">
+                  <div className="text-5xl font-black text-gray-900 mb-2">
+                    रु {pkg.price}
+                  </div>
+                  <span className="text-gray-600 text-sm font-medium">One-time payment</span>
                 </div>
-                
-                <button
+
+                {/* Description */}
+                <p className="text-center text-gray-700 text-sm mb-8 relative z-10 h-10 flex items-center justify-center">
+                  {pkg.description}
+                </p>
+
+                {/* Button */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => handlePurchase(pkg.id)}
-                  className={`w-full py-3 rounded-xl font-semibold transition ${
+                  className={`w-full py-4 rounded-2xl font-black text-lg transition duration-300 shadow-xl relative z-10 group/btn overflow-hidden ${
                     pkg.popular
-                      ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600 shadow-md'
-                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                      ? `bg-gradient-to-r ${pkg.color} text-white hover:shadow-2xl`
+                      : `bg-gray-700/50 text-white hover:bg-gray-600/70 border border-gray-600/50`
                   }`}
                 >
-                  Get Coins
-                </button>
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <Zap className="w-5 h-5" />
+                    Get Coins Now
+                  </span>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        {/* Features */}
-        <div className="bg-gray-50 rounded-2xl shadow-lg p-8 mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">What You Can Do With Yugal Coins</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-white rounded-xl shadow-sm">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="text-blue-600" size={24} />
+        {/* Features Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-gradient-to-r from-gray-100 to-gray-50 rounded-3xl shadow-lg p-12 mb-16 border border-gray-200 backdrop-blur-xl"
+        >
+          <h2 className="text-4xl font-black text-gray-900 mb-12 text-center">Why Choose Yugal Coins?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <motion.div 
+              whileHover={{ y: -8 }}
+              className="text-center p-8 bg-white rounded-2xl hover:shadow-lg transition border border-gray-200 backdrop-blur-sm"
+            >
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <Sparkles className="text-white" size={32} />
               </div>
-              <h3 className="font-semibold text-lg text-gray-900 mb-2">Boost Posts</h3>
-              <p className="text-gray-600">
-                Increase visibility of your posts to reach more users
+              <h3 className="font-black text-xl text-gray-900 mb-3">Boost Posts</h3>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Increase visibility and reach more users with post boosting features
               </p>
-            </div>
-            <div className="text-center p-4 bg-white rounded-xl shadow-sm">
-              <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CreditCard className="text-pink-600" size={24} />
+            </motion.div>
+
+            <motion.div 
+              whileHover={{ y: -8 }}
+              className="text-center p-8 bg-white rounded-2xl hover:shadow-lg transition border border-gray-200 backdrop-blur-sm"
+            >
+              <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <CreditCard className="text-white" size={32} />
               </div>
-              <h3 className="font-semibold text-lg text-gray-900 mb-2">Send Gifts</h3>
-              <p className="text-gray-600">
-                Show appreciation to other users with virtual gifts
+              <h3 className="font-black text-xl text-gray-900 mb-3">Send Gifts</h3>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Show appreciation to users with virtual gifts and special rewards
               </p>
-            </div>
-            <div className="text-center p-4 bg-white rounded-xl shadow-sm">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="text-purple-600" size={24} />
+            </motion.div>
+
+            <motion.div 
+              whileHover={{ y: -8 }}
+              className="text-center p-8 bg-white rounded-2xl hover:shadow-lg transition border border-gray-200 backdrop-blur-sm"
+            >
+              <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <Shield className="text-white" size={32} />
               </div>
-              <h3 className="font-semibold text-lg text-gray-900 mb-2">Premium Features</h3>
-              <p className="text-gray-600">
-                Unlock exclusive features and benefits
+              <h3 className="font-black text-xl text-gray-900 mb-3">Premium Access</h3>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Unlock exclusive features and access premium user benefits
               </p>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Security & Trust */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="flex-1 mb-6 md:mb-0 md:pr-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Secure & Trusted</h2>
-              <p className="text-gray-600 mb-4">
-                Your payments are securely processed with industry-standard encryption. 
-                We never store your payment information.
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="bg-gradient-to-r from-gray-50 to-white rounded-3xl p-12 border border-gray-200 shadow-lg backdrop-blur-xl"
+        >
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-1">
+              <h2 className="text-4xl font-black text-gray-900 mb-6">Secure & Trusted</h2>
+              <p className="text-gray-700 mb-8 leading-relaxed text-lg">
+                Your payments are securely processed with industry-standard encryption. We never store your complete payment information.
               </p>
-              <ul className="space-y-2">
-                <li className="flex items-center">
-                  <CheckCircle className="text-green-500 mr-2" size={20} />
-                  <span className="text-gray-700">256-bit SSL encryption</span>
+              <ul className="space-y-4">
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="text-green-600 flex-shrink-0" size={24} />
+                  <span className="text-gray-800 font-semibold text-lg">256-bit SSL encryption</span>
                 </li>
-                <li className="flex items-center">
-                  <CheckCircle className="text-green-500 mr-2" size={20} />
-                  <span className="text-gray-700">PCI DSS compliant</span>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="text-green-600 flex-shrink-0" size={24} />
+                  <span className="text-gray-800 font-semibold text-lg">PCI DSS Level 1 compliant</span>
                 </li>
-                <li className="flex items-center">
-                  <CheckCircle className="text-green-500 mr-2" size={20} />
-                  <span className="text-gray-700">30-day money-back guarantee</span>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="text-green-600 flex-shrink-0" size={24} />
+                  <span className="text-gray-800 font-semibold text-lg">30-day money-back guarantee</span>
                 </li>
               </ul>
             </div>
             <div className="flex-1">
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <div className="flex items-center justify-center mb-4">
-                  <Shield className="text-blue-600" size={48} />
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="bg-white rounded-2xl p-10 shadow-lg border border-gray-200 text-center backdrop-blur-sm"
+              >
+                <div className="flex items-center justify-center mb-6">
+                  <Shield className="text-green-600" size={64} />
                 </div>
-                <h3 className="text-center font-semibold text-lg text-gray-900 mb-2">
+                <h3 className="font-black text-2xl text-gray-900 mb-3">
                   Money-Back Guarantee
                 </h3>
-                <p className="text-center text-gray-600 text-sm">
-                  Not satisfied? Get a full refund within 30 days of purchase.
+                <p className="text-gray-700 text-lg">
+                  Not satisfied? Get a full refund within 30 days.
                 </p>
-              </div>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Back Button */}
-        <div className="text-center mt-10">
-          <button
+        <div className="text-center mt-20">
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => navigate(-1)}
-            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition"
+            className="px-10 py-4 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-2xl font-black text-lg hover:from-gray-700 hover:to-gray-800 transition shadow-lg border border-gray-600 hover:border-gray-500"
           >
             ← Back to Home
-          </button>
+          </motion.button>
         </div>
       </div>
     </div>

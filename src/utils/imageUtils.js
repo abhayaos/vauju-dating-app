@@ -168,6 +168,95 @@ export const fileToBase64 = (file) => {
   });
 };
 
+/**
+ * Create lazy loading image with intersection observer
+ * @param {HTMLImageElement} imgElement - Image element to observe
+ * @param {Object} options - Intersection observer options
+ */
+export const lazyLoadImage = (imgElement, options = {}) => {
+  const defaultOptions = {
+    root: null,
+    rootMargin: '50px',
+    threshold: 0.01,
+    ...options,
+  };
+
+  if (!('IntersectionObserver' in window)) {
+    // Fallback for browsers without IntersectionObserver
+    imgElement.src = imgElement.dataset.src;
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        const src = img.dataset.src;
+        if (src) {
+          img.src = src;
+          img.classList.remove('lazy');
+          observer.unobserve(img);
+        }
+      }
+    });
+  }, defaultOptions);
+
+  observer.observe(imgElement);
+  return observer;
+};
+
+/**
+ * Get responsive image URL with srcset for different screen sizes
+ * @param {string} url - Base image URL
+ * @param {Array} sizes - Array of width sizes [320, 640, 1280]
+ * @returns {string} - srcset attribute value
+ */
+export const getResponsiveImageSrcset = (url, sizes = [320, 640, 1280]) => {
+  if (!isCloudinaryUrl(url)) {
+    return url;
+  }
+
+  return sizes
+    .map((size) => {
+      const optimized = getOptimizedCloudinaryUrl(url, {
+        quality: 'auto',
+        fetch_format: 'auto',
+        width: size,
+      });
+      return `${optimized} ${size}w`;
+    })
+    .join(', ');
+};
+
+/**
+ * Preload image for better UX
+ * @param {string} url - Image URL to preload
+ */
+export const preloadImage = (url) => {
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'image';
+  link.href = url;
+  document.head.appendChild(link);
+};
+
+/**
+ * Create blur-up placeholder
+ * @param {string} url - Image URL
+ * @param {Object} options - Blur options
+ * @returns {string} - Base64 blur image
+ */
+export const createBlurPlaceholder = (url, options = { width: 20, quality: 20 }) => {
+  if (!isCloudinaryUrl(url)) {
+    return url;
+  }
+  return getOptimizedCloudinaryUrl(url, {
+    quality: options.quality,
+    fetch_format: 'auto',
+    width: options.width,
+  });
+};
+
 export default {
   getSafeImageUrl,
   getProfileImage,
@@ -176,6 +265,10 @@ export default {
   getOptimizedCloudinaryUrl,
   validateImageFile,
   fileToBase64,
+  lazyLoadImage,
+  getResponsiveImageSrcset,
+  preloadImage,
+  createBlurPlaceholder,
   DEFAULT_AVATAR,
   FALLBACK_AVATARS,
 };
