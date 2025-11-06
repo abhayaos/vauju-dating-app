@@ -4,7 +4,7 @@ import { Heart, MessageCircle, CheckCircle2, X, Send, Sparkles, Users, Bell, Cal
 import { motion } from 'framer-motion';
 import ProfileImage from '../assets/dp.png';
 import PostModel from '../Models/PostModel';
-import SwipeCard from '../components/SwipeCard';
+
 import UrlPreview from '../components/UrlPreview';
 import { getProfileImage, handleImageError } from '../utils/imageUtils';
 import { useAuth } from '../context/AuthContext';
@@ -80,7 +80,7 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [swipeMode, setSwipeMode] = useState(false);
+
   const [expandedPosts, setExpandedPosts] = useState([]);
   const [pendingLikes, setPendingLikes] = useState({});
   const [pendingComments, setPendingComments] = useState({});
@@ -155,47 +155,7 @@ function Home() {
   useEffect(() => {
     fetchProfiles();
   }, [fetchProfiles]);
-  const handleSwipeLeft = async (profileId) => {
-    // Pass action
-    setCurrentIndex(prev => prev + 1);
-    try {
-      if (!token) return;
 
-      await fetch(
-        `https://backend-vauju-1.onrender.com/api/matches/${profileId}/pass`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
-    } catch (err) {
-      console.error('Pass error:', err);
-    }
-  };
-
-  const handleSwipeRight = async (profileId) => {
-    // Like action
-    setCurrentIndex(prev => prev + 1);
-    try {
-      if (!token) return;
-
-      await fetch(
-        `https://backend-vauju-1.onrender.com/api/matches/${profileId}/like`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
-    } catch (err) {
-      console.error('Like error:', err);
-    }
-  };
 
   const truncateContent = (text, words = 30) => {
     if (!text) return '';
@@ -646,12 +606,6 @@ function Home() {
                 </h1>
               </div>
               <div className="flex items-center gap-4">
-                <button 
-                  onClick={() => setSwipeMode(!swipeMode)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl hover:from-pink-600 hover:to-purple-700 transition font-medium"
-                >
-                  {swipeMode ? 'Feed Mode' : 'Swipe Mode'}
-                </button>
                 <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-xl hover:bg-gray-100 transition">
                   <Bell className="h-4 w-4" />
                   <span className="text-sm font-medium">Notifications</span>
@@ -686,51 +640,7 @@ function Home() {
 
         {/* Main Content */}
         <div className="max-w-6xl mx-auto px-6 py-4 md:ml-20 ml-0">
-          {swipeMode ? (
-            <div className="flex flex-col items-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Discover Matches</h2>
-              <div className="relative w-full max-w-sm h-[500px]">
-                {profiles.length > 0 && currentIndex < profiles.length ? (
-                  <SwipeCard 
-                    profile={profiles[currentIndex]} 
-                    onSwipeLeft={handleSwipeLeft}
-                    onSwipeRight={handleSwipeRight}
-                  />
-                ) : (
-                  <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-200 w-full h-full flex flex-col items-center justify-center">
-                    <p className="text-gray-500 text-lg mb-4">
-                      {profiles.length === 0 
-                        ? "No profiles available at the moment." 
-                        : "You've viewed all profiles!"}
-                    </p>
-                    <button 
-                      onClick={fetchProfiles}
-                      className="bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-6 rounded-xl hover:from-pink-600 hover:to-purple-700 transition font-medium"
-                    >
-                      Refresh
-                    </button>
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-6 mt-8">
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => profiles[currentIndex] && handleSwipeLeft(profiles[currentIndex]._id)}
-                  className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shadow-lg hover:bg-red-600 transition"
-                >
-                  <X className="text-white" size={24} />
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => profiles[currentIndex] && handleSwipeRight(profiles[currentIndex]._id)}
-                  className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center shadow-lg hover:bg-green-600 transition"
-                >
-                  <Heart className="text-white" size={24} fill="white" />
-                </motion.button>
-              </div>
-            </div>
-          ) : (
-            <>
+          <>
               <PostModel onPostCreated={fetchPosts} />
               {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
@@ -872,112 +782,59 @@ function Home() {
                   </div>
                 </div>
               </div>
-            </>
-          )}
+          </>
         </div>
       </div>
 
       {/* Mobile Feed Section */}
       <div className="md:hidden flex-1 p-4 bg-gray-50">
-        <div className="mb-4 flex justify-between items-center">
+        <div className="mb-4">
           <h2 className="text-xl font-bold text-gray-900">Feed</h2>
-          <button 
-            onClick={() => setSwipeMode(!swipeMode)}
-            className="px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-sm rounded-lg hover:from-pink-600 hover:to-purple-700 transition font-medium"
-          >
-            {swipeMode ? 'Feed' : 'Swipe'}
-          </button>
         </div>
         
-        {swipeMode ? (
-          <div className="flex flex-col items-center">
-            <div className="relative w-full h-[500px]">
-              {profiles.length > 0 && currentIndex < profiles.length ? (
-                <SwipeCard 
-                  profile={profiles[currentIndex]} 
-                  onSwipeLeft={handleSwipeLeft}
-                  onSwipeRight={handleSwipeRight}
-                />
-              ) : (
-                <div className="bg-white rounded-2xl p-6 text-center shadow-sm border border-gray-200 w-full h-full flex flex-col items-center justify-center">
-                  <p className="text-gray-500 text-lg mb-4">
-                    {profiles.length === 0 
-                      ? "No profiles available at the moment." 
-                      : "You've viewed all profiles!"}
-                  </p>
-                  <button 
-                    onClick={fetchProfiles}
-                    className="bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-6 rounded-xl hover:from-pink-600 hover:to-purple-700 transition font-medium"
-                  >
-                    Refresh
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="flex gap-6 mt-6">
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => profiles[currentIndex] && handleSwipeLeft(profiles[currentIndex]._id)}
-                className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center shadow-lg hover:bg-red-600 transition"
-              >
-                <X className="text-white" size={20} />
-              </motion.button>
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => profiles[currentIndex] && handleSwipeRight(profiles[currentIndex]._id)}
-                className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-lg hover:bg-green-600 transition"
-              >
-                <Heart className="text-white" size={20} fill="white" />
-              </motion.button>
-            </div>
+        <div className="mb-4">
+          <PostModel onPostCreated={fetchPosts} />
+        </div>
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-600 text-sm rounded-xl text-center">
+            {error}
           </div>
-        ) : (
-          <>
-            <div className="mb-4">
-              <PostModel onPostCreated={fetchPosts} />
-            </div>
-            {error && (
-              <div className="mb-4 p-3 bg-red-100 text-red-600 text-sm rounded-xl text-center">
-                {error}
-              </div>
-            )}
-            <div className="flex flex-col gap-4">
-              {loading ? (
-                Array(3)
-                  .fill(0)
-                  .map((_, index) => <SkeletonCard key={index} />)
-              ) : hasContent ? (
-                posts.map((post) => renderPostCard(post))
-              ) : (
-                <p className="text-gray-500 text-center text-sm py-8">
-                  No posts available. Create one to get started!
-                </p>
-              )}
-            </div>
-            {/* Yugal Coins Section - Mobile */}
-            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-5 shadow-sm border border-yellow-200 mt-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                    YC
-                  </div>
-                  <span className="text-sm">Yugal Coins</span>
-                </h3>
-                <span className="text-lg font-bold text-yellow-600">{stats.coins}</span>
-              </div>
-              <p className="text-xs text-gray-600 mb-3">
-                Use coins to boost posts, send gifts, or unlock premium features.
-              </p>
-              <button 
-                onClick={() => navigate('/buy-coins')}
-                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-2 rounded-lg hover:from-yellow-600 hover:to-orange-700 transition font-medium flex items-center justify-center gap-2 text-sm"
-              >
-                <Sparkles className="h-3 w-3" />
-                Get More Coins - रु 250
-              </button>
-            </div>
-          </>
         )}
+        <div className="flex flex-col gap-4">
+          {loading ? (
+            Array(3)
+              .fill(0)
+              .map((_, index) => <SkeletonCard key={index} />)
+          ) : hasContent ? (
+            posts.map((post) => renderPostCard(post))
+          ) : (
+            <p className="text-gray-500 text-center text-sm py-8">
+              No posts available. Create one to get started!
+            </p>
+          )}
+        </div>
+        {/* Yugal Coins Section - Mobile */}
+        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-5 shadow-sm border border-yellow-200 mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-gray-900 flex items-center gap-2">
+              <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                YC
+              </div>
+              <span className="text-sm">Yugal Coins</span>
+            </h3>
+            <span className="text-lg font-bold text-yellow-600">{stats.coins}</span>
+          </div>
+          <p className="text-xs text-gray-600 mb-3">
+            Use coins to boost posts, send gifts, or unlock premium features.
+          </p>
+          <button 
+            onClick={() => navigate('/buy-coins')}
+            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-2 rounded-lg hover:from-yellow-600 hover:to-orange-700 transition font-medium flex items-center justify-center gap-2 text-sm"
+          >
+            <Sparkles className="h-3 w-3" />
+            Get More Coins - रु 250
+          </button>
+        </div>
       </div>
     </div>
   );
