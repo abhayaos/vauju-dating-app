@@ -365,7 +365,7 @@ function PostDetail() {
                       <div className="ml-3 flex-1">
                         <div className="bg-gray-100 rounded-lg p-3">
                           <p className="text-gray-700 text-sm">
-                            {comment.text}
+                            {comment.text || comment.content}
                           </p>
                         </div>
                       </div>

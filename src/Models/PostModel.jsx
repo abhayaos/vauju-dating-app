@@ -28,7 +28,9 @@ function PostModel({ onPostCreated }) {
   const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId;
   const canPost = !!currentUser?.canPost;
 
-  // Auto-resize textarea
+  // ============================================
+  // AUTO-RESIZE TEXTAREA - Adjusts height based on content
+  // ============================================
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -36,12 +38,16 @@ function PostModel({ onPostCreated }) {
     textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
   }, [content]);
 
-  // Sync auth state
+  // ============================================
+  // SYNC AUTH STATE - Managed by AuthContext
+  // ============================================
   useEffect(() => {
     // No longer needed - auth state is managed by AuthContext
   }, []);
 
-  // Auto-hide feedback
+  // ============================================
+  // AUTO-HIDE FEEDBACK - Toast disappears after 3 seconds
+  // ============================================
   useEffect(() => {
     if (!feedback) return;
     const timer = setTimeout(() => setFeedback(""), 3000);
@@ -104,7 +110,9 @@ function PostModel({ onPostCreated }) {
 
   return (
     <>
-      {/* Feedback Toast */}
+      {/* ============================================ */}
+      {/* FEEDBACK TOAST - Shows success/error/info messages */}
+      {/* ============================================ */}
       {feedback && (
         <div
           className={`${toneClass} fixed top-4 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full text-sm font-semibold shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-300`}
@@ -113,10 +121,12 @@ function PostModel({ onPostCreated }) {
         </div>
       )}
 
+      {/* ============================================ */}
       {/* MOBILE-ONLY POST COMPOSER (Hidden on PC) */}
+      {/* ============================================ */}
       <div className="px-3 pb-3  mt-5">
         <div className="flex w-full bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
-          {/* Avatar */}
+          {/* ========== AVATAR SECTION ========== */}
           <div className="flex-shrink-0 p-3">
             <div className="relative">
               <img
@@ -135,7 +145,7 @@ function PostModel({ onPostCreated }) {
             </div>
           </div>
 
-          {/* Input + Button */}
+          {/* ========== INPUT & BUTTON SECTION ========== */}
           <div className="flex-1 flex flex-col min-w-0">
             <textarea
               ref={textareaRef}
@@ -156,7 +166,7 @@ function PostModel({ onPostCreated }) {
               }}
               aria-label="Create a post"
             />
-            {/* Hide scrollbar using CSS */}
+            {/* ========== HIDE SCROLLBAR ========== */}
             <style>{`
               textarea::-webkit-scrollbar {
                 display: none;
@@ -193,7 +203,9 @@ function PostModel({ onPostCreated }) {
         </div>
       </div>
 
+      {/* ============================================ */}
       {/* DESKTOP VERSION IS REMOVED — HIDDEN ON PC */}
+      {/* ============================================ */}
     </>
   );
 }

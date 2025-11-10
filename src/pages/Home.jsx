@@ -410,7 +410,7 @@ function Home() {
                           />
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">{comment.text}</p>
+                      <p className="text-sm text-gray-600 mt-1">{comment.text || comment.content}</p>
                     </div>
                     {Array.isArray(comment.replies) && comment.replies.length > 0 && (
                       <div className="mt-2 ml-4 space-y-2 border-l-2 border-gray-200 pl-3">
@@ -424,7 +424,7 @@ function Home() {
                                 <CheckCircle2 className="h-3 w-3 text-blue-500" aria-label="Verified" />
                               )}
                             </div>
-                            <p className="text-xs text-gray-600 mt-0.5">{reply.text}</p>
+                            <p className="text-xs text-gray-600 mt-0.5">{reply.text || reply.content}</p>
                           </div>
                         ))}
                       </div>
