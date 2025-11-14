@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Send, Share2, X } from 'lucide-react';
-import { getProfileImage, handleImageError } from '../utils/imageUtils';
+import { getProfileImage, handleImageError, getOptimizedCloudinaryUrl, isCloudinaryUrl } from '../utils/imageUtils';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch, API_ENDPOINTS } from '../utils/apiConfig';
 import ProfessionalUrlPreview from '../components/ProfessionalUrlPreview';
@@ -177,6 +177,31 @@ function PostDetail() {
     like.user && (like.user._id || like.user.id) === (currentUser?._id || currentUser?.id)
   );
 
+  // Optimize profile image
+  const getOptimizedProfileImage = (user) => {
+    const profileImageUrl = getProfileImage(user);
+    return isCloudinaryUrl(profileImageUrl) 
+      ? getOptimizedCloudinaryUrl(profileImageUrl, { 
+          quality: 'auto', 
+          fetch_format: 'auto', 
+          width: 40, 
+          height: 40 
+        })
+      : profileImageUrl;
+  };
+
+  // Optimize post image
+  const getOptimizedPostImage = (imageUrl) => {
+    return isCloudinaryUrl(imageUrl) 
+      ? getOptimizedCloudinaryUrl(imageUrl, { 
+          quality: 'auto', 
+          fetch_format: 'auto', 
+          width: 600,
+          height: 400
+        })
+      : imageUrl;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -260,10 +285,11 @@ function PostDetail() {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <img
-                  src={getProfileImage(post.user)}
+                  src={getOptimizedProfileImage(post.user)}
                   alt={post.user?.name || 'User'}
                   className="w-10 h-10 rounded-full object-cover"
                   onError={(e) => handleImageError(e, post.user?.gender)}
+                  loading="lazy"
                 />
                 <div className="ml-3">
                   <h3 className="font-semibold text-gray-900">
@@ -303,9 +329,10 @@ function PostDetail() {
           {post.image && (
             <div className="px-4 pb-4">
               <img
-                src={post.image}
+                src={getOptimizedPostImage(post.image)}
                 alt="Post"
                 className="w-full rounded-lg object-cover max-h-96"
+                loading="lazy"
               />
             </div>
           )}
@@ -357,10 +384,11 @@ function PostDetail() {
                   post.comments.map((comment) => (
                     <div key={comment._id} className="flex">
                       <img
-                        src={getProfileImage(comment.user)}
+                        src={getOptimizedProfileImage(comment.user)}
                         alt={comment.user?.name || 'User'}
                         className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                         onError={(e) => handleImageError(e, comment.user?.gender)}
+                        loading="lazy"
                       />
                       <div className="ml-3 flex-1">
                         <div className="bg-gray-100 rounded-lg p-3">
@@ -380,10 +408,11 @@ function PostDetail() {
               {currentUser ? (
                 <form onSubmit={handleComment} className="flex items-center space-x-2">
                   <img
-                    src={getProfileImage(currentUser)}
+                    src={getOptimizedProfileImage(currentUser)}
                     alt={currentUser?.name || 'You'}
                     className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                     onError={(e) => handleImageError(e, currentUser?.gender)}
+                    loading="lazy"
                   />
                   <div className="flex-1 flex items-center bg-gray-100 rounded-full pl-4 pr-2 py-2">
                     <input

@@ -6,7 +6,7 @@ import ProfileImage from '../assets/dp.png';
 import PostModel from '../Models/PostModel';
 
 import ProfessionalUrlPreview from '../components/ProfessionalUrlPreview';
-import { getProfileImage, handleImageError } from '../utils/imageUtils';
+import { getProfileImage, handleImageError, getOptimizedCloudinaryUrl, isCloudinaryUrl } from '../utils/imageUtils';
 import { useAuth } from '../context/AuthContext';
 const API_BASE = 'https://backend-vauju-1.onrender.com';
 const getSafeUser = (value) => {
@@ -104,6 +104,10 @@ function Home() {
       }
       const data = await res.json();
       const list = Array.isArray(data?.posts) ? data.posts : [];
+      
+      // Log for debugging
+      console.log('Fetched posts:', list);
+      
       setPosts(
         list.map((post) => ({
           ...post,
@@ -480,6 +484,51 @@ function Home() {
     );
   };
 
+  // Optimize profile image with memoization and better caching
+  const getOptimizedProfileImage = (user) => {
+    if (!user) return ProfileImage;
+    
+    // Try multiple field names for profile image
+    const profileImageUrl = user.profileImage || user.profilePic || user.avatar || user.image || '';
+    
+    // Log for debugging
+    console.log('Profile image URL for user:', user?.name || user?.username, profileImageUrl);
+    
+    // For Cloudinary URLs, apply optimizations
+    if (isCloudinaryUrl(profileImageUrl)) {
+      return getOptimizedCloudinaryUrl(profileImageUrl, { 
+        quality: 'auto', 
+        fetch_format: 'auto', 
+        width: 48, 
+        height: 48,
+        crop: 'fill',
+        gravity: 'face'
+      });
+    }
+    
+    // For other URLs, return as is
+    return profileImageUrl || ProfileImage;
+  };
+
+  // Memoized profile image component for better performance
+  const ProfileImageComponent = React.memo(({ user, className, alt, onError }) => {
+    const optimizedSrc = getOptimizedProfileImage(user);
+    
+    // Log for debugging
+    console.log('Rendering profile image for user:', user?.name || user?.username, optimizedSrc);
+    
+    return (
+      <img
+        src={optimizedSrc}
+        alt={alt || user?.name || user?.author || user?.username || 'YugalMeet User'}
+        className={className}
+        onError={onError || ((e) => handleImageError(e, user?.gender))}
+        loading="lazy"
+        decoding="async"
+      />
+    );
+  });
+
   const renderPostCard = (post) => {
     const postId = String(post._id || post.id);
     const isExpanded = expandedPosts.includes(postId);
@@ -507,6 +556,9 @@ function Home() {
         (comment) => String(getCommentUserId(comment)) === String(currentUserId)
       );
     const likeDisabled = !token || !currentUserId || hasLiked || pendingLikes[postId];
+    
+    // Log for debugging
+    console.log('Rendering post card for user:', post.user?.name || post.user?.username, post.user);
 
     return (
       <div
@@ -514,9 +566,8 @@ function Home() {
         className="post-card bg-white rounded-2xl p-6 shadow-sm border border-gray-200 transition-shadow hover:shadow-md"
       >
         <div className="flex items-center gap-3 mb-4">
-          <img
-            src={getProfileImage(post.user)}
-            alt={post.user?.name || post.author || 'YugalMeet User'}
+          <ProfileImageComponent
+            user={post.user}
             className="h-12 w-12 rounded-full object-cover border border-gray-200"
             onError={(e) => handleImageError(e, post.user?.gender)}
           />
@@ -712,11 +763,11 @@ function Home() {
                     </h3>
                     {currentUser ? (
                       <div className="flex items-center gap-3 mb-4">
-                        <img
-                          src={getProfileImage(currentUser)}
-                          alt={currentUser.name}
+                        <ProfileImageComponent
+                          user={currentUser}
                           className="h-14 w-14 rounded-full object-cover border-2 border-pink-200 flex-shrink-0"
                           onError={(e) => handleImageError(e, currentUser.gender)}
+                          alt={currentUser.name}
                         />
                         <div>
                           <p className="font-semibold text-gray-900">{currentUser.name}</p>

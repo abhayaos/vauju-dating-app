@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { CheckCircle } from "lucide-react";
 import { validateToken, decodeJWT } from "../utils/auth";
-import { getProfileImage, handleImageError, validateImageFile } from "../utils/imageUtils";
+import { getProfileImage, handleImageError, validateImageFile, getOptimizedCloudinaryUrl, isCloudinaryUrl } from "../utils/imageUtils";
 import { useAuth } from "../context/AuthContext";
 
 const BASE_API = "https://backend-vauju-1.onrender.com/api";
@@ -66,6 +66,21 @@ function Profile() {
 
   const payload = token ? decodeJWT(token) : null;
   const currentUserId = payload?._id || authUser?._id;
+
+  // Function to get optimized profile image
+  const getOptimizedProfileImage = (user) => {
+    const profileImageUrl = getProfileImage(user);
+    // Only optimize if it's a Cloudinary URL
+    if (isCloudinaryUrl(profileImageUrl)) {
+      return getOptimizedCloudinaryUrl(profileImageUrl, {
+        quality: 'auto',
+        fetch_format: 'auto',
+        width: 200,
+        height: 200
+      });
+    }
+    return profileImageUrl;
+  };
 
   const safeDecode = (value) => {
     if (typeof value !== "string") return value;
@@ -198,105 +213,55 @@ function Profile() {
             setNotFound(true);
             return;
           } else {
-            throw new Error(`Server error: ${res.status}`);
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP ${res.status}: ${res.statusText}`);
           }
         }
 
         profileData = await res.json();
-
         setUser(profileData);
-
-        // Check if this is actually the own profile by comparing IDs
-        if (isOwnProfile && profileData && currentUserId) {
-          const profileUserId = profileData._id || profileData.id;
-          if (profileUserId !== currentUserId) {
-            // This shouldn't happen, but if it does, treat it as a public profile
-            setIsOwnProfile(false);
-          }
-        }
-
-        if (profileData?.suspended) {
-          setSuspended(true);
-          if (isOwnProfile) {
-            toast.error("Your account is suspended. Please contact support.");
-            // Don't auto-logout; let user see the message
-          }
-        }
+        setSuspended(profileData.suspended || false);
+        setLoading(false);
+        setRetryCount(0); // Reset retry count on success
       } catch (err) {
-        // Add retry mechanism for network errors
-        if (retryCount < 2) {
-          setTimeout(() => {
-            setRetryCount(prev => prev + 1);
-          }, 1000);
-          return;
-        }
-        toast.error("Failed to load profile: " + (err.message || "unknown"));
-        setNotFound(true);
-      } finally {
-        setLoading(false); // Set loading to false when fetch completes
+        console.error("Error fetching profile:", err);
+        toast.error(err.message || "Failed to load profile");
+        setLoading(false);
       }
     };
 
-    fetchProfile();
-  }, [navigate, token, currentUserId, username, id, logout, retryCount]);
+    if (decodedUsername || id || token) {
+      fetchProfile();
+    }
+  }, [decodedUsername, id, token, retryCount, navigate, logout]);
 
   const handleProfilePicChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file
-    const validation = validateImageFile(file);
-    if (!validation.valid) {
-      toast.error(validation.error);
+    // Validate image file
+    const { valid, error } = validateImageFile(file);
+    if (!valid) {
+      toast.error(error);
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => setUser((prev) => ({ ...prev, profilePic: reader.result }));
-    reader.readAsDataURL(file);
-
+    setUploading(true);
     try {
-      setUploading(true);
-      let currentToken = token;
-      if (!currentToken || !validateToken(currentToken)) {
-        currentToken = await refreshToken();
-        if (!currentToken) {
-          toast.error("Session expired. Please log in again.");
-          logout();
-          navigate("/login", { replace: true });
-          return;
-        }
-      }
-
       const formData = new FormData();
       formData.append("profilePic", file);
 
-      const res = await fetch(`${BASE_API}/profile/upload`, {
+      const res = await fetch(`${BASE_API}/profile/picture`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${currentToken}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
 
       if (!res.ok) {
-        if (res.status === 401) {
-          currentToken = await refreshToken();
-          if (currentToken) {
-            const retryRes = await fetch(`${BASE_API}/profile/upload`, {
-              method: "POST",
-              headers: { Authorization: `Bearer ${currentToken}` },
-              body: formData,
-            });
-            if (retryRes.ok) {
-              const data = await retryRes.json();
-              setUser((prev) => ({ ...prev, profilePic: data.url }));
-              toast.success("Profile picture updated!");
-              setUploading(false);
-              return;
-            }
-          }
-          toast.error("Session expired. Please log in again.");
-          logout();
-          navigate("/login", { replace: true });
+        if (res.status === 413) {
+          toast.error("Image too large. Please choose a smaller image.");
           return;
         }
         const data = await res.json().catch(() => ({}));
@@ -371,6 +336,9 @@ function Profile() {
     return <ProfileSkeleton />;
   }
 
+  // Get optimized profile image
+  const optimizedProfileImage = getOptimizedProfileImage(user);
+
   return (
     <div className="min-h-screen flex flex-col items-center pt-14 pb-8 px-5 bg-gray-50">
       <Toaster position="top-center" />
@@ -384,13 +352,14 @@ function Profile() {
       <div className="relative mb-6 w-full flex justify-center">
         <div className="relative">
           <img
-            src={getProfileImage(user)}
+            src={optimizedProfileImage}
             alt="Profile"
             className={`w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52 rounded-full border-4 border-blue-300 object-cover cursor-pointer shadow-lg ${
               uploading ? "opacity-50" : ""
             }`}
             onClick={() => isOwnProfile && document.getElementById("profilePicInput").click()}
             onError={(e) => handleImageError(e, user.gender)}
+            loading="lazy"
           />
           {isOwnProfile && (
             <div className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 cursor-pointer shadow-md transition">

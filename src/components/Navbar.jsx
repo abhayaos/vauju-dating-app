@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -7,14 +7,81 @@ import SupportIcon from "../assets/support.png";
 import Logo from "../assets/logo.png";
 
 // Icons
-import { Home, MessageSquare, Users, User, LogOut, LogIn, UserPlus, Compass, Heart, Podcast, UserCheck } from "lucide-react";
+import { Home, MessageSquare, Users, User, LogOut, LogIn, UserPlus, Compass, Heart, Podcast, UserCheck, Shield } from "lucide-react";
 
 function XSidebar() {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, logout, token } = useAuth();
+  
+  const API_BASE = import.meta.env.VITE_API_URL || 'https://api.vauju.com';
+
+  // Fetch notification count with error handling
+  const fetchNotificationCount = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch(`${API_BASE}/api/notifications`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        const unread = data.filter(n => !n.read).length;
+        setUnreadCount(unread);
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error("Error fetching notification count:", error);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  // Update notification count on mount and when token changes
+  useEffect(() => {
+    fetchNotificationCount();
+    
+    // Set up auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      fetchNotificationCount();
+    }, 30000);
+    
+    // Listen for notification updates
+    const handleNotificationUpdate = () => {
+      fetchNotificationCount();
+    };
+    
+    // Listen for real-time notifications
+    const handleRealTimeNotification = () => {
+      fetchNotificationCount();
+    };
+    
+    window.addEventListener('notificationUpdate', handleNotificationUpdate);
+    window.addEventListener('notification', handleRealTimeNotification);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('notificationUpdate', handleNotificationUpdate);
+      window.removeEventListener('notification', handleRealTimeNotification);
+    };
+  }, [fetchNotificationCount]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -46,7 +113,21 @@ function XSidebar() {
     { path: "/friends", icon: <UserCheck size={20} />, label: "Friends" },
     { path: "/matches", icon: <Users size={20} />, label: "Matches" },
     { path: "/messages", icon: <MessageSquare size={20} />, label: "Messages" },
-    { path: "/notifications", icon: <Heart size={20} />, label: "Notifications" },
+    { 
+      path: "/notifications", 
+      icon: (
+        <div className="relative">
+          <Heart size={20} />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </div>
+      ), 
+      label: "Notifications" 
+    },
+    { path: "/blocked", icon: <Shield size={20} />, label: "Blocked" },
     { path: "/private-space", icon: <Podcast size={20} />, label: "Private Space" },
     {
       path: "/support",
@@ -102,42 +183,44 @@ function XSidebar() {
               <User size={20} />
             </button>
 
+            {/* Dropdown Menu */}
             {showDropdown && (
-              <div className="absolute ml-5 bottom-12 left-1/2 transform -translate-x-1/2 flex flex-col w-28 bg-white border border-gray-200 shadow-md rounded-md overflow-hidden z-50">
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                 <Link
                   to="/profile"
-                  className="px-3 py-2 hover:bg-gray-100 flex items-center space-x-1"
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setShowDropdown(false)}
                 >
-                  <User size={16} />
-                  <span className="text-sm">Profile</span>
+                  <User size={16} className="mr-2" />
+                  Profile
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="px-3 py-2 hover:bg-red-50 hover:text-red-500 flex items-center space-x-1 w-full text-left"
+                  className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                 >
-                  <LogOut size={16} />
-                  <span className="text-sm">Logout</span>
+                  <LogOut size={16} className="mr-2" />
+                  Logout
                 </button>
               </div>
             )}
           </div>
         ) : (
-          <>
+          <div className="flex flex-col space-y-2">
             <Link
               to="/login"
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-black text-white hover:bg-gray-900 transition duration-200"
+              className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition duration-200 text-gray-700"
               title="Login"
             >
-              <LogIn size={16} />
+              <LogIn size={20} />
             </Link>
             <Link
               to="/register"
-              className="flex items-center justify-center w-10 h-10 rounded-full border border-black text-black hover:bg-gray-50 transition duration-200 mt-2"
+              className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition duration-200 text-gray-700"
               title="Register"
             >
-              <UserPlus size={16} />
+              <UserPlus size={20} />
             </Link>
-          </>
+          </div>
         )}
       </div>
     </aside>

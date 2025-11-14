@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Loader2, MessageSquare, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Dp from "../assets/dp.png";
-import { getProfileImage, handleImageError } from "../utils/imageUtils";
+import { getProfileImage, handleImageError, getOptimizedCloudinaryUrl, isCloudinaryUrl } from "../utils/imageUtils";
 
 function RandomGirl() {
   const [girl, setGirl] = useState(null);
@@ -14,6 +13,21 @@ function RandomGirl() {
   const [showSkeleton, setShowSkeleton] = useState(true); // For skeleton loading
 
   const navigate = useNavigate();
+
+  // Function to get optimized profile image
+  const getOptimizedProfileImage = (user) => {
+    const profileImageUrl = getProfileImage(user);
+    // Only optimize if it's a Cloudinary URL
+    if (isCloudinaryUrl(profileImageUrl)) {
+      return getOptimizedCloudinaryUrl(profileImageUrl, {
+        quality: 'auto',
+        fetch_format: 'auto',
+        width: 96,
+        height: 96
+      });
+    }
+    return profileImageUrl;
+  };
 
   // Skeleton loading component
   const SkeletonCard = () => (
@@ -82,10 +96,11 @@ function RandomGirl() {
       ) : girl ? (
         <div className="flex flex-col items-center">
           <img
-            src={getProfileImage(girl)}
+            src={getOptimizedProfileImage(girl)}
             alt={girl.name}
             className="w-24 h-24 rounded-full object-cover border-2 border-pink-400"
             onError={(e) => handleImageError(e, girl.gender)}
+            loading="lazy"
           />
           <h3 className="mt-3 text-lg font-semibold text-gray-800">{girl.name}</h3>
           <p className="text-sm text-gray-500">

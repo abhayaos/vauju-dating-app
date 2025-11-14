@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileImage from "../assets/dp.png";
 import { SendHorizontal } from "lucide-react";
-import { getProfileImage, handleImageError } from "../utils/imageUtils";
+import { getProfileImage, handleImageError, getOptimizedCloudinaryUrl, isCloudinaryUrl } from "../utils/imageUtils";
 import { useAuth } from "../context/AuthContext";
 
 const API_BASE = "https://backend-vauju-1.onrender.com";
@@ -27,6 +27,21 @@ function PostModel({ onPostCreated }) {
 
   const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId;
   const canPost = !!currentUser?.canPost;
+
+  // Function to get optimized profile image
+  const getOptimizedProfileImage = (user) => {
+    const profileImageUrl = getProfileImage(user);
+    // Only optimize if it's a Cloudinary URL
+    if (isCloudinaryUrl(profileImageUrl)) {
+      return getOptimizedCloudinaryUrl(profileImageUrl, {
+        quality: 'auto',
+        fetch_format: 'auto',
+        width: 40,
+        height: 40
+      });
+    }
+    return profileImageUrl;
+  };
 
   // ============================================
   // AUTO-RESIZE TEXTAREA - Adjusts height based on content
@@ -108,6 +123,9 @@ function PostModel({ onPostCreated }) {
     }
   };
 
+  // Get optimized profile image
+  const optimizedProfileImage = getOptimizedProfileImage(currentUser);
+
   return (
     <>
       {/* ============================================ */}
@@ -130,10 +148,11 @@ function PostModel({ onPostCreated }) {
           <div className="flex-shrink-0 p-3">
             <div className="relative">
               <img
-                src={currentUser ? getProfileImage(currentUser) : ProfileImage}
+                src={currentUser ? optimizedProfileImage : ProfileImage}
                 alt="Your profile"
                 className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
                 onError={(e) => handleImageError(e, currentUser?.gender)}
+                loading="lazy"
               />
               {!canPost && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">

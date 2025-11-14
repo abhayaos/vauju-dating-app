@@ -1,8 +1,7 @@
 import React from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { X, Heart } from 'lucide-react';
-import DefaultAvatar from '../assets/dp.png';
-import { getProfileImage, handleImageError } from '../utils/imageUtils';
+import { getProfileImage, handleImageError, getOptimizedCloudinaryUrl, isCloudinaryUrl } from '../utils/imageUtils';
 
 const SwipeCard = ({ profile, onSwipeLeft, onSwipeRight }) => {
   const x = useMotionValue(0);
@@ -10,6 +9,21 @@ const SwipeCard = ({ profile, onSwipeLeft, onSwipeRight }) => {
   const opacity = useTransform(x, [-300, -150, 0, 150, 300], [0, 1, 1, 1, 0]);
   const likeOpacity = useTransform(x, [100, 300], [0, 1]);
   const nopeOpacity = useTransform(x, [-300, -100], [1, 0]);
+
+  // Function to get optimized profile image
+  const getOptimizedProfileImage = (user) => {
+    const profileImageUrl = getProfileImage(user);
+    // Only optimize if it's a Cloudinary URL
+    if (isCloudinaryUrl(profileImageUrl)) {
+      return getOptimizedCloudinaryUrl(profileImageUrl, {
+        quality: 'auto',
+        fetch_format: 'auto',
+        width: 300,
+        height: 400
+      });
+    }
+    return profileImageUrl;
+  };
 
   const handleDragEnd = (event, info) => {
     if (info.offset.x > 150) {
@@ -23,6 +37,9 @@ const SwipeCard = ({ profile, onSwipeLeft, onSwipeRight }) => {
   const interests = Array.isArray(profile.interests)
     ? profile.interests.filter(Boolean).slice(0, 5)
     : [];
+
+  // Get optimized profile image
+  const optimizedProfileImage = getOptimizedProfileImage(profile);
 
   return (
     <motion.div
@@ -57,10 +74,11 @@ const SwipeCard = ({ profile, onSwipeLeft, onSwipeRight }) => {
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
         <div className="relative h-80 bg-gradient-to-br from-pink-50 to-purple-50 overflow-hidden">
           <img
-            src={getProfileImage(profile)}
+            src={optimizedProfileImage}
             alt={profile.name}
             className="absolute inset-0 w-full h-full object-cover"
             onError={(e) => handleImageError(e, profile.gender)}
+            loading="lazy"
           />
           
           {profile.isVerified && (

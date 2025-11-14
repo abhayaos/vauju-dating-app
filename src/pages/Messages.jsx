@@ -548,10 +548,15 @@ function Messages() {
         <Navbar />
       </div>
 
+      {/* Mobile Navbar - Show on mobile devices */}
+      <div className="md:hidden">
+        <MobileNavbar />
+      </div>
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col md:pl-[70px] w-full" style={!isOnline ? { marginTop: '56px' } : {}}>
-        {/* Mobile Header */}
-      
+        {/* Removed mobile header */}
+        
         {/* Messages Container */}
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           {/* Sidebar - Message List */}

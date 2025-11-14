@@ -45,10 +45,11 @@ const HamNav = React.lazy(() => import(/* webpackChunkName: "mobile" */ "./Mobil
 const Create = React.lazy(() => import(/* webpackChunkName: "mobile" */ "./MobileLayouyt/Create"));
 const TermAndCondition = React.lazy(() => import(/* webpackChunkName: "pages" */ "./pages/TermAndCondition"));
 const PrivateSpeech = React.lazy(() => import(/* webpackChunkName: "pages" */ "./pages/PrivateSpeech"));
-const Blogs = React.lazy(() => import(/* webpackChunkName: "blogs" */ "./pages/Blogs"));
+const Blogs = React.lazy(() => import(/* webpackChunkName: "pages" */ "./pages/Blogs"));
 const NameChanging = React.lazy(() => import(/* webpackChunkName: "blogs" */ "./Blogs/NameChanging"));
 const BuyCoins = React.lazy(() => import(/* webpackChunkName: "pages" */ "./pages/BuyCoins"));
 const Friends = React.lazy(() => import(/* webpackChunkName: "pages" */ "./pages/Friends"));
+const Blocked = React.lazy(() => import(/* webpackChunkName: "pages" */ "./pages/Blocked"));
 
 import "./App.css";
 
@@ -56,6 +57,37 @@ import "./App.css";
 const PostDetail = React.lazy(() => import(/* webpackChunkName: "pages" */ "./pages/PostDetail"));
 
 function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [showMobileLayout, setShowMobileLayout] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
+  // Redirect from /menu to /blocked on desktop screens
+  useEffect(() => {
+    const handleResize = () => {
+      if (location.pathname === "/menu" && window.innerWidth >= 768) {
+        navigate("/blocked", { replace: true });
+      }
+    };
+
+    // Check on initial load
+    handleResize();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [location.pathname, navigate]);
+
   return (
     <AuthProvider>
       <AppContent />
@@ -78,6 +110,26 @@ function AppContent() {
     const timer = setTimeout(() => setLoading(false), 800);
     return () => clearTimeout(timer);
   }, [location.pathname]);
+
+  // Redirect from /menu to /blocked on desktop screens
+  useEffect(() => {
+    const handleResize = () => {
+      if (location.pathname === "/menu" && window.innerWidth >= 768) {
+        navigate("/blocked", { replace: true });
+      }
+    };
+
+    // Check on initial load
+    handleResize();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [location.pathname, navigate]);
 
   return (
     <AuthConsumer>
@@ -108,8 +160,12 @@ function AppContent() {
             "/working",
             "/hall-of-fame/bounty/user/mandip",
             "/hall-of-fame",
-          ].includes(location.pathname) ||
-          location.pathname.startsWith("/messages/");
+            "/menu"
+          ].includes(location.pathname);
+
+        // Special handling for blocked page - show layout on desktop but not on mobile
+        const isBlockedPage = location.pathname === "/blocked";
+        const showLayoutOnBlockedPage = isBlockedPage && window.innerWidth >= 768;
 
         return (
           <div className="App flex flex-col min-h-screen relative text-black bg-white">
@@ -129,7 +185,7 @@ function AppContent() {
               )}
             </AnimatePresence>
 
-            {!hideLayout && (
+            {(!hideLayout || showLayoutOnBlockedPage) && (
               <>
                 <div className="block md:hidden">
                   <Header />
@@ -170,6 +226,7 @@ function AppContent() {
                   <Route path="/notifications" element={<Notification />} />
                   <Route path="/create" element={<Create />} />
                   <Route path="/menu" element={<HamNav />} />
+                  <Route path="/blocked" element={<Blocked />} />
                   <Route
                     path="/blog/how-tp-update-profile-in-aura-meet"
                     element={<NameChanging />}
@@ -182,6 +239,8 @@ function AppContent() {
                   <Route path="/buy-coins" element={<BuyCoins />} />
                   {/* Add route for individual posts */}
                   <Route path="/posts/:postId" element={<PostDetail />} />
+                  {/* Invite route with referral code handling */}
+                  <Route path="/invite/:referralCode" element={<Register />} />
                   <Route path="*" element={<PageNotFound />} />
                 </Routes>
               </Suspense>
