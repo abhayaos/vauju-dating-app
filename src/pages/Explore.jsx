@@ -46,7 +46,9 @@ function RandomGirl() {
     // Simulate 4 second loading as per requirements
     setTimeout(async () => {
       try {
-        const res = await axios.get("https://backend-vauju-1.onrender.com/api/random-girl");
+        // Use environment variable for API URL or fallback to proxy
+        const API_BASE = import.meta.env.VITE_API_URL || "/api";
+        const res = await axios.get(`${API_BASE}/random-girl`);
         setGirl(res.data);
       } catch (err) {
         console.error(err);

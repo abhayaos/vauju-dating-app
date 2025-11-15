@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://backend-vauju-1.onrender.com';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5005';
 
 const getSafeUser = () => {
   // Removed - use useAuth hook instead
@@ -36,7 +36,7 @@ function Post({ onNewPost }) {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/posts`, {
+      const res = await fetch(`${API_BASE}/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

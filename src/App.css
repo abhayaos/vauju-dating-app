@@ -1,1 +1,123 @@
 @import 'tailwindcss';
+
+/* Star animation */
+@keyframes twinkle {
+  0% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-10px) translateX(5px);
+  }
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff;
+  }
+  50% {
+    text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e60073;
+  }
+  100% {
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff;
+  }
+}
+
+@keyframes shoot {
+  0% {
+    transform: translateX(-100px) translateY(-100px) rotate(45deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(100vw + 100px)) translateY(calc(100vh + 100px)) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+@keyframes cosmicWave {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes cosmicWaveReverse {
+  0% {
+    background-position: 100% 50%;
+  }
+  50% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes waveGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 0, 204, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 0, 204, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 0, 204, 0.5);
+  }
+}
+
+@keyframes waveGlowReverse {
+  0% {
+    box-shadow: 0 0 5px rgba(0, 204, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(0, 204, 255, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(0, 204, 255, 0.5);
+  }
+}
+
+.animate-twinkle {
+  animation: twinkle 3s infinite ease-in-out;
+}
+
+.animate-float {
+  animation: float 6s infinite ease-in-out;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.animate-shoot {
+  animation: shoot 5s infinite linear;
+}
+
+.cosmic-heading {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}

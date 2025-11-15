@@ -12,7 +12,8 @@ import MobileNavbar from "../components/MobileNavbar";
 import Header from "../components/Header";
 import io from "socket.io-client";
 
-const API_BASE = "https://backend-vauju-1.onrender.com";
+// Use environment variable for API URL or fallback to proxy
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
 // Helper function to render message text with URL previews
 const renderMessageWithPreviews = (text) => {
@@ -85,7 +86,7 @@ function Messages() {
   // Initialize socket connection
   useEffect(() => {
     if (token && isOnline) {
-      const newSocket = io("https://backend-vauju-1.onrender.com", {
+      const newSocket = io(API_BASE, {
         transports: ["websocket"],
         auth: { token }
       });
@@ -205,7 +206,7 @@ function Messages() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/messages/conversations?page=${page}&limit=${conversationsPerPage}`, {
+      const res = await fetch(`${API_BASE}/messages/conversations?page=${page}&limit=${conversationsPerPage}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -260,7 +261,7 @@ function Messages() {
 
     setMessageLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/messages/conversation/${userId}`, {
+      const res = await fetch(`${API_BASE}/messages/conversation/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -301,7 +302,7 @@ function Messages() {
       setNewMessage("");
 
       // Send message via API
-      const response = await fetch(`${API_BASE}/api/messages/send`, {
+      const response = await fetch(`${API_BASE}/messages/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

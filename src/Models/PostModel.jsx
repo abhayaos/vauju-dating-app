@@ -5,7 +5,8 @@ import { SendHorizontal } from "lucide-react";
 import { getProfileImage, handleImageError, getOptimizedCloudinaryUrl, isCloudinaryUrl } from "../utils/imageUtils";
 import { useAuth } from "../context/AuthContext";
 
-const API_BASE = "https://backend-vauju-1.onrender.com";
+// Use environment variable for API URL or fallback to proxy
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
 const getSafeUser = (value) => {
   if (!value) return null;
@@ -89,7 +90,7 @@ function PostModel({ onPostCreated }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/posts`, {
+      const res = await fetch(`${API_BASE}/posts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

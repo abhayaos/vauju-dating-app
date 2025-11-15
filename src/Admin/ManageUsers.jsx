@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAdminAuth } from '../context/AdminAuthContext'
 
-const ADMIN_API = 'https://backend-vauju-1.onrender.com'
+// Use environment variable for API URL or fallback to proxy
+const ADMIN_API = import.meta.env.VITE_API_URL || '/api'
 
 function ManageUsers() {
   const navigate = useNavigate()

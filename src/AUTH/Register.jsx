@@ -42,8 +42,10 @@ function Register() {
 
     try {
       setLoading(true);
+      // Use environment variable for API URL or fallback to proxy
+      const API_BASE = import.meta.env.VITE_API_URL || "/api";
       const { data } = await axios.post(
-        "https://backend-vauju-1.onrender.com/api/auth/register",
+        `${API_BASE}/auth/register`,
         { username, name, email, password }
       );
 

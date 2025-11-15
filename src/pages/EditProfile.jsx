@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { getProfileImage } from "../utils/imageUtils";
 
 // Use environment variable for BASE_URL
-const BASE_URL = import.meta.env.VITE_API_URL || "https://backend-vauju-1.onrender.com";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5005";
 
 // Utility function to decode JWT and get userId
 const getUserIdFromToken = (token) => {
@@ -49,7 +49,7 @@ function EditProfile() {
 
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/api/profile`, {
+        const res = await fetch(`${BASE_URL}/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -124,7 +124,7 @@ function EditProfile() {
       const formData = new FormData();
       formData.append("profilePic", file);
 
-      const res = await fetch(`${BASE_URL}/api/profile/upload`, {
+      const res = await fetch(`${BASE_URL}/profile/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -179,7 +179,7 @@ function EditProfile() {
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/api/profile`, {
+      const res = await fetch(`${BASE_URL}/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -5,7 +5,8 @@ import AdminLayout from "../components/AdminLayout";
 import { getProfileImage, handleImageError } from "../utils/imageUtils";
 import { useAdminAuth } from "../context/AdminAuthContext";
 
-const ADMIN_API = "https://backend-vauju-1.onrender.com";
+// Use environment variable for API URL or fallback to proxy
+const ADMIN_API = import.meta.env.VITE_API_URL || "/api";
 
 function Admin() {
   const navigate = useNavigate();

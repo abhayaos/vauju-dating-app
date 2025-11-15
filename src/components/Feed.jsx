@@ -3,7 +3,7 @@ import { getProfileImage, handleImageError } from '../utils/imageUtils';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://backend-vauju-1.onrender.com';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5005';
 
 function Feed() {
   const [posts, setPosts] = useState([]);
@@ -16,7 +16,7 @@ function Feed() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_BASE}/api/posts?page=1&limit=20`, {
+      const res = await fetch(`${API_BASE}/posts?page=1&limit=20`, {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       if (!res.ok) {
@@ -56,7 +56,7 @@ function Feed() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/posts/${postId}/like`, {
+      const res = await fetch(`${API_BASE}/posts/${postId}/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

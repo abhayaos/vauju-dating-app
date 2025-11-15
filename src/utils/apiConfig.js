@@ -5,7 +5,7 @@
 
 // Use Vite environment variables or fallback to proxy
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://backend-vauju-1.onrender.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5005';
 
 // In production, always use /api proxy to avoid CORS
 const getApiUrl = (endpoint) => {

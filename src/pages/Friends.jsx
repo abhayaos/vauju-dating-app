@@ -6,7 +6,7 @@ import { getProfileImage, handleImageError } from "../utils/imageUtils";
 import { useAuth } from "../context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://backend-vauju-1.onrender.com';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5005';
 
 function Friends() {
   const [friends, setFriends] = useState([]);
@@ -31,7 +31,7 @@ function Friends() {
       setLoading(true);
       
       // Fetch friends and friend requests from the new API
-      const response = await fetch(`${API_BASE}/api/friends`, {
+      const response = await fetch(`${API_BASE}/friends`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -49,7 +49,7 @@ function Friends() {
       setFriendRequests(data.friendRequests || []);
       
       // For suggestions, we'll still use the users endpoint but filter out friends
-      const usersResponse = await fetch(`${API_BASE}/api/users`, {
+      const usersResponse = await fetch(`${API_BASE}/users`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -128,7 +128,7 @@ function Friends() {
     if (!token) return;
 
     try {
-      const response = await fetch(`${API_BASE}/api/friends/daily-suggestion`, {
+      const response = await fetch(`${API_BASE}/friends/daily-suggestion`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -196,7 +196,7 @@ function Friends() {
     }
     
     try {
-      const response = await fetch(`${API_BASE}/api/friends/request`, {
+      const response = await fetch(`${API_BASE}/friends/request`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -227,7 +227,7 @@ function Friends() {
     }
     
     try {
-      const response = await fetch(`${API_BASE}/api/friends/accept`, {
+      const response = await fetch(`${API_BASE}/friends/accept`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -258,7 +258,7 @@ function Friends() {
     }
     
     try {
-      const response = await fetch(`${API_BASE}/api/friends/reject`, {
+      const response = await fetch(`${API_BASE}/friends/reject`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -289,7 +289,7 @@ function Friends() {
     }
     
     try {
-      const response = await fetch(`${API_BASE}/api/friends/remove`, {
+      const response = await fetch(`${API_BASE}/friends/remove`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

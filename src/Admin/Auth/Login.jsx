@@ -9,7 +9,8 @@ function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const API_URL = "https://backend-vauju-1.onrender.com";
+  // Use environment variable for API URL or fallback to proxy
+  const API_URL = import.meta.env.VITE_API_URL || "/api";
 
   useEffect(() => {
     if (isAdminLoggedIn) {

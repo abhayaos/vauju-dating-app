@@ -7,7 +7,8 @@ import { apiFetch, API_ENDPOINTS } from '../utils/apiConfig';
 import ProfessionalUrlPreview from '../components/ProfessionalUrlPreview';
 import Navbar from '../components/Navbar';
 
-const API_BASE = 'https://backend-vauju-1.onrender.com';
+// Use environment variable for API URL or fallback to proxy
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 // Helper function to render content with URL previews
 const renderContentWithPreviews = (content) => {

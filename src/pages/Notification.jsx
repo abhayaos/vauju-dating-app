@@ -26,7 +26,7 @@ export default function Notification() {
   const [isRetrying, setIsRetrying] = useState(false);
   const { token } = useAuth();
   
-  const API_BASE = import.meta.env.VITE_API_URL || 'https://backend-vauju-1.onrender.com';
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5005';
 
   // Fetch notifications from API with retry logic
   const fetchNotifications = useCallback(async (attempt = 1) => {
@@ -38,7 +38,7 @@ export default function Notification() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      const response = await fetch(`${API_BASE}/api/notifications`, {
+      const response = await fetch(`${API_BASE}/notifications`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -141,7 +141,7 @@ export default function Notification() {
   // Mark notification as read
   const markAsRead = async (id) => {
     try {
-      const response = await fetch(`${API_BASE}/api/notifications/${id}/read`, {
+      const response = await fetch(`${API_BASE}/notifications/${id}/read`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -169,7 +169,7 @@ export default function Notification() {
   // Mark all notifications as read
   const markAllAsRead = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/notifications/read-all`, {
+      const response = await fetch(`${API_BASE}/notifications/read-all`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -196,7 +196,7 @@ export default function Notification() {
   // Delete notification
   const deleteNotification = async (id) => {
     try {
-      const response = await fetch(`${API_BASE}/api/notifications/${id}`, {
+      const response = await fetch(`${API_BASE}/notifications/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

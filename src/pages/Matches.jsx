@@ -7,7 +7,9 @@ import { getProfileImage, handleImageError, getOptimizedCloudinaryUrl, isCloudin
 import { useAuth } from "../context/AuthContext";
 
 // Base URL for API calls
-const BASE_URL = "https://backend-vauju-1.onrender.com/api";
+// Use environment variable for API URL or fallback to proxy
+// Use environment variable for API URL or fallback to proxy
+const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 /* -------------------------------------------------
    Skeleton Loading Component

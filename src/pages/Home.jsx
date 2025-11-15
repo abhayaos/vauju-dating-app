@@ -8,7 +8,8 @@ import PostModel from '../Models/PostModel';
 import ProfessionalUrlPreview from '../components/ProfessionalUrlPreview';
 import { getProfileImage, handleImageError, getOptimizedCloudinaryUrl, isCloudinaryUrl } from '../utils/imageUtils';
 import { useAuth } from '../context/AuthContext';
-const API_BASE = 'https://backend-vauju-1.onrender.com';
+// Use environment variable for API URL or fallback to proxy
+  const API_BASE = import.meta.env.VITE_API_URL || '/api';
 const getSafeUser = (value) => {
   if (!value) return null;
   try {
@@ -95,7 +96,7 @@ function Home() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_BASE}/api/posts?page=1&limit=20`, {
+      const res = await fetch(`${API_BASE}/posts?page=1&limit=20`, {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       });
       if (!res.ok) {
@@ -134,7 +135,7 @@ function Home() {
         return;
       }
       const response = await fetch(
-        'https://backend-vauju-1.onrender.com/api/matches',
+        `${API_BASE}/matches`,
         {
           method: 'GET',
           headers: {
@@ -189,7 +190,7 @@ function Home() {
     if (pendingLikes[postId]) return;
     try {
       setPendingLikes((prev) => ({ ...prev, [postId]: true }));
-      const res = await fetch(`${API_BASE}/api/posts/${postId}/like`, {
+      const res = await fetch(`${API_BASE}/posts/${postId}/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -294,7 +295,7 @@ function Home() {
     if (pendingComments[postId]) return;
     try {
       setPendingComments((prev) => ({ ...prev, [postId]: true }));
-      const res = await fetch(`${API_BASE}/api/posts/${postId}/comments`, {
+      const res = await fetch(`${API_BASE}/posts/${postId}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

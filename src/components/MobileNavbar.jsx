@@ -24,7 +24,7 @@ function MobileNavbar() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      const response = await fetch(`${API_BASE}/api/notifications`, {
+      const response = await fetch(`${API_BASE}/notifications`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

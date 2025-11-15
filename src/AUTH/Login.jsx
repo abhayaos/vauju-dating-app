@@ -50,8 +50,10 @@ function Login() {
 
     setLoading(true);
     try {
+      // Use environment variable for API URL or fallback to proxy
+      const API_BASE = import.meta.env.VITE_API_URL || "/api";
       const res = await fetch(
-        "https://backend-vauju-1.onrender.com/api/auth/login",
+        `${API_BASE}/auth/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

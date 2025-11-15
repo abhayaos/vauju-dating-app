@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { CheckCircle } from "lucide-react";
-import { validateToken, decodeJWT } from "../utils/auth";
+import { validateToken, decodeJWT, isTokenExpired } from "../utils/auth";
 import { getProfileImage, handleImageError, validateImageFile, getOptimizedCloudinaryUrl, isCloudinaryUrl } from "../utils/imageUtils";
 import { useAuth } from "../context/AuthContext";
 
-const BASE_API = "https://backend-vauju-1.onrender.com/api";
+// Use environment variable for API URL or fallback to proxy
+// Use environment variable for API URL or fallback to proxy
+const BASE_API = import.meta.env.VITE_API_URL || "/api";
 
 // Skeleton component for profile loading state
 const ProfileSkeleton = () => (
@@ -120,10 +122,24 @@ function Profile() {
         let profileData = null;
 
         if (decodedUsername) {
+          // Validate that we have a username
+          if (!decodedUsername.trim()) {
+            setNotFound(true);
+            toast.error("Invalid username provided");
+            setLoading(false);
+            return;
+          }
           url = `${BASE_API}/users/username/${encodeURIComponent(decodedUsername)}`;
           setIsOwnProfile(false);
         } else if (id) {
           // Public profile view by ID
+          // Validate that we have an ID
+          if (!id.trim()) {
+            setNotFound(true);
+            toast.error("Invalid user ID provided");
+            setLoading(false);
+            return;
+          }
           url = `${BASE_API}/users/${encodeURIComponent(id)}`;
           setIsOwnProfile(false);
         } else {
@@ -197,15 +213,15 @@ function Profile() {
             }
           } else if (res.status === 404) {
             // Add retry mechanism for 404 errors
-            if (retryCount < 2) {
-              // Wait 1 second before retrying
+            if (retryCount < 3) {
+              // Wait 1.5 seconds before retrying
               setTimeout(() => {
                 setRetryCount(prev => prev + 1);
-              }, 1000);
+              }, 1500);
               return;
             }
             setNotFound(true);
-            toast.error("Profile not found");
+            toast.error("User profile not found. Please check the username or ID.");
             return;
           } else if (res.status >= 500) {
             // Server error - show more descriptive message
@@ -225,7 +241,12 @@ function Profile() {
         setRetryCount(0); // Reset retry count on success
       } catch (err) {
         console.error("Error fetching profile:", err);
-        toast.error(err.message || "Failed to load profile");
+        // Handle network errors specifically
+        if (err instanceof TypeError && err.message.includes('fetch')) {
+          toast.error("Network error. Please check your connection and try again.");
+        } else {
+          toast.error(err.message || "Failed to load profile");
+        }
         setLoading(false);
       }
     };
@@ -285,7 +306,7 @@ function Profile() {
           <div className="text-5xl mb-4">😕</div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Profile Not Found</h2>
           <p className="text-gray-600 mb-6">
-            The profile you're looking for doesn't exist or may have been removed.
+            The profile you're looking for doesn't exist, may have been removed, or there was a temporary network issue.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
             <button
@@ -308,7 +329,7 @@ function Profile() {
             }}
             className="px-5 py-2.5 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition mb-6"
           >
-            Retry Loading Profile
+            Try Again
           </button>
           {!token && (
             <div className="mt-6">
