@@ -5,24 +5,24 @@ function Home() {
   return (
     <>
       <Helmet>
-        <title>Yugal Matches - Find Real Love | Connect with Like-Minded People</title>
-        <meta name="description" content="Yugal Matches helps you find real love by connecting you with people who share your interests and passions. Discover meaningful relationships today." />
-        <meta name="keywords" content="Yugal Matches, dating app, find love, real relationships, meet people, connections, romance, interests, passions" />
+        <title>Yugal Meet - Connect with Like-Minded People | Coming Soon</title>
+        <meta name="description" content="Yugal Meet is a revolutionary platform connecting people with shared interests and passions. Coming soon to transform how you meet and interact with like-minded individuals." />
+        <meta name="keywords" content="Yugal Meet, dating app, social networking, meet people, connections, relationships, interests, passions" />
         <meta name="author" content="Abhaya Bikram Shahi" />
         <meta name="robots" content="index, follow" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.yugalmeet.com/" />
-        <meta property="og:title" content="Yugal Matches - Find Real Love | Connect with Like-Minded People" />
-        <meta property="og:description" content="Yugal Matches helps you find real love by connecting you with people who share your interests and passions. Discover meaningful relationships today." />
+        <meta property="og:title" content="Yugal Meet - Coming Soon" />
+        <meta property="og:description" content="Yugal Meet is a revolutionary platform connecting people with shared interests and passions. Coming soon to transform how you meet and interact with like-minded individuals." />
         <meta property="og:image" content="/vite.svg" />
         
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://www.yugalmeet.com/" />
-        <meta property="twitter:title" content="Yugal Matches - Find Real Love | Connect with Like-Minded People" />
-        <meta property="twitter:description" content="Yugal Matches helps you find real love by connecting you with people who share your interests and passions. Discover meaningful relationships today." />
+        <meta property="twitter:title" content="Yugal Meet - Coming Soon" />
+        <meta property="twitter:description" content="Yugal Meet is a revolutionary platform connecting people with shared interests and passions. Coming soon to transform how you meet and interact with like-minded individuals." />
         <meta property="twitter:image" content="/vite.svg" />
         
         {/* Additional SEO tags */}
@@ -34,15 +34,15 @@ function Home() {
         <main className="flex-grow flex flex-col items-center justify-center p-4" role="main">
           <div className="text-center max-w-2xl w-full">
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-              Yugal Matches
+              Yugal Meet
             </h1>
             <p className="text-xl md:text-2xl text-indigo-400 font-light animate-pulse mb-16">
-              Find Real Love
+              Coming Soon
             </p>
             
             <div className="mt-8">
               <p className="text-base md:text-lg text-gray-400 mb-12 max-w-lg mx-auto">
-                Connect with people who share your interests and passions to build meaningful relationships.
+                Connect with people who share your interests and passions.
               </p>
               <div className="flex justify-center space-x-3">
                 <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" aria-hidden="true"></div>
@@ -58,7 +58,7 @@ function Home() {
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="text-gray-500 text-sm mb-4 md:mb-0">
-                &copy; {new Date().getFullYear()} Yugal Matches. All rights reserved.
+                &copy; {new Date().getFullYear()} Yugal Meet. All rights reserved.
               </div>
               <div className="flex flex-col items-center mb-4 md:mb-0">
                 <p className="text-gray-500 text-sm">Founded by Abhaya Bikram Shahi</p>
