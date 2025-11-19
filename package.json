@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "sitemap": "node scripts/generate-sitemap.js"
+    "sitemap": "node scripts/generate-sitemap.js",
+    "install:legacy": "npm install --legacy-peer-deps"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",

@@ -1,16 +1,41 @@
-# React + Vite
+# Yugal Meet - Dating App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a modern dating application built with React 19, Vite, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Dependency Conflict Resolution
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This project uses React 19, which may cause dependency conflicts with some packages. To resolve these conflicts, use one of the following approaches:
 
-## React Compiler
+### For Local Development:
+```bash
+npm install --legacy-peer-deps
+# or
+npm run install:legacy
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### For Vercel Deployment:
+The vercel.json file is already configured to use `--legacy-peer-deps` during installation.
 
-## Expanding the ESLint configuration
+## Available Scripts
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run sitemap` - Generate sitemap.xml
+- `npm run install:legacy` - Install dependencies with legacy peer deps
+
+## Project Structure
+
+- `src/pages/Home.jsx` - Main landing page
+- `src/pages/PageNotFound.jsx` - 404 error page
+- `public/robots.txt` - Search engine crawler instructions
+- `public/sitemap.xml` - XML sitemap for SEO
+- `public/ads.txt` - AdSense verification file
+
+## SEO Features
+
+- React Helmet for dynamic meta tags
+- Responsive design for all devices
+- Proper 404 error handling
+- Sitemap generation script
+- robots.txt and ads.txt files
