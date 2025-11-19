@@ -86,9 +86,7 @@ function Support() {
                     <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">Email Support</h3>
                     <p className="text-gray-700 text-center mb-4">We're here to help anytime.</p>
                     <div className="space-y-1 text-center">
-                      <a href="mailto:support@yugalmeet.com" className="text-indigo-600 hover:text-indigo-700 font-medium">
-                        support@yugalmeet.com
-                      </a>
+                     
                       <a href="mailto:aurameetofficial@gmail.com" className="text-indigo-600 hover:text-indigo-700 font-medium block">
                         aurameetofficial@gmail.com
                       </a>
