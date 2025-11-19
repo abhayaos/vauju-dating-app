@@ -11,10 +11,6 @@ node_modules
 dist
 dist-ssr
 *.local
-backend-vauju
-img-vauju-app
-.env
-
 
 # Editor directories and files
 .vscode/*
