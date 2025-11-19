@@ -5,28 +5,38 @@ function Home() {
   return (
     <>
       <Helmet>
-        <title>Yugal Meet - Connect with Like-Minded People | Coming Soon</title>
-        <meta name="description" content="Yugal Meet is a revolutionary platform connecting people with shared interests and passions. Coming soon to transform how you meet and interact with like-minded individuals." />
-        <meta name="keywords" content="Yugal Meet, dating app, social networking, meet people, connections, relationships, interests, passions" />
+        <title>Yugal Meet - Connect with Like-Minded People</title>
+        <meta name="description" content="Join YugalMeet, Nepal's leading dating platform. Meet singles, create meaningful connections, and find love with like-minded individuals." />
+        <meta name="keywords" content="Yugal Meet, dating app, social networking, meet people, connections, relationships, interests, passions, Nepal dating" />
         <meta name="author" content="Abhaya Bikram Shahi" />
         <meta name="robots" content="index, follow" />
+        <meta name="language" content="en" />
+        <meta name="revisit-after" content="7 days" />
+        <meta name="rating" content="General" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.yugalmeet.com/" />
-        <meta property="og:title" content="Yugal Meet - Coming Soon" />
-        <meta property="og:description" content="Yugal Meet is a revolutionary platform connecting people with shared interests and passions. Coming soon to transform how you meet and interact with like-minded individuals." />
-        <meta property="og:image" content="/vite.svg" />
+        <meta property="og:title" content="Yugal Meet - Connect with Like-Minded People" />
+        <meta property="og:description" content="Join YugalMeet, Nepal's leading dating platform. Meet singles, create meaningful connections, and find love with like-minded individuals." />
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:site_name" content="Yugal Meet" />
+        <meta property="og:locale" content="en_US" />
         
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://www.yugalmeet.com/" />
-        <meta property="twitter:title" content="Yugal Meet - Coming Soon" />
-        <meta property="twitter:description" content="Yugal Meet is a revolutionary platform connecting people with shared interests and passions. Coming soon to transform how you meet and interact with like-minded individuals." />
-        <meta property="twitter:image" content="/vite.svg" />
+        <meta property="twitter:title" content="Yugal Meet - Connect with Like-Minded People" />
+        <meta property="twitter:description" content="Join YugalMeet, Nepal's leading dating platform. Meet singles, create meaningful connections, and find love with like-minded individuals." />
+        <meta property="twitter:image" content="/logo.png" />
+        <meta property="twitter:site" content="@yugalmeet" />
         
         {/* Additional SEO tags */}
         <link rel="canonical" href="https://www.yugalmeet.com/" />
+        <meta name="theme-color" content="#4F46E5" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Yugal Meet" />
+        <meta name="application-name" content="Yugal Meet" />
       </Helmet>
       
       <div className="min-h-screen bg-black flex flex-col">
@@ -36,13 +46,13 @@ function Home() {
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
               Yugal Meet
             </h1>
-            <p className="text-xl md:text-2xl text-indigo-400 font-light animate-pulse mb-16">
-              Coming Soon
+            <p className="text-xl md:text-2xl text-indigo-400 font-light mb-16">
+              Nepal's leading dating platform
             </p>
             
             <div className="mt-8">
               <p className="text-base md:text-lg text-gray-400 mb-12 max-w-lg mx-auto">
-                Connect with people who share your interests and passions.
+                Join YugalMeet, Nepal's leading dating platform. Meet singles, create meaningful connections, and find love with like-minded individuals.
               </p>
               <div className="flex justify-center space-x-3">
                 <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" aria-hidden="true"></div>
