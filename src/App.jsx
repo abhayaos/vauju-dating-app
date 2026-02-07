@@ -2,21 +2,28 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './App.css'
 import Home from './pages/Home'
-import Support from './pages/Support'
-import HelpResources from './pages/HelpResources'
-import ResourceDetail from './pages/ResourceDetail'
 import PageNotFound from './pages/PageNotFound'
+import Footer from './components/Footer'
+import Navbar from './components/Navbar'
+import Download from './pages/Download'
+import About from './pages/About'
+import Safety from './pages/Safety'
+import Features from './pages/Features'
 
 function App() {
   return (
     <Router>
+      <Navbar />
+      
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/support" element={<Support />} />
-        <Route path="/help-resources" element={<HelpResources />} />
-        <Route path="/help-resources/:categoryId/:resourceId" element={<ResourceDetail />} />
         <Route path="*" element={<PageNotFound />} />
+        <Route path="/download" element={<Download />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/safety" element={<Safety />} />
+        <Route path="/features" element={<Features />} />
       </Routes>
+      <Footer />
     </Router>
   )
 }

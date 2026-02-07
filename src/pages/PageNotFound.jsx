@@ -11,10 +11,10 @@ function PageNotFound() {
         <meta name="robots" content="noindex, follow" />
       </Helmet>
       
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
         <div className="text-center max-w-2xl w-full">
-          <h1 className="text-6xl md:text-8xl font-bold text-white mb-4">404</h1>
-          <h2 className="text-2xl md:text-3xl font-light text-indigo-400 mb-8">Page Not Found</h2>
+          <h1 className="text-6xl md:text-8xl font-bold text-gray-900 mb-4">404</h1>
+          <h2 className="text-2xl md:text-3xl font-light text-gray-900 mb-8">Page Not Found</h2>
           <p className="text-lg text-gray-400 mb-12">
             Oops! The page you're looking for doesn't exist or has been moved.
           </p>
@@ -27,7 +27,7 @@ function PageNotFound() {
           </Link>
           
           <div className="mt-16">
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-900 text-sm">
               Error code: 404
             </p>
           </div>

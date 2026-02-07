@@ -1,6 +1,7 @@
 import React from 'react'
 import { Helmet } from 'react-helmet-async'
-
+import { Heart, ShieldCheck, Users } from "lucide-react";
+import Preview from '../assets/preview.png'
 function Home() {
   return (
     <>
@@ -37,46 +38,68 @@ function Home() {
       </Helmet>
 
       <div className="min-h-screen bg-white flex flex-col">
-        {/* Main Content */}
-        <main className="flex-grow flex flex-col items-center justify-center p-4" role="main">
-          <div className="text-center max-w-2xl w-full">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
-              Yugal Meet
+  {/* HERO */}
+      <main className="min-h-screen bg-white flex items-center">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+
+          {/* Left Content */}
+          <div>
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight">
+              Find real connections <br />
+              on <span className="text-pink-500">YugalMeet</span>
             </h1>
-            <p className="text-xl md:text-2xl text-indigo-600 font-medium mb-16">
-              Nepal's leading dating platform
+
+            <p className="mt-6 text-lg text-gray-600 max-w-lg">
+              Nepal’s trusted dating platform to meet genuine people, build
+              meaningful relationships, and connect with confidence.
             </p>
 
-            <div className="mt-8">
-              <p className="text-base md:text-lg text-gray-600 mb-12 max-w-lg mx-auto">
-                Join YugalMeet, Nepal's leading dating platform. Meet singles, create meaningful connections, and find love with like-minded individuals.
-              </p>
-              <div className="flex justify-center space-x-3">
-                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" aria-hidden="true"></div>
-                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+            {/* CTA */}
+            <div className="mt-8 flex gap-4">
+              <a
+                href="/download"
+                className="px-6 py-3 rounded-full bg-pink-500 text-white font-semibold hover:bg-pink-600 transition shadow"
+              >
+                Get the App
+              </a>
+              <a
+                href="/features"
+                className="px-6 py-3 rounded-full border border-gray-300 text-gray-700 font-semibold hover:border-pink-500 hover:text-pink-500 transition"
+              >
+                Learn More
+              </a>
+            </div>
+
+            {/* Trust Signals */}
+            <div className="mt-10 flex gap-8 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <Users size={18} className="text-pink-500" />
+                Real profiles
+              </div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={18} className="text-pink-500" />
+                Safe & secure
+              </div>
+              <div className="flex items-center gap-2">
+                <Heart size={18} className="text-pink-500" />
+                Meaningful matches
               </div>
             </div>
           </div>
-        </main>
 
-        {/* Footer */}
-        <footer className="py-6 px-3 border-t border-gray-300" role="contentinfo">
-        
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="text-gray-600 text-sm mb-4 md:mb-0">
-                &copy; {new Date().getFullYear()} Yugal Meet. All rights reserved.
-              </div>
-              <div className="flex flex-col items-center mb-4 md:mb-0">
-                <p className="text-gray-600 text-sm">Founded by Abhaya Bikram Shahi</p>
-              </div>
-
-            
-            <div className="mt-4 text-center md:text-right text-gray-500 text-xs">
-              <p>v1.0.0</p>
-            </div>
+          {/* Right Visual */}
+          <div className="hidden md:flex justify-center">
+            <img
+              src={Preview}
+              alt="YugalMeet App Preview"
+              className="w-full h-80` rounded-2xl shadow-lg"
+            />
           </div>
-        </footer>
+
+        </div>
+      </main>
+
+     
       </div>
     </>
   )
