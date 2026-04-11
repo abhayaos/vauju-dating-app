@@ -1,108 +1,109 @@
-import React from 'react'
-import { Helmet } from 'react-helmet-async'
-import { Heart, ShieldCheck, Users } from "lucide-react";
-import Preview from '../assets/preview.png'
-function Home() {
+import React, { useState } from "react";
+import TinderCard from "react-tinder-card";
+
+const users = [
+  {
+    name: "Riya",
+    age: 21,
+    img: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
+  },
+  {
+    name: "Sana",
+    age: 22,
+    img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2",
+  },
+  {
+    name: "Aarav",
+    age: 23,
+    img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+  },
+];
+
+export default function Home() {
+  const [currentIndex, setCurrentIndex] = useState(users.length - 1);
+
+  const swiped = (direction, name) => {
+    console.log(`${name} swiped ${direction}`);
+    setCurrentIndex((prev) => prev - 1);
+  };
+
+  const outOfFrame = (name) => {
+    console.log(`${name} left screen`);
+  };
+
+  const swipe = (dir) => {
+    if (currentIndex >= 0) {
+      const user = users[currentIndex];
+      console.log(`${user.name} swiped ${dir}`);
+      setCurrentIndex((prev) => prev - 1);
+    }
+  };
+
   return (
-    <>
-      <Helmet>
-        <title>Yugal Meet - Connect with Like-Minded People</title>
-        <meta name="description" content="Join YugalMeet, Nepal's leading dating platform. Meet singles, create meaningful connections, and find love with like-minded individuals." />
-        <meta name="keywords" content="Yugal Meet, dating app, social networking, meet people, connections, relationships, interests, passions, Nepal dating" />
-        <meta name="author" content="Abhaya Bikram Shahi" />
-        <meta name="robots" content="index, follow" />
-        <meta name="language" content="en" />
-        <meta name="revisit-after" content="7 days" />
-        <meta name="rating" content="General" />
-
-        {/* Open Graph */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.yugalmeet.com/" />
-        <meta property="og:title" content="Yugal Meet - Connect with Like-Minded People" />
-        <meta property="og:description" content="Join YugalMeet, Nepal's leading dating platform. Meet singles, create meaningful connections, and find love with like-minded individuals." />
-        <meta property="og:image" content="/logo.png" />
-        <meta property="og:site_name" content="Yugal Meet" />
-        <meta property="og:locale" content="en_US" />
-
-        {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://www.yugalmeet.com/" />
-        <meta property="twitter:title" content="Yugal Meet - Connect with Like-Minded People" />
-        <meta property="twitter:description" content="Join YugalMeet, Nepal's leading dating platform. Meet singles, create meaningful connections, and find love with like-minded individuals." />
-        <meta property="twitter:image" content="/logo.png" />
-        <meta property="twitter:site" content="@yugalmeet" />
-
-        {/* Additional SEO */}
-        <link rel="canonical" href="https://www.yugalmeet.com/" />
-        <meta name="theme-color" content="#ffffff" />
-      </Helmet>
-
-      <div className="min-h-screen bg-white flex flex-col">
-  {/* HERO */}
-      <main className="min-h-screen bg-white flex items-center">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-
-          {/* Left Content */}
-          <div>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight">
-              Find real connections <br />
-              on <span className="text-pink-500">YugalMeet</span>
-            </h1>
-
-            <p className="mt-6 text-lg text-gray-600 max-w-lg">
-              Nepal’s trusted dating platform to meet genuine people, build
-              meaningful relationships, and connect with confidence.
-            </p>
-
-            {/* CTA */}
-            <div className="mt-8 flex gap-4">
-              <a
-                href="/download"
-                className="px-6 py-3 rounded-full bg-pink-500 text-white font-semibold hover:bg-pink-600 transition shadow"
-              >
-                Get the App
-              </a>
-              <a
-                href="/features"
-                className="px-6 py-3 rounded-full border border-gray-300 text-gray-700 font-semibold hover:border-pink-500 hover:text-pink-500 transition"
-              >
-                Learn More
-              </a>
-            </div>
-
-            {/* Trust Signals */}
-            <div className="mt-10 flex gap-8 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <Users size={18} className="text-pink-500" />
-                Real profiles
-              </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={18} className="text-pink-500" />
-                Safe & secure
-              </div>
-              <div className="flex items-center gap-2">
-                <Heart size={18} className="text-pink-500" />
-                Meaningful matches
-              </div>
-            </div>
-          </div>
-
-          {/* Right Visual */}
-          <div className="hidden md:flex justify-center">
-            <img
-              src={Preview}
-              alt="YugalMeet App Preview"
-              className="w-full h-80` rounded-2xl shadow-lg"
-            />
-          </div>
-
-        </div>
-      </main>
-
-     
+    <div className="h-screen w-full bg-gradient-to-b from-pink-50 to-white flex flex-col items-center justify-center overflow-hidden">
+      
+      {/* Header */}
+      <div className="absolute top-5 text-xl font-bold text-pink-500">
+        💘 YugalMeet
       </div>
-    </>
-  )
-}
 
-export default Home
+      {/* Card Stack */}
+      <div className="relative w-full flex justify-center items-center">
+        {users.map((user, index) => (
+          <TinderCard
+            key={user.name}
+            className={`absolute`}
+            onSwipe={(dir) => swiped(dir, user.name)}
+            onCardLeftScreen={() => outOfFrame(user.name)}
+            preventSwipe={["up", "down"]}
+          >
+            <div
+              className="
+                bg-white rounded-3xl shadow-xl overflow-hidden
+                flex flex-col
+                transition-all duration-300
+                w-[90vw] h-[70vh]
+                md:w-[320px] md:h-[500px]
+                hover:scale-[1.02]
+              "
+            >
+              {/* Image */}
+              <img
+                src={user.img}
+                alt={user.name}
+                className="w-full h-[75%] object-cover"
+              />
+
+              {/* Info */}
+              <div className="p-4 flex flex-col gap-1">
+                <h2 className="text-xl font-bold">
+                  {user.name}, {user.age}
+                </h2>
+                <p className="text-gray-500 text-sm">
+                  Swipe right to connect 💕
+                </p>
+              </div>
+            </div>
+          </TinderCard>
+        ))}
+      </div>
+
+      {/* Desktop Buttons (hidden on mobile) */}
+      <div className="hidden md:flex gap-6 absolute bottom-10">
+        <button
+          onClick={() => swipe("left")}
+          className="w-14 h-14 rounded-full bg-red-500 text-white text-xl shadow-lg hover:scale-110 transition"
+        >
+          ✖
+        </button>
+
+        <button
+          onClick={() => swipe("right")}
+          className="w-14 h-14 rounded-full bg-green-500 text-white text-xl shadow-lg hover:scale-110 transition"
+        >
+          ♥
+        </button>
+      </div>
+    </div>
+  );
+}
