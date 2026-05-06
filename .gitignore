@@ -11,7 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
+<<<<<<< HEAD
 backend-vauju
+=======
+>>>>>>> d05df1cbc5faf0b202e30bf11847e4b4f481e39b
 
 # Editor directories and files
 .vscode/*
