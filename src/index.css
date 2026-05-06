@@ -1,12 +1,7 @@
-<<<<<<< HEAD
-@import 'tailwindcss';
+@import "tailwindcss";
 
-/* index.css */
 html, body {
   scroll-behavior: smooth;
   overflow-x: hidden;
 
 }
-=======
-@import 'tailwindcss'
->>>>>>> d05df1cbc5faf0b202e30bf11847e4b4f481e39b
