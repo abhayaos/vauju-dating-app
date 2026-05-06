@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.yugalmeet.com/sitemap.xml
+
+User-agent: *
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
+Disallow: /dashboard/
+Disallow: /profile/edit/
+
+# Crawl-delay for search engines
+Crawl-delay: 10
+
+# Host directive
+Host: https://www.yugalmeet.com
